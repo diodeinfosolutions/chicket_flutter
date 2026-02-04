@@ -42,7 +42,7 @@ class ClearCartSheet extends StatelessWidget {
           ),
           SizedBox(height: 40.h),
           Text(
-            'WOULD YOU LIKE TO CLEAR THE ITEMS\nIN THE CART?',
+            'clear_cart_question'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Oswald',
@@ -68,7 +68,7 @@ class ClearCartSheet extends StatelessWidget {
                     padding: EdgeInsets.zero,
                   ),
                   child: Text(
-                    'NO',
+                    'no'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,
@@ -97,7 +97,7 @@ class ClearCartSheet extends StatelessWidget {
                     padding: EdgeInsets.zero,
                   ),
                   child: Text(
-                    'DELETE',
+                    'delete'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/order_controller.dart';
 import '../../gen/assets.gen.dart';
 import '../../theme/colors.dart';
 import '../menu/widgets/cart_bottom_bar.dart';
@@ -16,6 +17,7 @@ class MobScreen extends StatefulWidget {
 
 class _MobScreenState extends State<MobScreen> {
   String _phoneNumber = '';
+  final OrderController _orderController = Get.find<OrderController>();
 
   static final double _keyWidth = 116.w;
   static final double _keyHeight = 116.h;
@@ -83,7 +85,7 @@ class _MobScreenState extends State<MobScreen> {
                   ),
                   SizedBox(height: 32.h),
                   Text(
-                    'RECEIVE E-RECEIPT',
+                    'receive_e_receipt'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 51.sp,
@@ -93,7 +95,7 @@ class _MobScreenState extends State<MobScreen> {
                   ),
                   SizedBox(height: 13.h),
                   Text(
-                    'YOUR E-RECEIPT WILL BE SENT VIA WHATSAPP/SMS',
+                    'e_receipt_sent_via'.tr,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Oswald',
@@ -109,7 +111,7 @@ class _MobScreenState extends State<MobScreen> {
                       Assets.svg.leaf.svg(height: 22.w, width: 22.w),
                       SizedBox(width: 6.w),
                       Text(
-                        'THANKS FOR HELPING US GO PAPERLESS',
+                        'thanks_paperless'.tr,
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 22.sp,
@@ -165,7 +167,11 @@ class _MobScreenState extends State<MobScreen> {
                     width: _numpadWidth,
                     child: ElevatedButton(
                       onPressed: _phoneNumber.length == 8
-                          ? () => Get.toNamed(Routes.selectPayment)
+                          ? () {
+                              // Store phone number with country code
+                              _orderController.setCustomerPhone('+973$_phoneNumber');
+                              Get.toNamed(Routes.selectPayment);
+                            }
                           : null,
 
                       style: ElevatedButton.styleFrom(
@@ -184,7 +190,7 @@ class _MobScreenState extends State<MobScreen> {
                         padding: EdgeInsets.symmetric(vertical: 24.h),
                       ),
                       child: Text(
-                        'CONTINUE TO PAYMENT',
+                        'continue_to_payment'.tr,
                         style: TextStyle(
                           fontFamily: 'Oswald',
                           fontSize: 32.sp,
@@ -211,7 +217,7 @@ class _MobScreenState extends State<MobScreen> {
                         padding: EdgeInsets.symmetric(vertical: 24.h),
                       ),
                       child: Text(
-                        'RETURN TO CART',
+                        'return_to_cart'.tr,
                         style: TextStyle(
                           fontFamily: 'Oswald',
                           fontSize: 32.sp,

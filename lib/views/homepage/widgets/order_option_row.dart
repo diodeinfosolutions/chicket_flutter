@@ -28,7 +28,7 @@ class OrderOptionsRow extends StatelessWidget {
                   orderController.selectedType.value == OrderType.dineIn,
               onTap: () => orderController.selectOrderType(OrderType.dineIn),
               isTabletPortrait: isTabletPortrait,
-              label: 'DINE IN',
+              label: 'dine_in'.tr,
               child: Assets.svg.dinein.svg(height: iconSize, width: iconSize),
             ),
             Container(
@@ -42,7 +42,7 @@ class OrderOptionsRow extends StatelessWidget {
                   orderController.selectedType.value == OrderType.takeaway,
               onTap: () => orderController.selectOrderType(OrderType.takeaway),
               isTabletPortrait: isTabletPortrait,
-              label: 'TAKEAWAY',
+              label: 'takeaway'.tr,
               child: Assets.svg.takeaway.svg(height: iconSize, width: iconSize),
             ),
           ],

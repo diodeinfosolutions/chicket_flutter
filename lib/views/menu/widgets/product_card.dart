@@ -1,21 +1,24 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
-import '../../../gen/assets.gen.dart';
-import '../../../models/menu_model.dart';
+import '../../../api/models/menu_models.dart';
 import 'addon_bottom_sheet.dart';
 import 'repeat_or_customize_sheet.dart';
 
 class ProductCard extends StatelessWidget {
-  final Product product;
+  final MenuItem product;
 
   const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
+    final price = (product.currentPrice ?? 0).toDouble();
+    final description = product.description ?? '';
+    final productName = product.name ?? '';
 
     return Container(
       decoration: BoxDecoration(
@@ -37,19 +40,35 @@ class ProductCard extends StatelessWidget {
             borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
             child: AspectRatio(
               aspectRatio: 1.2,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(product.image, fit: BoxFit.cover),
-                  Positioned(
-                    top: 8.h,
-                    right: 8.w,
-                    child: product.foodType == FoodType.veg
-                        ? Assets.svg.veg.svg(width: 18.w, height: 18.w)
-                        : Assets.svg.non.svg(width: 18.w, height: 18.w),
-                  ),
-                ],
-              ),
+              child: product.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: product.imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) => Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.restaurant,
+                          size: 48.w,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      errorWidget: (_, _, _) => Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.restaurant,
+                          size: 48.w,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      child: Icon(
+                        Icons.restaurant,
+                        size: 48.w,
+                        color: Colors.grey,
+                      ),
+                    ),
             ),
           ),
           Padding(
@@ -58,24 +77,28 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  product.name.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Oswald',
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFFF7BE26),
+                SizedBox(
+                  height: 18.sp * 1.3 * 2,
+                  child: Text(
+                    productName.toUpperCase(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Oswald',
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFF7BE26),
+                      height: 1.3,
+                    ),
                   ),
                 ),
                 SizedBox(height: 8.h),
                 SizedBox(
-                  height: 12.sp * 1.2 * 3,
+                  height: 12.sp * 1.3 * 4,
                   child: Text(
-                    product.description,
-                    maxLines: 3,
+                    description,
+                    maxLines: 4,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.left,
                     style: TextStyle(
@@ -83,13 +106,13 @@ class ProductCard extends StatelessWidget {
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
                       color: const Color(0xFF757575),
-                      height: 1.2,
+                      height: 1.3,
                     ),
                   ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'BHD ${product.price.toStringAsFixed(3)}',
+                  'BHD ${price.toStringAsFixed(3)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Oswald',
@@ -99,7 +122,7 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                _buildCartButton(context, orderController),
+                _buildCartButton(context, orderController, price, productName),
               ],
             ),
           ),
@@ -111,14 +134,16 @@ class ProductCard extends StatelessWidget {
   Widget _buildCartButton(
     BuildContext context,
     OrderController orderController,
+    double price,
+    String productName,
   ) {
-    final hasAddons = product.addonGroups.isNotEmpty;
+    final hasModifiers = product.modifierGroups?.isNotEmpty ?? false;
 
     return Obx(() {
       final totalQty = orderController.getProductQuantity(product.id);
 
       final cartIndexNoAddons = orderController.cart.indexWhere(
-        (e) => e['productId'] == product.id && (e['addons'] as Map).isEmpty,
+        (e) => e['productId'] == product.id && ((e['modifiers'] as Map?)?.isEmpty ?? true),
       );
 
       if (totalQty > 0) {
@@ -127,7 +152,7 @@ class ProductCard extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (hasAddons) {
+                  if (hasModifiers) {
                     final lastIndex = orderController.cart.lastIndexWhere(
                       (e) => e['productId'] == product.id,
                     );
@@ -188,7 +213,7 @@ class ProductCard extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (hasAddons) {
+                  if (hasModifiers) {
                     showRepeatOrCustomizeSheet(context, product);
                   } else {
                     orderController.increaseQty(cartIndexNoAddons);
@@ -223,13 +248,13 @@ class ProductCard extends StatelessWidget {
         height: 64.h,
         child: ElevatedButton(
           onPressed: () {
-            if (hasAddons) {
+            if (hasModifiers) {
               showAddonBottomSheet(context, product);
             } else {
               orderController.addToCart(
                 productId: product.id,
-                name: product.name,
-                price: product.price,
+                name: productName,
+                price: price,
               );
             }
           },
@@ -243,7 +268,7 @@ class ProductCard extends StatelessWidget {
             ),
           ),
           child: Text(
-            'ADD TO CART',
+            'add_to_cart'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: 16.sp,

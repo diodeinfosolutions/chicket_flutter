@@ -78,7 +78,7 @@ class CartBottomBar extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'ITEMS ADDED TO YOUR CART',
+                                  'items_added_to_cart'.tr,
                                   style: TextStyle(
                                     fontFamily: 'Oswald',
                                     fontSize: 20.sp,
@@ -93,7 +93,7 @@ class CartBottomBar extends StatelessWidget {
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
                                     Text(
-                                      'TOTAL:',
+                                      'total'.tr,
                                       style: TextStyle(
                                         fontFamily: 'Oswald',
                                         fontSize: 24.sp,
@@ -116,7 +116,7 @@ class CartBottomBar extends StatelessWidget {
                               ],
                             )
                           : Text(
-                              'Items has been added to the cart',
+                              'items_added'.tr,
                               style: TextStyle(
                                 fontFamily: 'Oswald',
                                 fontSize: 24.sp,
@@ -150,7 +150,7 @@ class CartBottomBar extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'CANCEL ORDER',
+                    'cancel_order'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,
@@ -173,7 +173,7 @@ class CartBottomBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
-                    'PLACE ORDER',
+                    'proceed'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,

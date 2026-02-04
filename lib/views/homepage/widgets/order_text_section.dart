@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 import '../../../theme/colors.dart';
 
@@ -18,7 +19,7 @@ class OrderTextSection extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            "ORDER HERE",
+            'order_here'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: titleFontSize,
@@ -30,7 +31,7 @@ class OrderTextSection extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            "TO SKIP THE QUEUE",
+            'to_skip_queue'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: subtitleFontSize,

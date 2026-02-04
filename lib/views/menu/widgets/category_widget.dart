@@ -1,10 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../models/menu_model.dart';
+import '../../../api/models/menu_models.dart';
 
 class CategoryWidget extends StatelessWidget {
-  final Category category;
+  final MenuItemCategory category;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -17,6 +18,9 @@ class CategoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = category.buttonImageUrl != null && category.buttonImageUrl!.isNotEmpty;
+    final categoryName = category.name ?? '';
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
@@ -46,16 +50,22 @@ class CategoryWidget extends StatelessWidget {
                 SizedBox(
                   width: 56.w,
                   height: 56.w,
-                  child: category.icon != null
-                      ? category.icon!.svg(
+                  child: hasImage
+                      ? CachedNetworkImage(
+                          imageUrl: category.buttonImageUrl!,
                           width: 56.w,
                           height: 56.w,
-                          colorFilter: isSelected
-                              ? const ColorFilter.mode(
-                                  Color(0xFFDD2229),
-                                  BlendMode.srcIn,
-                                )
-                              : null,
+                          fit: BoxFit.contain,
+                          placeholder: (context, url) => Icon(
+                            Icons.restaurant_menu_outlined,
+                            size: 56.w,
+                            color: const Color(0xFF283034),
+                          ),
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.restaurant_menu_outlined,
+                            size: 56.w,
+                            color: const Color(0xFF283034),
+                          ),
                         )
                       : Icon(
                           Icons.restaurant_menu_outlined,
@@ -69,7 +79,7 @@ class CategoryWidget extends StatelessWidget {
                 SizedBox(
                   height: 40.h,
                   child: Text(
-                    category.name.toUpperCase(),
+                    categoryName.toUpperCase(),
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 16.sp,

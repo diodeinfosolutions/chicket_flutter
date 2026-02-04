@@ -1,46 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
+import '../../../controllers/language_controller.dart';
 import '../../../theme/colors.dart';
 
-enum AppLanguage { english, arabic }
-
-class LanguageSelectorRow extends StatefulWidget {
+class LanguageSelectorRow extends StatelessWidget {
   final bool isTabletPortrait;
 
   const LanguageSelectorRow({super.key, this.isTabletPortrait = false});
 
   @override
-  State<LanguageSelectorRow> createState() => _LanguageSelectorRowState();
-}
-
-class _LanguageSelectorRowState extends State<LanguageSelectorRow> {
-  AppLanguage _selectedLanguage = AppLanguage.english;
-
-  void _handleSelection(AppLanguage language) {
-    setState(() {
-      _selectedLanguage = language;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final fontSize = widget.isTabletPortrait ? 24.sp : 36.sp;
-    final dividerHeight = widget.isTabletPortrait ? 28.h : 40.h;
-    final horizontalMargin = widget.isTabletPortrait ? 16.w : 24.w;
+    final languageController = Get.find<LanguageController>();
+    final fontSize = isTabletPortrait ? 24.sp : 36.sp;
+    final dividerHeight = isTabletPortrait ? 28.h : 40.h;
+    final horizontalMargin = isTabletPortrait ? 16.w : 24.w;
 
-    return Row(
+    return Obx(() => Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GestureDetector(
-          onTap: () => _handleSelection(AppLanguage.english),
+          onTap: () => languageController.setEnglish(),
           child: Text(
-            'ENGLISH',
+            'english'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: fontSize,
               fontWeight: FontWeight.w700,
-              color: _selectedLanguage == AppLanguage.english
+              color: languageController.isEnglish
                   ? AppColors.RED
                   : AppColors.BLACK,
             ),
@@ -53,20 +41,20 @@ class _LanguageSelectorRowState extends State<LanguageSelectorRow> {
           color: const Color(0xFFD9D9D9),
         ),
         GestureDetector(
-          onTap: () => _handleSelection(AppLanguage.arabic),
+          onTap: () => languageController.setArabic(),
           child: Text(
-            'عربي',
+            'arabic'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: fontSize,
               fontWeight: FontWeight.w700,
-              color: _selectedLanguage == AppLanguage.arabic
+              color: languageController.isArabic
                   ? AppColors.RED
                   : AppColors.BLACK,
             ),
           ),
         ),
       ],
-    );
+    ));
   }
 }

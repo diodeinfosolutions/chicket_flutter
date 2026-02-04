@@ -5,6 +5,8 @@ import 'package:chicket/routes.dart';
 import 'package:chicket/gen/assets.gen.dart';
 import 'package:chicket/theme/colors.dart';
 import 'package:chicket/controllers/idle_controller.dart';
+import 'package:chicket/controllers/syrve_controller.dart';
+import 'package:chicket/services/kiosk_config_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,6 +17,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   late final IdleController _idleController;
+  late final KioskConfigService _configService;
+  late final SyrveController _syrveController;
   late final bool _isFirstLaunch;
   late final GifController _gifController;
 
@@ -22,8 +26,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _idleController = Get.find<IdleController>();
+    _configService = Get.find<KioskConfigService>();
+    _syrveController = Get.find<SyrveController>();
     _isFirstLaunch = _idleController.isFirstLaunch.value;
     _gifController = GifController();
+
+    if (_configService.isConfigured) {
+      _syrveController.initialize();
+    }
   }
 
   @override
@@ -35,6 +45,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void _onGifFinish() {
     if (_isFirstLaunch && mounted) {
       _idleController.onFirstLaunchComplete();
+      _navigateToNextScreen();
+    }
+  }
+
+  void _navigateToNextScreen() {
+    if (!_configService.isConfigured) {
+      Get.offAllNamed(Routes.setup);
+    } else {
       Get.offAllNamed(Routes.home);
     }
   }

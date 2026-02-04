@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../controllers/order_controller.dart';
+import '../../controllers/syrve_controller.dart';
 import '../../gen/assets.gen.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
@@ -13,192 +15,217 @@ class ConfirmedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderNumber = '158';
-    final savedAmount = '2.000';
+    final syrveController = Get.find<SyrveController>();
+    final orderController = Get.find<OrderController>();
 
-    return Scaffold(
-      backgroundColor: AppColors.WHITE,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: .center,
-                children: [
-                  Container(
-                    width: 220.w,
-                    height: 220.w,
-                    decoration: BoxDecoration(
-                      color: AppColors.GREEN.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Assets.svg.orderConfirmed.svg(
-                        width: 120.w,
-                        height: 120.w,
+    final orderResponse = syrveController.lastOrderResponse.value;
+    final orderDetails = orderResponse?.orderInfo?.order;
+    final orderNumber = orderDetails?.number?.toString() ?? '-';
+    final orderId = orderResponse?.orderInfo?.id ?? '';
+
+    final discounts = orderDetails?.discounts ?? [];
+    final totalSavings = discounts.fold<num>(0, (sum, d) => sum + (d.sum ?? 0));
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.WHITE,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 220.w,
+                      height: 220.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.GREEN.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Assets.svg.orderConfirmed.svg(
+                          width: 120.w,
+                          height: 120.w,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 48.h),
-                  Text(
-                    'YAY!\nYOUR ORDER IS CONFIRMED',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 52.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.GREEN,
+                    SizedBox(height: 48.h),
+                    Text(
+                      'yay_order_confirmed'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Oswald',
+                        fontSize: 52.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.GREEN,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'GREAT! YOU SAVED BHD $savedAmount ON THIS ORDER',
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.GREY,
-                    ),
-                  ),
-                  SizedBox(height: 40.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    if (totalSavings > 0) ...[
+                      SizedBox(height: 16.h),
                       Text(
-                        'ORDER NUMBER',
+                        'saved_on_order'.trParams({
+                          'amount': totalSavings.toStringAsFixed(3),
+                        }),
                         style: TextStyle(
                           fontFamily: 'Oswald',
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.BLACK,
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 38.w,
-                          vertical: 24.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x4DF7BE26),
-                          borderRadius: BorderRadius.circular(30.r),
-                          border: Border.all(
-                            color: AppColors.YELLOW,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Text(
-                          orderNumber,
-                          style: TextStyle(
-                            fontFamily: 'Oswald',
-                            fontSize: 48.sp,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.BLACK,
-                          ),
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.GREY,
                         ),
                       ),
                     ],
-                  ),
-                  SizedBox(height: 40.h),
-                  Container(
-                    padding: EdgeInsets.all(32.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.WHITE,
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(color: AppColors.GREY_LIGHT, width: 1),
-                    ),
-                    child: Column(
+                    SizedBox(height: 40.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        QrImageView(
-                          data: 'https://chicket.com/receipt/$orderNumber',
-                          version: QrVersions.auto,
-                          size: 180.w,
-                          backgroundColor: AppColors.WHITE,
-                        ),
-                        SizedBox(height: 24.h),
-                        RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontFamily: 'Oswald',
-                              fontSize: 28.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'SCAN FOR ',
-                                style: TextStyle(color: AppColors.GREY),
-                              ),
-                              TextSpan(
-                                text: 'E-RECEIPT',
-                                style: TextStyle(color: AppColors.GREEN),
-                              ),
-                            ],
+                        Text(
+                          'order_number'.tr,
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.BLACK,
                           ),
                         ),
-                        SizedBox(height: 8.h),
-                        RichText(
-                          text: TextSpan(
+                        SizedBox(width: 16.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 38.w,
+                            vertical: 24.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x4DF7BE26),
+                            borderRadius: BorderRadius.circular(30.r),
+                            border: Border.all(
+                              color: AppColors.YELLOW,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            orderNumber,
                             style: TextStyle(
                               fontFamily: 'Oswald',
-                              fontSize: 24.sp,
+                              fontSize: 48.sp,
                               fontWeight: FontWeight.w500,
+                              color: AppColors.BLACK,
                             ),
-                            children: [
-                              TextSpan(
-                                text: 'E-RECEIPT ',
-                                style: TextStyle(color: AppColors.GREEN),
-                              ),
-                              TextSpan(
-                                text: 'SENT TO YOUR NUMBER',
-                                style: TextStyle(color: AppColors.GREY),
-                              ),
-                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 40.h),
-                  Text(
-                    'COLLECT YOUR ORDER\nAT THE COUNTER WHEN IT\'S READY',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.BLACK,
-                    ),
-                  ),
-                  SizedBox(height: 32.h),
-                  GestureDetector(
-                    onTap: () {
-                      Get.offAllNamed(Routes.home);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 26.w,
-                        vertical: 19.h,
-                      ),
+                    SizedBox(height: 40.h),
+                    Container(
+                      padding: EdgeInsets.all(32.w),
                       decoration: BoxDecoration(
-                        color: AppColors.BROWN,
-                        borderRadius: BorderRadius.circular(4.r),
+                        color: AppColors.WHITE,
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(
+                          color: AppColors.GREY_LIGHT,
+                          width: 1,
+                        ),
                       ),
-                      child: Text(
-                        'THANK YOU !',
-                        style: TextStyle(
-                          fontFamily: 'Oswald',
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.YELLOW,
+                      child: Column(
+                        children: [
+                          QrImageView(
+                            data: orderId.isNotEmpty
+                                ? 'https://chicket.com/receipt/$orderId'
+                                : 'https://chicket.com/order/$orderNumber',
+                            version: QrVersions.auto,
+                            size: 180.w,
+                            backgroundColor: AppColors.WHITE,
+                          ),
+                          SizedBox(height: 24.h),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontFamily: 'Oswald',
+                                fontSize: 28.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'scan_for'.tr,
+                                  style: TextStyle(color: AppColors.GREY),
+                                ),
+                                TextSpan(
+                                  text: 'e_receipt'.tr,
+                                  style: TextStyle(color: AppColors.GREEN),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontFamily: 'Oswald',
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: 'e_receipt'.tr,
+                                  style: TextStyle(color: AppColors.GREEN),
+                                ),
+                                TextSpan(
+                                  text: ' ${'sent_to_number'.tr}',
+                                  style: TextStyle(color: AppColors.GREY),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 40.h),
+                    Text(
+                      'collect_order'.tr,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Oswald',
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.BLACK,
+                      ),
+                    ),
+                    SizedBox(height: 32.h),
+                    GestureDetector(
+                      onTap: () {
+                        // Clear cart and reset order data
+                        orderController.resetSelection();
+                        Get.offAllNamed(Routes.home);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 26.w,
+                          vertical: 19.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.BROWN,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Text(
+                          'thank_you'.tr,
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.YELLOW,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const FooterSection(),
-          ],
+              const FooterSection(),
+            ],
+          ),
         ),
       ),
     );

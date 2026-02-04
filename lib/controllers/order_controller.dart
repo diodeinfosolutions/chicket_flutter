@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:chicket/routes.dart';
-import 'package:chicket/models/menu_model.dart';
+import 'package:chicket/api/models/menu_models.dart';
+import 'package:chicket/api/models/payment_models.dart';
+import 'package:chicket/api/models/order_type_models.dart' as api;
 
 enum OrderType { dineIn, takeaway }
 
@@ -9,9 +11,19 @@ class OrderController extends GetxController {
 
   final RxList<Map<String, dynamic>> cart = <Map<String, dynamic>>[].obs;
 
-  final Rx<Product?> currentProduct = Rx<Product?>(null);
-  final RxMap<String, Set<String>> selectedAddons = <String, Set<String>>{}.obs;
+  final Rx<MenuProduct?> currentProduct = Rx<MenuProduct?>(null);
+  final Rx<MenuItem?> currentMenuItem = Rx<MenuItem?>(null);
+  final RxMap<String, Set<String>> selectedModifiers =
+      <String, Set<String>>{}.obs;
+  final RxMap<String, Map<String, dynamic>> modifierInfo =
+      <String, Map<String, dynamic>>{}.obs;
   final RxInt addonQuantity = 1.obs;
+  double _basePrice = 0.0;
+
+  // Order flow data
+  final RxString customerPhone = ''.obs;
+  final Rx<PaymentType?> selectedPaymentType = Rx<PaymentType?>(null);
+  final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
 
   void selectOrderType(OrderType type) {
     if (selectedType.value == type) {
@@ -27,45 +39,119 @@ class OrderController extends GetxController {
   void resetSelection() {
     selectedType.value = null;
     cart.clear();
+    customerPhone.value = '';
+    selectedPaymentType.value = null;
+    selectedApiOrderType.value = null;
     resetAddonSelection();
   }
 
-  void initAddonSelection(Product product) {
+  // Set customer phone number (from MOB screen)
+  void setCustomerPhone(String phone) {
+    customerPhone.value = phone;
+  }
+
+  // Set selected payment type (from Select Payment screen)
+  void setPaymentType(PaymentType paymentType) {
+    selectedPaymentType.value = paymentType;
+  }
+
+  // Set API order type based on local order type selection
+  void setApiOrderType(api.OrderType orderType) {
+    selectedApiOrderType.value = orderType;
+  }
+
+  // Get the orderServiceType for API based on local selection
+  String get orderServiceType {
+    // For kiosk orders, typically "DeliveryByCourier" for takeaway, "Common" for dine-in
+    // But for self-service kiosk, "DeliveryByClient" is common
+    switch (selectedType.value) {
+      case OrderType.dineIn:
+        return 'Common'; // Restaurant order (dine-in)
+      case OrderType.takeaway:
+        return 'DeliveryByClient'; // Self-pickup/takeaway
+      default:
+        return 'Common';
+    }
+  }
+
+  void initModifierSelection(MenuProduct product) {
     currentProduct.value = product;
+    currentMenuItem.value = null;
     addonQuantity.value = 1;
-    selectedAddons.clear();
-    for (final group in product.addonGroups) {
-      selectedAddons[group.id] = <String>{};
+    selectedModifiers.clear();
+    modifierInfo.clear();
+    _basePrice = (product.currentPrice ?? 0).toDouble();
+
+    for (final groupMod in product.groupModifiers ?? []) {
+      selectedModifiers[groupMod.id] = <String>{};
+    }
+  }
+
+  void initModifierSelectionForMenuItem(MenuItem item) {
+    currentProduct.value = null;
+    currentMenuItem.value = item;
+    addonQuantity.value = 1;
+    selectedModifiers.clear();
+    modifierInfo.clear();
+    _basePrice = (item.currentPrice ?? 0).toDouble();
+
+    for (final modGroup in item.modifierGroups ?? []) {
+      if (modGroup.id != null) {
+        selectedModifiers[modGroup.id!] = <String>{};
+      }
     }
   }
 
   void resetAddonSelection() {
     currentProduct.value = null;
-    selectedAddons.clear();
+    currentMenuItem.value = null;
+    selectedModifiers.clear();
+    modifierInfo.clear();
     addonQuantity.value = 1;
+    _basePrice = 0.0;
   }
 
-  void toggleAddon(AddonGroup group, Addon addon) {
-    if (group.type == AddonType.single) {
-      if (selectedAddons[group.id]?.contains(addon.id) ?? false) {
-        selectedAddons[group.id] = <String>{};
-      } else {
-        selectedAddons[group.id] = {addon.id};
-      }
+  
+  void toggleModifier(
+    String groupId,
+    String modifierId,
+    String name,
+    double price,
+    int maxAmount,
+  ) {
+    final current = selectedModifiers[groupId] ?? <String>{};
+
+    if (current.contains(modifierId)) {
+      
+      current.remove(modifierId);
+      modifierInfo.remove('$groupId:$modifierId');
     } else {
-      final current = selectedAddons[group.id] ?? <String>{};
-      if (current.contains(addon.id)) {
-        current.remove(addon.id);
-      } else {
-        current.add(addon.id);
+      
+      if (maxAmount == 1) {
+        
+        for (final existingId in current.toList()) {
+          modifierInfo.remove('$groupId:$existingId');
+        }
+        current.clear();
+      } else if (current.length >= maxAmount) {
+        
+        return;
       }
-      selectedAddons[group.id] = current;
+      current.add(modifierId);
+      modifierInfo['$groupId:$modifierId'] = {
+        'id': modifierId,
+        'name': name,
+        'price': price,
+      };
     }
-    selectedAddons.refresh();
+
+    selectedModifiers[groupId] = current;
+    selectedModifiers.refresh();
+    modifierInfo.refresh();
   }
 
-  bool isAddonSelected(String groupId, String addonId) {
-    return selectedAddons[groupId]?.contains(addonId) ?? false;
+  bool isModifierSelected(String groupId, String modifierId) {
+    return selectedModifiers[groupId]?.contains(modifierId) ?? false;
   }
 
   void incrementAddonQuantity() {
@@ -79,62 +165,89 @@ class OrderController extends GetxController {
   }
 
   double get addonTotalPrice {
-    final product = currentProduct.value;
-    if (product == null) return 0;
+    double total = _basePrice;
 
-    double total = product.price;
-    for (final group in product.addonGroups) {
-      for (final addon in group.addons) {
-        if (isAddonSelected(group.id, addon.id)) {
-          total += addon.price;
-        }
-      }
+    for (final entry in modifierInfo.entries) {
+      final info = entry.value;
+      total += (info['price'] as double?) ?? 0.0;
     }
+
     return total * addonQuantity.value;
   }
 
   bool get canAddToCart {
     final product = currentProduct.value;
-    if (product == null) return false;
+    final menuItem = currentMenuItem.value;
 
-    for (final group in product.addonGroups) {
-      if (group.required) {
-        final selected = selectedAddons[group.id];
-        if (selected == null || selected.isEmpty) {
-          return false;
+    if (product == null && menuItem == null) return false;
+
+    
+    if (product != null) {
+      for (final groupMod in product.groupModifiers ?? []) {
+        if (groupMod.required ?? false) {
+          final selected = selectedModifiers[groupMod.id];
+          final minAmount = groupMod.minAmount ?? 0;
+          if (selected == null || selected.length < minAmount) {
+            return false;
+          }
         }
       }
     }
+
+    
+    if (menuItem != null) {
+      for (final modGroup in menuItem.modifierGroups ?? []) {
+        if (modGroup.required ?? false) {
+          final groupId = modGroup.id ?? '';
+          final selected = selectedModifiers[groupId];
+          final minQuantity = modGroup.minQuantity ?? 0;
+          if (selected == null || selected.length < minQuantity) {
+            return false;
+          }
+        }
+      }
+    }
+
     return true;
   }
 
   void addCurrentProductToCart() {
     final product = currentProduct.value;
-    if (product == null) return;
+    final menuItem = currentMenuItem.value;
+
+    if (product == null && menuItem == null) return;
     if (!canAddToCart) return;
 
-    final Map<String, List<Map<String, dynamic>>> addonsMap = {};
-    for (final group in product.addonGroups) {
-      final selectedInGroup = <Map<String, dynamic>>[];
-      for (final addon in group.addons) {
-        if (isAddonSelected(group.id, addon.id)) {
-          selectedInGroup.add({
-            'id': addon.id,
-            'name': addon.name,
-            'price': addon.price,
-          });
+    
+    final Map<String, List<Map<String, dynamic>>> modifiersMap = {};
+
+    for (final entry in selectedModifiers.entries) {
+      final groupId = entry.key;
+      final selectedIds = entry.value;
+
+      if (selectedIds.isNotEmpty) {
+        final mods = <Map<String, dynamic>>[];
+        for (final modId in selectedIds) {
+          final info = modifierInfo['$groupId:$modId'];
+          if (info != null) {
+            mods.add(Map<String, dynamic>.from(info));
+          }
         }
-      }
-      if (selectedInGroup.isNotEmpty) {
-        addonsMap[group.id] = selectedInGroup;
+        if (mods.isNotEmpty) {
+          modifiersMap[groupId] = mods;
+        }
       }
     }
 
+    
+    final productId = product?.id ?? menuItem?.id ?? '';
+    final productName = product?.name ?? menuItem?.name ?? '';
+
     addToCart(
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      addons: addonsMap,
+      productId: productId,
+      name: productName,
+      price: _basePrice,
+      modifiers: modifiersMap,
       qty: addonQuantity.value,
     );
 
@@ -146,11 +259,13 @@ class OrderController extends GetxController {
     required String productId,
     required String name,
     required double price,
-    Map<String, List<Map<String, dynamic>>> addons = const {},
+    Map<String, List<Map<String, dynamic>>>? modifiers,
     int qty = 1,
   }) {
+    final mods = modifiers ?? <String, List<Map<String, dynamic>>>{};
     final index = cart.indexWhere(
-      (e) => e['productId'] == productId && _sameAddons(e['addons'], addons),
+      (e) =>
+          e['productId'] == productId && _sameModifiers(e['modifiers'], mods),
     );
 
     if (index != -1) {
@@ -162,7 +277,7 @@ class OrderController extends GetxController {
         'name': name,
         'price': price,
         'qty': qty,
-        'addons': addons,
+        'modifiers': mods,
       });
     }
   }
@@ -210,22 +325,25 @@ class OrderController extends GetxController {
   double get cartTotal {
     double total = 0;
     for (final item in cart) {
-      final base = item['price'] * item['qty'];
-      double addonsTotal = 0;
+      final base = (item['price'] as double) * (item['qty'] as int);
+      double modifiersTotal = 0;
 
-      final addons = item['addons'] as Map<String, List<Map<String, dynamic>>>;
-      for (final group in addons.values) {
-        for (final addon in group) {
-          addonsTotal += addon['price'];
+      final modifiers =
+          item['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
+      if (modifiers != null) {
+        for (final group in modifiers.values) {
+          for (final mod in group) {
+            modifiersTotal += (mod['price'] as double?) ?? 0.0;
+          }
         }
       }
 
-      total += base + (addonsTotal * item['qty']);
+      total += base + (modifiersTotal * (item['qty'] as int));
     }
     return total;
   }
 
-  bool _sameAddons(dynamic aRaw, Map<String, List<Map<String, dynamic>>> b) {
+  bool _sameModifiers(dynamic aRaw, Map<String, List<Map<String, dynamic>>> b) {
     final a = <String, List<Map<String, dynamic>>>{};
     if (aRaw is Map) {
       for (final entry in aRaw.entries) {

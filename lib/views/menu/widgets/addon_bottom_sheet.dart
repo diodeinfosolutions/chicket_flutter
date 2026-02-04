@@ -1,19 +1,22 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
-import '../../../models/menu_model.dart';
+import '../../../api/models/menu_models.dart';
 
 class AddonBottomSheet extends StatelessWidget {
-  final Product product;
+  final MenuItem product;
 
   const AddonBottomSheet({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
+    final description = product.description ?? '';
+    final productName = product.name ?? '';
 
     return Container(
       width: double.infinity,
@@ -24,7 +27,7 @@ class AddonBottomSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'YOUR CART',
+            'your_cart'.tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: 40.sp,
@@ -36,25 +39,33 @@ class AddonBottomSheet extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Image.asset(
-                      product.image,
-                      width: 220.w,
-                      height: 200.h,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8.h,
-                    right: 8.w,
-                    child: product.foodType == FoodType.veg
-                        ? Assets.svg.veg.svg(width: 24.w, height: 24.w)
-                        : Assets.svg.non.svg(width: 24.w, height: 24.w),
-                  ),
-                ],
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: product.imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: product.imageUrl!,
+                        width: 220.w,
+                        height: 200.h,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => Container(
+                          width: 220.w,
+                          height: 200.h,
+                          color: Colors.grey[200],
+                          child: Icon(Icons.restaurant, size: 48.w),
+                        ),
+                        errorWidget: (_, _, _) => Container(
+                          width: 220.w,
+                          height: 200.h,
+                          color: Colors.grey[200],
+                          child: Icon(Icons.restaurant, size: 48.w),
+                        ),
+                      )
+                    : Container(
+                        width: 220.w,
+                        height: 200.h,
+                        color: Colors.grey[200],
+                        child: Icon(Icons.restaurant, size: 48.w),
+                      ),
               ),
               SizedBox(width: 24.w),
               Expanded(
@@ -62,7 +73,7 @@ class AddonBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.name.toUpperCase(),
+                      productName.toUpperCase(),
                       style: TextStyle(
                         fontFamily: 'Oswald',
                         fontSize: 32.sp,
@@ -72,7 +83,7 @@ class AddonBottomSheet extends StatelessWidget {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      product.description.toUpperCase(),
+                      description.toUpperCase(),
                       style: TextStyle(
                         fontFamily: 'Roboto',
                         fontSize: 16.sp,
@@ -84,8 +95,11 @@ class AddonBottomSheet extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 16.h),
-                    ...product.addonGroups.map(
-                      (group) => _buildAddonGroup(group, orderController),
+                    ...?product.modifierGroups?.map(
+                      (modGroup) => _buildModifierGroup(
+                        modGroup,
+                        orderController,
+                      ),
                     ),
                     SizedBox(height: 16.h),
                     Obx(
@@ -133,7 +147,7 @@ class AddonBottomSheet extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            'ADD TO CART',
+                            'add_to_cart'.tr,
                             style: TextStyle(
                               fontFamily: 'Oswald',
                               fontSize: 16.sp,
@@ -160,7 +174,14 @@ class AddonBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildAddonGroup(AddonGroup group, OrderController orderController) {
+  Widget _buildModifierGroup(
+    MenuModifierGroup modGroup,
+    OrderController orderController,
+  ) {
+    final groupName = modGroup.name ?? 'Options';
+    final isRequired = modGroup.required ?? false;
+    final groupId = modGroup.id ?? '';
+
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Column(
@@ -169,7 +190,7 @@ class AddonBottomSheet extends StatelessWidget {
           Row(
             children: [
               Text(
-                group.title.toUpperCase(),
+                groupName.toUpperCase(),
                 style: TextStyle(
                   fontFamily: 'Oswald',
                   fontSize: 16.sp,
@@ -177,7 +198,7 @@ class AddonBottomSheet extends StatelessWidget {
                   color: const Color(0xFF283034),
                 ),
               ),
-              if (group.required) ...[
+              if (isRequired) ...[
                 SizedBox(width: 8.w),
                 Text(
                   '*',
@@ -196,42 +217,54 @@ class AddonBottomSheet extends StatelessWidget {
             () => Wrap(
               spacing: 12.w,
               runSpacing: 8.h,
-              children: group.addons.map((addon) {
-                final isSelected = orderController.isAddonSelected(
-                  group.id,
-                  addon.id,
-                );
-                return GestureDetector(
-                  onTap: () => orderController.toggleAddon(group, addon),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24.w,
-                      vertical: 12.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0x1A642F21)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF642F21)
-                            : const Color(0xFF757575),
-                        width: 1,
+              children:
+                  modGroup.items?.map((modItem) {
+                    final modName = modItem.name ?? 'Option';
+                    final modPrice = (modItem.price ?? 0).toDouble();
+                    final modId = modItem.id;
+
+                    final isSelected = orderController.isModifierSelected(
+                      groupId,
+                      modId,
+                    );
+                    return GestureDetector(
+                      onTap: () => orderController.toggleModifier(
+                        groupId,
+                        modId,
+                        modName,
+                        modPrice,
+                        modGroup.maxQuantity ?? 999,
                       ),
-                    ),
-                    child: Text(
-                      addon.name.toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: 'Oswald',
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF642F21),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                          vertical: 12.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0x1A642F21)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(8.r),
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF642F21)
+                                : const Color(0xFF757575),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          modName.toUpperCase(),
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF642F21),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList() ??
+                  [],
             ),
           ),
         ],
@@ -319,9 +352,9 @@ class AddonBottomSheet extends StatelessWidget {
   }
 }
 
-void showAddonBottomSheet(BuildContext context, Product product) {
+void showAddonBottomSheet(BuildContext context, MenuItem product) {
   final orderController = Get.find<OrderController>();
-  orderController.initAddonSelection(product);
+  orderController.initModifierSelectionForMenuItem(product);
 
   showModalBottomSheet(
     context: context,

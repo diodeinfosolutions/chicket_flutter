@@ -4,18 +4,20 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
-import '../../../models/menu_model.dart';
+import '../../../api/models/menu_models.dart';
 import '../../../theme/colors.dart';
 import 'addon_bottom_sheet.dart';
 
 class RepeatOrCustomizeSheet extends StatelessWidget {
-  final Product product;
+  final MenuItem product;
 
   const RepeatOrCustomizeSheet({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
+    final price = (product.currentPrice ?? 0).toDouble();
+    final productName = product.name ?? '';
 
     return Container(
       width: double.infinity,
@@ -67,24 +69,28 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
                     );
                     if (lastIndex != -1) {
                       final lastItem = orderController.cart[lastIndex];
-                      final addons =
-                          lastItem['addons']
-                              as Map<String, List<Map<String, dynamic>>>;
+                      final modifiers =
+                          lastItem['modifiers']
+                              as Map<String, List<Map<String, dynamic>>>?;
 
                       orderController.addToCart(
                         productId: product.id,
-                        name: product.name,
-                        price: product.price,
-                        addons: Map<String, List<Map<String, dynamic>>>.from(
-                          addons.map(
-                            (key, value) => MapEntry(
-                              key,
-                              value
-                                  .map((e) => Map<String, dynamic>.from(e))
-                                  .toList(),
-                            ),
-                          ),
-                        ),
+                        name: productName,
+                        price: price,
+                        modifiers: modifiers != null
+                            ? Map<String, List<Map<String, dynamic>>>.from(
+                                modifiers.map(
+                                  (key, value) => MapEntry(
+                                    key,
+                                    value
+                                        .map(
+                                          (e) => Map<String, dynamic>.from(e),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                              )
+                            : null,
                       );
                     }
                     Get.back();
@@ -144,7 +150,7 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
   }
 }
 
-void showRepeatOrCustomizeSheet(BuildContext context, Product product) {
+void showRepeatOrCustomizeSheet(BuildContext context, MenuItem product) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

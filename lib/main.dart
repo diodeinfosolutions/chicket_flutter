@@ -3,24 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:chicket/routes.dart';
 import 'package:chicket/init.dart';
 import 'package:chicket/utils/kiosk_service.dart';
 import 'package:chicket/controllers/idle_controller.dart';
+import 'package:chicket/localization/app_translations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Set portrait orientation
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
-  // Initialize kiosk mode features
+
+  await Hive.initFlutter();
   await KioskService.initKioskMode();
+  await initControllers();
   
-  initControllers();
   runApp(const MyApp());
 }
 
@@ -46,7 +47,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-apply immersive mode when app resumes
     if (state == AppLifecycleState.resumed) {
       KioskService.reapplyImmersiveMode();
     }
@@ -61,20 +61,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         splitScreenMode: true,
         builder: (context, child) {
           return GetMaterialApp(
-          title: 'Chicket Kiosk',
-          theme: ThemeData(
-            fontFamily: 'Oswald',
-          ),
-          initialRoute: Routes.splash,
-          getPages: Routes.pages,
-          debugShowCheckedModeBanner: kDebugMode,
-          // Disable back button globally
+            title: 'Chicket Kiosk',
+            theme: ThemeData(fontFamily: 'Oswald'),
+            initialRoute: Routes.splash,
+            getPages: Routes.pages,
+            debugShowCheckedModeBanner: kDebugMode,
+            translations: AppTranslations(),
+            locale: const Locale('en'),
+            fallbackLocale: const Locale('en'),
             builder: (context, child) {
-              return PopScope(
-                canPop: false,
-                onPopInvokedWithResult: (didPop, result) {
-                  // Block all back navigation
-                },
+              final isArabic = Get.locale?.languageCode == 'ar';
+              return Directionality(
+                textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
                 child: child ?? const SizedBox.shrink(),
               );
             },

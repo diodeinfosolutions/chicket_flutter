@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../gen/assets.gen.dart';
+import '../../controllers/order_controller.dart';
+import '../../controllers/syrve_controller.dart';
+import '../../api/models/payment_models.dart';
 import '../../theme/colors.dart';
 import '../menu/widgets/cart_bottom_bar.dart';
 
@@ -16,7 +18,9 @@ class SelectPaymentScreen extends StatefulWidget {
 }
 
 class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
-  int? _selectedPaymentIndex;
+  PaymentType? _selectedPaymentType;
+  final SyrveController _syrveController = Get.find<SyrveController>();
+  final OrderController _orderController = Get.find<OrderController>();
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                 children: [
                   SizedBox(height: 80.h),
                   Text(
-                    'SELECT PAYMENT OPTIONS',
+                    'select_payment_options'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 52.sp,
@@ -41,7 +45,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                   ),
                   SizedBox(height: 24.h),
                   Text(
-                    'PLEASE SCAN THE QR CODE TO MAKE PAYMENT',
+                    'scan_qr_to_pay'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 24.sp,
@@ -58,7 +62,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                   ),
                   SizedBox(height: 80.h),
                   Text(
-                    'OTHERS',
+                    'others'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 28.sp,
@@ -74,8 +78,12 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
             CartBottomBar(
               hideButtons: true,
               customActionButton: GestureDetector(
-                onTap: _selectedPaymentIndex != null
-                    ? () => Get.toNamed(Routes.orderProcessing)
+                onTap: _selectedPaymentType != null
+                    ? () {
+                        // Store selected payment type
+                        _orderController.setPaymentType(_selectedPaymentType!);
+                        Get.toNamed(Routes.orderProcessing);
+                      }
                     : null,
                 child: Container(
                   padding: EdgeInsets.symmetric(
@@ -83,18 +91,18 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                     vertical: 16.h,
                   ),
                   decoration: BoxDecoration(
-                    color: _selectedPaymentIndex != null
+                    color: _selectedPaymentType != null
                         ? AppColors.BROWN
                         : AppColors.GREY_LIGHT,
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
-                    'CONTINUE',
+                    'continue_btn'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w500,
-                      color: _selectedPaymentIndex != null
+                      color: _selectedPaymentType != null
                           ? AppColors.YELLOW
                           : AppColors.GREY,
                     ),
@@ -109,43 +117,53 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
   }
 
   Widget _buildPaymentOptionsGrid() {
-    final paymentOptions = [
-      _PaymentOption(image: Assets.png.cc, label: 'CREDIT/DEBIT CARD'),
-      _PaymentOption(image: Assets.png.wafaa, label: 'WAFAA+ VOUCHER'),
-      _PaymentOption(image: Assets.png.giftVoucher, label: 'GIFT VOUCHER'),
-      _PaymentOption(image: Assets.png.cash, label: 'PAY CASH AT COUNTER'),
-    ];
+    final paymentTypes = _syrveController.paymentTypes
+        .where((p) => p.isDeleted != true)
+        .toList();
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildPaymentOption(paymentOptions[0], 0),
-            SizedBox(width: 24.w),
-            _buildPaymentOption(paymentOptions[1], 1),
-          ],
+    if (paymentTypes.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.all(24.w),
+        child: Text(
+          'no_payment_methods'.tr,
+          style: TextStyle(
+            fontFamily: 'Oswald',
+            fontSize: 20.sp,
+            color: AppColors.GREY,
+          ),
         ),
-        SizedBox(height: 24.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildPaymentOption(paymentOptions[2], 2),
-            SizedBox(width: 24.w),
-            _buildPaymentOption(paymentOptions[3], 3),
-          ],
-        ),
-      ],
-    );
+      );
+    }
+
+    // Create rows of 2 items each
+    final List<Widget> rows = [];
+    for (int i = 0; i < paymentTypes.length; i += 2) {
+      final rowItems = <Widget>[];
+      rowItems.add(_buildPaymentOption(paymentTypes[i]));
+      if (i + 1 < paymentTypes.length) {
+        rowItems.add(SizedBox(width: 24.w));
+        rowItems.add(_buildPaymentOption(paymentTypes[i + 1]));
+      }
+      rows.add(Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: rowItems,
+      ));
+      if (i + 2 < paymentTypes.length) {
+        rows.add(SizedBox(height: 24.h));
+      }
+    }
+
+    return Column(children: rows);
   }
 
-  Widget _buildPaymentOption(_PaymentOption option, int index) {
-    final isSelected = _selectedPaymentIndex == index;
+  Widget _buildPaymentOption(PaymentType paymentType) {
+    final isSelected = _selectedPaymentType?.id == paymentType.id;
+    final icon = _getPaymentIcon(paymentType.paymentTypeKind);
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedPaymentIndex = index;
+          _selectedPaymentType = paymentType;
         });
       },
       child: Container(
@@ -161,10 +179,14 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            option.image.image(width: 96.w, height: 72.h, fit: BoxFit.contain),
+            Icon(
+              icon,
+              size: 64.w,
+              color: isSelected ? AppColors.GREEN : AppColors.GREY,
+            ),
             SizedBox(height: 16.h),
             Text(
-              option.label,
+              paymentType.name,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Oswald',
@@ -178,11 +200,19 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
       ),
     );
   }
-}
 
-class _PaymentOption {
-  final AssetGenImage image;
-  final String label;
-
-  _PaymentOption({required this.image, required this.label});
+  IconData _getPaymentIcon(String? paymentTypeKind) {
+    switch (paymentTypeKind?.toLowerCase()) {
+      case 'cash':
+        return Icons.payments_outlined;
+      case 'card':
+        return Icons.credit_card;
+      case 'external':
+        return Icons.qr_code;
+      case 'voucher':
+        return Icons.card_giftcard;
+      default:
+        return Icons.payment;
+    }
+  }
 }

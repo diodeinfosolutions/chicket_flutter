@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 import 'package:gif_view/gif_view.dart';
 
 import '../../../gen/assets.gen.dart';
+import '../../../routes.dart';
 import '../../../theme/colors.dart';
 
-class HeaderSection extends StatelessWidget {
+class HeaderSection extends StatefulWidget {
   final GifController gifController;
   final double heightFactor;
   final bool isTabletPortrait;
@@ -19,29 +21,59 @@ class HeaderSection extends StatelessWidget {
   });
 
   @override
+  State<HeaderSection> createState() => _HeaderSectionState();
+}
+
+class _HeaderSectionState extends State<HeaderSection> {
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+  static const int _requiredTaps = 5;
+  static const Duration _tapTimeout = Duration(seconds: 2);
+
+  void _handleLogoTap() {
+    final now = DateTime.now();
+    
+    if (_lastTapTime != null && now.difference(_lastTapTime!) > _tapTimeout) {
+      _tapCount = 0;
+    }
+    
+    _tapCount++;
+    _lastTapTime = now;
+    
+    if (_tapCount >= _requiredTaps) {
+      _tapCount = 0;
+      _lastTapTime = null;
+      Get.toNamed(Routes.setup);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final titleFontSize = isTabletPortrait ? 48.sp : 72.sp;
-    final subtitleFontSize = isTabletPortrait ? 38.sp : 58.sp;
+    final titleFontSize = widget.isTabletPortrait ? 48.sp : 72.sp;
+    final subtitleFontSize = widget.isTabletPortrait ? 38.sp : 58.sp;
 
     return Container(
-      height: heightFactor.sh,
+      height: widget.heightFactor.sh,
       width: 1.sw,
       color: AppColors.RED,
       child: Column(
         children: [
-          Gap(isTabletPortrait ? 0.015.sh : 0.03.sh),
+          Gap(widget.isTabletPortrait ? 0.015.sh : 0.03.sh),
           Expanded(
-            child: SizedBox(
-              width: 1.sw,
-              child: GifView.asset(
-                Assets.gif.chicket.path,
-                controller: gifController,
-                fit: BoxFit.cover,
-                loop: true,
+            child: GestureDetector(
+              onTap: _handleLogoTap,
+              child: SizedBox(
+                width: 1.sw,
+                child: GifView.asset(
+                  Assets.gif.chicket.path,
+                  controller: widget.gifController,
+                  fit: BoxFit.cover,
+                  loop: true,
+                ),
               ),
             ),
           ),
-          Gap(isTabletPortrait ? 0.01.sh : 0.02.sh),
+          Gap(widget.isTabletPortrait ? 0.01.sh : 0.02.sh),
           Text(
             "Chicket Arabia",
             style: TextStyle(
@@ -60,7 +92,7 @@ class HeaderSection extends StatelessWidget {
               color: AppColors.WHITE,
             ),
           ),
-          Gap(isTabletPortrait ? 0.015.sh : 0.03.sh),
+          Gap(widget.isTabletPortrait ? 0.015.sh : 0.03.sh),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:chicket/views/menu/menu_screen.dart';
 import 'package:chicket/views/mob/mob_screen.dart';
 import 'package:chicket/views/order_processing/order_processing_screen.dart';
 import 'package:chicket/views/select_payment/select_payment_screen.dart';
+import 'package:chicket/views/setup/setup_screen.dart';
 import 'package:get/get.dart';
 
 import 'views/homepage/homepage.dart';
@@ -11,6 +12,7 @@ import 'views/splash/splash_screen.dart';
 
 class Routes {
   static const splash = '/';
+  static const setup = '/setup';
   static const home = '/home';
   static const menu = '/menu';
   static const cart = '/cart';
@@ -21,6 +23,7 @@ class Routes {
 
   static final pages = [
     GetPage(name: splash, page: () => const SplashScreen()),
+    GetPage(name: setup, page: () => const SetupScreen()),
     GetPage(name: home, page: () => const HomeScreen()),
     GetPage(name: menu, page: () => const MenuScreen()),
     GetPage(name: cart, page: () => const CartScreen()),

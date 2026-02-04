@@ -1,10 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/order_controller.dart';
+import '../../controllers/syrve_controller.dart';
 import '../../gen/assets.gen.dart';
-import '../../models/menu_model.dart';
+import '../../api/models/menu_models.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
 import '../menu/widgets/addon_bottom_sheet.dart';
@@ -16,6 +18,7 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
+    final syrveController = Get.find<SyrveController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -31,7 +34,7 @@ class CartScreen extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'YOUR CART',
+                          'your_cart'.tr,
                           style: TextStyle(
                             fontFamily: 'Oswald',
                             fontSize: 40.sp,
@@ -80,6 +83,7 @@ class CartScreen extends StatelessWidget {
                                 entry.key,
                                 entry.value,
                                 orderController,
+                                syrveController,
                                 context,
                               ),
                             )
@@ -88,7 +92,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 0.075.sh),
                     Text(
-                      'RECOMMENDED FOR YOU',
+                      'recommended_for_you'.tr,
                       style: TextStyle(
                         fontFamily: 'Oswald',
                         fontSize: 32.sp,
@@ -97,7 +101,11 @@ class CartScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 24.h),
-                    _buildRecommendedSection(orderController, context),
+                    _buildRecommendedSection(
+                      orderController,
+                      syrveController,
+                      context,
+                    ),
                   ],
                 ),
               ),
@@ -113,17 +121,27 @@ class CartScreen extends StatelessWidget {
     int index,
     Map<String, dynamic> item,
     OrderController orderController,
+    SyrveController syrveController,
     BuildContext context,
   ) {
     final productId = item['productId'] as String;
-    final product = products.firstWhere((p) => p.id == productId);
-    final qty = item['qty'] as int;
-    final addons = item['addons'] as Map<String, List<Map<String, dynamic>>>;
+    final menuItem = syrveController.getMenuItemById(productId);
+    final legacyProduct = menuItem == null ? syrveController.getProductById(productId) : null;
+    
+    final productName = menuItem?.name ?? legacyProduct?.name ?? 'Unknown';
+    final productImageUrl = menuItem?.imageUrl ?? legacyProduct?.imageUrl;
+    final productDescription = menuItem?.description ?? legacyProduct?.description ?? '';
 
-    double itemPrice = product.price;
-    for (final group in addons.values) {
-      for (final addon in group) {
-        itemPrice += addon['price'] as double;
+    final qty = item['qty'] as int;
+    final modifiers =
+        item['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
+
+    double itemPrice = (menuItem?.currentPrice ?? legacyProduct?.currentPrice ?? 0).toDouble();
+    if (modifiers != null) {
+      for (final group in modifiers.values) {
+        for (final mod in group) {
+          itemPrice += (mod['price'] as double?) ?? 0.0;
+        }
       }
     }
 
@@ -137,25 +155,33 @@ class CartScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
-                child: Image.asset(
-                  product.image,
-                  width: 160.w,
-                  height: 140.h,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned(
-                top: 8.h,
-                right: 8.w,
-                child: product.foodType == FoodType.veg
-                    ? Assets.svg.veg.svg(width: 20.w, height: 20.w)
-                    : Assets.svg.non.svg(width: 20.w, height: 20.w),
-              ),
-            ],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.r),
+            child: productImageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: productImageUrl,
+                    width: 160.w,
+                    height: 140.h,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 160.w,
+                      height: 140.h,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.restaurant, size: 32.w),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 160.w,
+                      height: 140.h,
+                      color: Colors.grey[200],
+                      child: Icon(Icons.restaurant, size: 32.w),
+                    ),
+                  )
+                : Container(
+                    width: 160.w,
+                    height: 140.h,
+                    color: Colors.grey[200],
+                    child: Icon(Icons.restaurant, size: 32.w),
+                  ),
           ),
           SizedBox(width: 20.w),
           Expanded(
@@ -163,7 +189,7 @@ class CartScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.name.toUpperCase(),
+                  productName.toUpperCase(),
                   style: TextStyle(
                     fontFamily: 'Oswald',
                     fontSize: 24.sp,
@@ -173,7 +199,7 @@ class CartScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  product.description.toUpperCase(),
+                  productDescription.toUpperCase(),
                   style: TextStyle(
                     fontFamily: 'Roboto',
                     fontSize: 14.sp,
@@ -184,12 +210,12 @@ class CartScreen extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (addons.isNotEmpty) ...[
+                if (modifiers != null && modifiers.isNotEmpty) ...[
                   SizedBox(height: 12.h),
                   Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,
-                    children: _buildAddonChips(addons),
+                    children: _buildModifierChips(modifiers),
                   ),
                 ],
                 SizedBox(height: 16.h),
@@ -220,12 +246,12 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildAddonChips(
-    Map<String, List<Map<String, dynamic>>> addons,
+  List<Widget> _buildModifierChips(
+    Map<String, List<Map<String, dynamic>>> modifiers,
   ) {
     final chips = <Widget>[];
-    for (final group in addons.values) {
-      for (final addon in group) {
+    for (final group in modifiers.values) {
+      for (final mod in group) {
         chips.add(
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -235,7 +261,7 @@ class CartScreen extends StatelessWidget {
               border: Border.all(color: const Color(0xFF642F21), width: 1),
             ),
             child: Text(
-              (addon['name'] as String).toUpperCase(),
+              ((mod['name'] as String?) ?? '').toUpperCase(),
               style: TextStyle(
                 fontFamily: 'Oswald',
                 fontSize: 14.sp,
@@ -331,12 +357,14 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildRecommendedSection(
     OrderController orderController,
+    SyrveController syrveController,
     BuildContext context,
   ) {
     final cartProductIds = orderController.cart
         .map((e) => e['productId'] as String)
         .toSet();
-    final recommended = products
+    final allProducts = syrveController.menuItems;
+    final recommended = allProducts
         .where((p) => !cartProductIds.contains(p.id))
         .take(4)
         .toList();
@@ -355,18 +383,21 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildRecommendedCard(
-    Product product,
+    MenuItem product,
     OrderController orderController,
     BuildContext context,
   ) {
-    final hasAddons = product.addonGroups.isNotEmpty;
+    final hasModifiers = product.modifierGroups?.isNotEmpty ?? false;
+    final price = (product.currentPrice ?? 0).toDouble();
+    final description = product.description ?? '';
+    final productName = product.name ?? '';
 
     return Obx(() {
       final totalQty = orderController.getProductQuantity(product.id);
 
       return Container(
         width: 280.w,
-        margin: EdgeInsets.only(right: 24.w),
+        margin: EdgeInsetsDirectional.only(end: 24.w),
         padding: EdgeInsets.all(32.w),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -377,27 +408,32 @@ class CartScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.r),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: Image.asset(product.image, fit: BoxFit.cover),
-                  ),
-                ),
-                Positioned(
-                  top: 8.h,
-                  right: 8.w,
-                  child: product.foodType == FoodType.veg
-                      ? Assets.svg.veg.svg(width: 24.w, height: 24.w)
-                      : Assets.svg.non.svg(width: 24.w, height: 24.w),
-                ),
-              ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: product.imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: product.imageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.restaurant, size: 32.w),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: Icon(Icons.restaurant, size: 32.w),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.grey[200],
+                        child: Icon(Icons.restaurant, size: 32.w),
+                      ),
+              ),
             ),
             SizedBox(height: 16.h),
             Text(
-              product.name.toUpperCase(),
+              productName.toUpperCase(),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -412,7 +448,7 @@ class CartScreen extends StatelessWidget {
             SizedBox(
               height: 12.sp * 1.3 * 3,
               child: Text(
-                product.description.toUpperCase(),
+                description.toUpperCase(),
                 textAlign: TextAlign.center,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
@@ -427,7 +463,7 @@ class CartScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             Text(
-              'BHD ${product.price.toStringAsFixed(3)}',
+              'BHD ${price.toStringAsFixed(3)}',
               style: TextStyle(
                 fontFamily: 'Oswald',
                 fontSize: 24.sp,
@@ -436,7 +472,7 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16.h),
-            if (hasAddons)
+            if (hasModifiers)
               _buildRecommendedAddToCartButton(product, context)
             else
               _buildRecommendedQuantitySelector(
@@ -452,7 +488,7 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildRecommendedAddToCartButton(
-    Product product,
+    MenuItem product,
     BuildContext context,
   ) {
     return SizedBox(
@@ -470,7 +506,7 @@ class CartScreen extends StatelessWidget {
           ),
         ),
         child: Text(
-          'ADD TO CART',
+          'add_to_cart'.tr,
           style: TextStyle(
             fontFamily: 'Oswald',
             fontSize: 16.sp,
@@ -482,13 +518,17 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildRecommendedQuantitySelector(
-    Product product,
+    MenuItem product,
     int qty,
     OrderController orderController,
     BuildContext context,
   ) {
-    final cartIndexNoAddons = orderController.cart.indexWhere(
-      (e) => e['productId'] == product.id && (e['addons'] as Map).isEmpty,
+    final price = (product.currentPrice ?? 0).toDouble();
+    final productName = product.name ?? '';
+    final cartIndexNoModifiers = orderController.cart.indexWhere(
+      (e) =>
+          e['productId'] == product.id &&
+          ((e['modifiers'] as Map?)?.isEmpty ?? true),
     );
 
     if (qty > 0) {
@@ -497,8 +537,8 @@ class CartScreen extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                if (cartIndexNoAddons != -1) {
-                  orderController.decreaseQty(cartIndexNoAddons);
+                if (cartIndexNoModifiers != -1) {
+                  orderController.decreaseQty(cartIndexNoModifiers);
                 }
               },
               child: Container(
@@ -551,13 +591,13 @@ class CartScreen extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                if (cartIndexNoAddons != -1) {
-                  orderController.increaseQty(cartIndexNoAddons);
+                if (cartIndexNoModifiers != -1) {
+                  orderController.increaseQty(cartIndexNoModifiers);
                 } else {
                   orderController.addToCart(
                     productId: product.id,
-                    name: product.name,
-                    price: product.price,
+                    name: productName,
+                    price: price,
                   );
                 }
               },
@@ -592,8 +632,8 @@ class CartScreen extends StatelessWidget {
         onPressed: () {
           orderController.addToCart(
             productId: product.id,
-            name: product.name,
-            price: product.price,
+            name: productName,
+            price: price,
           );
         },
         style: ElevatedButton.styleFrom(
@@ -606,7 +646,7 @@ class CartScreen extends StatelessWidget {
           ),
         ),
         child: Text(
-          'ADD TO CART',
+          'add_to_cart'.tr,
           style: TextStyle(
             fontFamily: 'Oswald',
             fontSize: 16.sp,
@@ -669,7 +709,7 @@ class CartScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ITEMS ADDED TO YOUR CART',
+                          'items_added_to_cart'.tr,
                           style: TextStyle(
                             fontFamily: 'Oswald',
                             fontSize: 20.sp,
@@ -683,7 +723,7 @@ class CartScreen extends StatelessWidget {
                           textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
-                              'TOTAL:',
+                              'total'.tr,
                               style: TextStyle(
                                 fontFamily: 'Oswald',
                                 fontSize: 24.sp,
@@ -706,7 +746,7 @@ class CartScreen extends StatelessWidget {
                       ],
                     )
                   : Text(
-                      'Items has been added to the cart',
+                      'items_added'.tr,
                       style: TextStyle(
                         fontFamily: 'Oswald',
                         fontSize: 24.sp,
@@ -734,7 +774,7 @@ class CartScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'CANCEL ORDER',
+                    'cancel_order'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,
@@ -757,7 +797,7 @@ class CartScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
-                    'PROCEED',
+                    'proceed'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,

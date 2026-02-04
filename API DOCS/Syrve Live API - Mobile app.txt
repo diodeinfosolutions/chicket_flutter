@@ -1,0 +1,63 @@
+﻿Api Key   25572fc2381b4b2a9d5a66c45fdcf182
+
+
+Documentation link: https://api-eu.syrve.live/
+Delivery Creation process: https://en.syrve.help/articles/#!api/delivery-creation
+WorkScheme: https://en.syrve.help/articles/#!api/work-with-the-process-statuses
+
+Process of creation order:
+1) Get Token: https://api-eu.syrve.live/#tag/Authorization/paths/~1api~11~1access_token/post
+2) Get Organization id (this is a static ID, and you can save it on your side. No need to get every time): https://api-eu.syrve.live/#tag/Organizations/paths/~1api~11~1organizations/post
+3) Get Terminal ID (this is a static ID, and you can save it on your side. No need to get every time): https://api-eu.syrve.live/#tag/Terminal-groups/paths/~1api~11~1terminal_groups/post
+4) Get Order types ID (this is a static ID, and you can save it on your side. No need to get every time): https://api-eu.syrve.live/#tag/Dictionaries/paths/~1api~11~1deliveries~1order_types/post
+5) Get Payments types ID (this is a static ID, and you can save it on your side. No need to get every time): https://api-eu.syrve.live/#tag/Dictionaries/paths/~1api~11~1payment_types/post
+6) Get Menu of restaurant: https://api-eu.syrve.live/#tag/Menu/paths/~1api~12~1menu/post
+https://api-eu.syrve.live/#tag/Menu/paths/~1api~12~1menu~1by_id/post
+7) Create Delivery order: https://api-eu.syrve.live/#tag/Deliveries:-Create-and-update/paths/~1api~11~1deliveries~1create/post
+
+You also can get information about order and we have two ways: 
+1) Via webhook:
+Order created or not: https://api-eu.syrve.live/#tag/Deliveries:-Create-and-update/paths/SyrveLive.PublicApi.Contracts.WebHooks.DeliveryOrderErrorWebHookEventInfo/post
+Order update status
+https://api-eu.syrve.live/#tag/Deliveries:-Create-and-update/paths/SyrveLive.PublicApi.Contracts.WebHooks.DeliveryOrderUpdateWebHookEventInfo/post
+
+2) Via POST request:
+https://api-eu.syrve.live/#tag/Deliveries:-Retrieve
+
+
+Workflow:
+​
+You can download this image: 
+https://iikouk-my.sharepoint.com/:i:/g/personal/gaji_syrve_com/EcsciOz6AsxGrOMncW43j3wBm2MvcWQRALzXQaSxUx2u-Q?e=JAaafY
+
+Or
+https://drive.google.com/file/d/1FHscIZHeamHo3cjqrO4GP9iZkVigI9Fw/view?usp=sharing
+
+
+Get out of stock list: https://api-eu.syrve.live/#tag/Menu/paths/~1api~11~1stop_lists/post
+ 
+Webhook: https://api-eu.syrve.live/#tag/Menu/paths/SyrveLive.PublicApi.Contracts.WebHooks.StopListUpdateWebHookEventInfo/post
+
+Workflow: 
+
+https://iikouk.sharepoint.com/:i:/s/iikoMiddleEast/EUSgfEiuCFpDq4giQAdD37EBZ7IBOqGGwCzvVEfXEJubVg?e=qLkaO5
+
+Or
+
+https://drive.google.com/file/d/1FHscIZHeamHo3cjqrO4GP9iZkVigI9Fw/view?usp=sharing
+
+
+Out of stock list:
+
+https://iikouk-my.sharepoint.com/:i:/g/personal/gaji_syrve_com/ETe8b7C54dlDsL54Box56IUB_TS232QBBlqfpxZgj5vn1A?e=L3x0ma
+
+Or
+https://drive.google.com/file/d/1KHN_jYs8Ipv_U4ZGXbewtS3_CMYT10Jt/view?usp=sharing
+
+
+
+
+
+
+
+
