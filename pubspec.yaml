@@ -1,0 +1,81 @@
+name: chicket
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  cached_network_image: ^3.4.1
+  cupertino_icons: ^1.0.8
+  flutter:
+    sdk: flutter
+  flutter_cache_manager: ^3.4.1
+  flutter_screenutil: ^5.9.3
+  flutter_svg: ^2.2.3
+  gap: ^3.0.1
+  get: ^4.7.3
+  gif_view:
+    git:
+      url: https://github.com/p-Osteen/gif_view.git
+  qr_flutter: ^4.1.0
+  shimmer: ^3.0.0
+  staggered_grid_view: ^0.0.1
+  wakelock_plus: ^1.2.10
+
+flutter_gen:
+  output: lib/gen/
+  line_length: 80
+  integrations:
+    flutter_svg: true
+
+dev_dependencies:
+  build_runner: ^2.4.13
+  flutter_gen_runner: ^5.8.0
+  flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.3
+  flutter_test:
+    sdk: flutter
+
+flutter_native_splash:
+  color: "#DD2229"
+  android: true
+  android_12:
+    color: "#DD2229"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/gif/
+    - assets/png/
+    - assets/svg/
+    - assets/banner/
+    - assets/categories/
+
+  fonts:
+    - family: Oswald
+      fonts:
+        - asset: assets/fonts/Oswald/Oswald-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/Oswald/Oswald-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Oswald/Oswald-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Oswald/Oswald-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Oswald/Oswald-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Oswald/Oswald-Bold.ttf
+          weight: 700
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto/Roboto-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Roboto/Roboto-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Roboto/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto/Roboto-Bold.ttf
+          weight: 700
