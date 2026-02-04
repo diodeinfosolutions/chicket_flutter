@@ -61,16 +61,16 @@ class OrderController extends GetxController {
   }
 
   // Get the orderServiceType for API based on local selection
-  String get orderServiceType {
-    // For kiosk orders, typically "DeliveryByCourier" for takeaway, "Common" for dine-in
-    // But for self-service kiosk, "DeliveryByClient" is common
+  // Valid Syrve API values: DeliveryByClient, DeliveryByCourier, DeliveryPickUp
+  // For dine-in (restaurant orders), orderServiceType should be null
+  String? get orderServiceType {
     switch (selectedType.value) {
       case OrderType.dineIn:
-        return 'Common'; // Restaurant order (dine-in)
+        return null; // Restaurant/dine-in orders don't use orderServiceType
       case OrderType.takeaway:
         return 'DeliveryByClient'; // Self-pickup/takeaway
       default:
-        return 'Common';
+        return null;
     }
   }
 

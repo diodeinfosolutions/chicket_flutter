@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../controllers/order_controller.dart';
 import '../../controllers/syrve_controller.dart';
 import '../../api/models/payment_models.dart';
+import '../../gen/assets.gen.dart';
 import '../../theme/colors.dart';
 import '../menu/widgets/cart_bottom_bar.dart';
 
@@ -135,21 +136,25 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
       );
     }
 
-    // Create rows of 2 items each
+    // Create rows of 3 items each (3x2 grid)
     final List<Widget> rows = [];
-    for (int i = 0; i < paymentTypes.length; i += 2) {
+    for (int i = 0; i < paymentTypes.length; i += 3) {
       final rowItems = <Widget>[];
       rowItems.add(_buildPaymentOption(paymentTypes[i]));
       if (i + 1 < paymentTypes.length) {
-        rowItems.add(SizedBox(width: 24.w));
+        rowItems.add(SizedBox(width: 16.w));
         rowItems.add(_buildPaymentOption(paymentTypes[i + 1]));
+      }
+      if (i + 2 < paymentTypes.length) {
+        rowItems.add(SizedBox(width: 16.w));
+        rowItems.add(_buildPaymentOption(paymentTypes[i + 2]));
       }
       rows.add(Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: rowItems,
       ));
-      if (i + 2 < paymentTypes.length) {
-        rows.add(SizedBox(height: 24.h));
+      if (i + 3 < paymentTypes.length) {
+        rows.add(SizedBox(height: 16.h));
       }
     }
 
@@ -158,7 +163,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
 
   Widget _buildPaymentOption(PaymentType paymentType) {
     final isSelected = _selectedPaymentType?.id == paymentType.id;
-    final icon = _getPaymentIcon(paymentType.paymentTypeKind);
+    final image = _getPaymentImage(paymentType.paymentTypeKind);
 
     return GestureDetector(
       onTap: () {
@@ -167,30 +172,38 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
         });
       },
       child: Container(
-        width: 280.w,
-        padding: EdgeInsets.symmetric(vertical: 32.h, horizontal: 24.w),
+        width: 200.w,
+        padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 16.w),
         decoration: BoxDecoration(
           color: AppColors.WHITE,
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isSelected ? AppColors.GREEN : AppColors.GREY_LIGHT,
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 64.w,
-              color: isSelected ? AppColors.GREEN : AppColors.GREY,
-            ),
-            SizedBox(height: 16.h),
+            image != null
+                ? image.image(
+                    width: 64.w,
+                    height: 48.h,
+                    fit: BoxFit.contain,
+                    color: isSelected ? AppColors.GREEN : AppColors.GREY,
+                  )
+                : Icon(
+                    Icons.payment_outlined,
+                    size: 48.w,
+                    color: isSelected ? AppColors.GREEN : AppColors.GREY,
+                  ),
+            SizedBox(height: 12.h),
             Text(
               paymentType.name,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Oswald',
-                fontSize: 24.sp,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.w500,
                 color: isSelected ? AppColors.GREEN : AppColors.GREY,
               ),
@@ -201,18 +214,16 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
     );
   }
 
-  IconData _getPaymentIcon(String? paymentTypeKind) {
+  AssetGenImage? _getPaymentImage(String? paymentTypeKind) {
     switch (paymentTypeKind?.toLowerCase()) {
       case 'cash':
-        return Icons.payments_outlined;
+        return Assets.png.cash;
       case 'card':
-        return Icons.credit_card;
-      case 'external':
-        return Icons.qr_code;
+        return Assets.png.cc;
       case 'voucher':
-        return Icons.card_giftcard;
+        return Assets.png.giftVoucher;
       default:
-        return Icons.payment;
+        return null;
     }
   }
 }
