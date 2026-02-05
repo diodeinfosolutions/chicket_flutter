@@ -487,7 +487,7 @@ class OrderCombo {
 }
 
 /// Order payment
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class OrderPayment {
   @JsonKey(name: 'paymentTypeKind')
   final String paymentTypeKind;

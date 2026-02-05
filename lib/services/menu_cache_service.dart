@@ -15,28 +15,44 @@ class MenuCacheService extends GetxService {
   late Box _box;
   
   Future<MenuCacheService> init() async {
-    await Hive.initFlutter();
+    // Don't call Hive.initFlutter() here - it's already called in main.dart
     _box = await Hive.openBox(_boxName);
+    debugPrint('MenuCacheService initialized, hasCachedMenu: $hasCachedMenu');
     return this;
   }
 
-  bool get hasCachedMenu => _box.containsKey(_menuKey);
+  bool get hasCachedMenu {
+    final hasKey = _box.containsKey(_menuKey);
+    debugPrint('hasCachedMenu check: $hasKey');
+    return hasKey;
+  }
 
   bool get shouldRefresh {
     final lastFetch = _box.get(_lastFetchKey) as int?;
-    if (lastFetch == null) return true;
+    if (lastFetch == null) {
+      debugPrint('shouldRefresh: true (no last fetch time)');
+      return true;
+    }
     
     final lastFetchTime = DateTime.fromMillisecondsSinceEpoch(lastFetch);
-    return DateTime.now().difference(lastFetchTime) > _refreshInterval;
+    final diff = DateTime.now().difference(lastFetchTime);
+    final shouldRefreshResult = diff > _refreshInterval;
+    debugPrint('shouldRefresh: $shouldRefreshResult (last fetch: ${diff.inMinutes} min ago)');
+    return shouldRefreshResult;
   }
 
   MenuResponse? getCachedMenu() {
     try {
       final jsonString = _box.get(_menuKey) as String?;
-      if (jsonString == null) return null;
+      if (jsonString == null) {
+        debugPrint('getCachedMenu: no cached data');
+        return null;
+      }
       
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      return MenuResponse.fromJson(json);
+      final menu = MenuResponse.fromJson(json);
+      debugPrint('getCachedMenu: loaded ${menu.itemCategories?.length ?? 0} categories from cache');
+      return menu;
     } catch (e) {
       debugPrint('Error reading cached menu: $e');
       return null;
@@ -46,25 +62,37 @@ class MenuCacheService extends GetxService {
   Future<void> cacheMenu(MenuResponse menu) async {
     try {
       final jsonString = jsonEncode(menu.toJson());
-      final hash = jsonString.hashCode.toString();
+      final hash = _generateHash(menu);
       
       await _box.put(_menuKey, jsonString);
       await _box.put(_lastFetchKey, DateTime.now().millisecondsSinceEpoch);
       await _box.put(_menuHashKey, hash);
       
-      debugPrint('Menu cached successfully');
+      debugPrint('Menu cached successfully (hash: $hash)');
     } catch (e) {
       debugPrint('Error caching menu: $e');
     }
   }
 
+  /// Generate a hash based on menu structure to detect changes
+  String _generateHash(MenuResponse menu) {
+    final categories = menu.itemCategories ?? [];
+    final itemCount = categories.fold<int>(0, (sum, cat) => sum + (cat.items?.length ?? 0));
+    final categoryIds = categories.map((c) => c.id).join(',');
+    final revision = menu.revision ?? 0;
+    
+    // Create a hash from revision + category count + item count + category IDs
+    return '${revision}_${categories.length}_${itemCount}_${categoryIds.hashCode}';
+  }
+
   bool hasMenuChanged(MenuResponse newMenu) {
     try {
-      final newJsonString = jsonEncode(newMenu.toJson());
-      final newHash = newJsonString.hashCode.toString();
+      final newHash = _generateHash(newMenu);
       final oldHash = _box.get(_menuHashKey) as String?;
       
-      return oldHash != newHash;
+      final changed = oldHash != newHash;
+      debugPrint('hasMenuChanged: $changed (old: $oldHash, new: $newHash)');
+      return changed;
     } catch (e) {
       debugPrint('Error comparing menu hash: $e');
       return true;

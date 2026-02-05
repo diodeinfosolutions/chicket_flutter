@@ -21,6 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   late final SyrveController _syrveController;
   late final bool _isFirstLaunch;
   late final GifController _gifController;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
@@ -33,6 +34,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (_configService.isConfigured) {
       _syrveController.initialize();
+      
+      // If already configured (returning from setup), navigate after a short delay
+      if (!_isFirstLaunch) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted && !_hasNavigated) {
+            _navigateToNextScreen();
+          }
+        });
+      }
     }
   }
 
@@ -43,13 +53,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _onGifFinish() {
-    if (_isFirstLaunch && mounted) {
+    if (_isFirstLaunch && mounted && !_hasNavigated) {
       _idleController.onFirstLaunchComplete();
       _navigateToNextScreen();
     }
   }
 
   void _navigateToNextScreen() {
+    if (_hasNavigated) return;
+    _hasNavigated = true;
+    
     if (!_configService.isConfigured) {
       Get.offAllNamed(Routes.setup);
     } else {

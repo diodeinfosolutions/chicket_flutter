@@ -10,13 +10,16 @@ class MenuShimmer extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: SingleChildScrollView(
+      child: GridView.builder(
         padding: EdgeInsets.all(16.w),
-        child: Wrap(
-          spacing: 20.w,
-          runSpacing: 20.h,
-          children: List.generate(6, (_) => const _ProductCardShimmer()),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          mainAxisSpacing: 20.h,
+          crossAxisSpacing: 20.w,
+          childAspectRatio: 0.65,
         ),
+        itemCount: 12,
+        itemBuilder: (_, _) => const _ProductCardShimmer(),
       ),
     );
   }
@@ -117,10 +120,10 @@ class CategoryShimmer extends StatelessWidget {
       highlightColor: Colors.grey[100]!,
       child: ListView.separated(
         padding: EdgeInsets.symmetric(vertical: 16.h),
-        itemCount: 5,
+        itemCount: 12,
         separatorBuilder: (_, _) => SizedBox(height: 12.h),
         itemBuilder: (_, _) => Container(
-          height: 80.h,
+          height: 160.h,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12.r),
@@ -130,3 +133,4 @@ class CategoryShimmer extends StatelessWidget {
     );
   }
 }
+

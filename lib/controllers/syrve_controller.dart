@@ -115,35 +115,46 @@ class SyrveController extends GetxController {
       return;
     }
 
-    isLoadingMenu.value = true;
+    debugPrint('loadMenu called: forceRefresh=$forceRefresh');
     menuError.value = null;
 
-    try {
-      // Try to use cached menu first (unless force refresh)
-      if (!forceRefresh && _cacheService.hasCachedMenu && !_cacheService.shouldRefresh) {
-        final cachedMenu = _cacheService.getCachedMenu();
-        if (cachedMenu != null) {
-          menu.value = cachedMenu;
-          debugPrint('Menu loaded from cache');
-          isLoadingMenu.value = false;
-          
-          // Refresh in background if needed
-          _refreshMenuInBackground();
-          return;
-        }
-      }
+    // First: Check if we already have menu data in memory - never show shimmer
+    if (menu.value != null && menu.value!.itemCategories?.isNotEmpty == true) {
+      debugPrint('Menu already in memory, refreshing in background only');
+      _refreshMenuInBackground();
+      return;
+    }
 
+    // Second: Check cache before showing any loading state
+    if (!forceRefresh && _cacheService.hasCachedMenu) {
+      final cachedMenu = _cacheService.getCachedMenu();
+      if (cachedMenu != null && cachedMenu.itemCategories?.isNotEmpty == true) {
+        menu.value = cachedMenu;
+        debugPrint(
+          'Menu loaded from cache immediately - no loading state needed',
+        );
+
+        _refreshMenuInBackground();
+        return;
+      }
+    }
+
+    // Only show shimmer when we have no data at all
+    isLoadingMenu.value = true;
+
+    try {
+      debugPrint('Fetching menu from API...');
       final result = await _repository.getMenu(organizationId: organizationId!);
 
       if (result.isSuccess && result.data != null) {
         final newMenu = result.data!;
-        
-        // Check if menu has changed
+        debugPrint('API returned menu successfully');
+
         if (_cacheService.hasMenuChanged(newMenu)) {
           debugPrint('Menu data changed, updating cache');
           await _cacheService.cacheMenu(newMenu);
         }
-        
+
         menu.value = newMenu;
         final categories = newMenu.itemCategories ?? [];
         int totalItems = 0;
@@ -159,13 +170,13 @@ class SyrveController extends GetxController {
         debugPrint(
           'Menu loaded: $totalItems items in ${categories.length} categories ($itemsWithImages with images)',
         );
+        debugPrint('About to set isLoadingMenu to false');
         if (menuProducts.isNotEmpty || menuGroups.isNotEmpty) {
           debugPrint(
             'Legacy format: ${menuProducts.length} products, ${menuGroups.length} groups',
           );
         }
       } else {
-        // If API fails, try to use cached data
         final cachedMenu = _cacheService.getCachedMenu();
         if (cachedMenu != null) {
           menu.value = cachedMenu;
@@ -176,7 +187,6 @@ class SyrveController extends GetxController {
         }
       }
     } catch (e) {
-      // If error, try to use cached data
       final cachedMenu = _cacheService.getCachedMenu();
       if (cachedMenu != null) {
         menu.value = cachedMenu;
@@ -191,17 +201,26 @@ class SyrveController extends GetxController {
   }
 
   Future<void> _refreshMenuInBackground() async {
-    if (!_cacheService.shouldRefresh) return;
+    if (!_cacheService.shouldRefresh) {
+      debugPrint('Background refresh: Not needed yet');
+      return;
+    }
     if (organizationId == null) return;
 
     try {
+      debugPrint('Background refresh: Fetching menu from API...');
       final result = await _repository.getMenu(organizationId: organizationId!);
       if (result.isSuccess && result.data != null) {
         final newMenu = result.data!;
-        if (_cacheService.hasMenuChanged(newMenu)) {
-          debugPrint('Background refresh: Menu changed, updating');
+        // Use strict equality check
+        if (menu.value != newMenu) {
+          debugPrint('Background refresh: Menu changed (hash: ${newMenu.contentHash}), updating');
           await _cacheService.cacheMenu(newMenu);
           menu.value = newMenu;
+        } else {
+          debugPrint('Background refresh: Menu unchanged, skipping update');
+          // Still update cache timestamp to prevent repeated checks
+          await _cacheService.cacheMenu(newMenu);
         }
       }
     } catch (e) {
@@ -304,14 +323,47 @@ class SyrveController extends GetxController {
 
     try {
       String? finalOrderTypeId = orderTypeId;
-      if (finalOrderTypeId == null && orderServiceType != null) {
-        final orderType = getOrderTypeByServiceType(orderServiceType);
+      String? finalOrderServiceType = orderServiceType;
+
+      if (finalOrderTypeId == null && finalOrderServiceType != null) {
+        final orderType = getOrderTypeByServiceType(finalOrderServiceType);
         finalOrderTypeId = orderType?.id;
       }
 
+      if (finalOrderTypeId == null && orderTypes.isNotEmpty) {
+        if (finalOrderServiceType == null) {
+          final commonOrderType = orderTypes.cast<OrderType?>().firstWhere(
+            (t) => t?.orderServiceType == 'Common',
+            orElse: () => orderTypes.first,
+          );
+          if (commonOrderType != null) {
+            finalOrderTypeId = commonOrderType.id;
+            // DON'T set orderServiceType to "Common" - the API doesn't accept it
+            // For dine-in/Common orders, orderServiceType should remain null
+            finalOrderServiceType = null;
+          }
+        } else {
+          final takeawayOrderType = getOrderTypeByServiceType(
+            finalOrderServiceType,
+          );
+          finalOrderTypeId = takeawayOrderType?.id;
+        }
+      }
+      
+      // Ensure orderServiceType is only set to valid API values
+      // Valid values: DeliveryByCourier, DeliveryByClient
+      // "Common" is NOT valid for the deliveries API - use null instead
+      if (finalOrderServiceType == 'Common') {
+        finalOrderServiceType = null;
+      }
+
+      debugPrint(
+        'Creating order: orderTypeId=$finalOrderTypeId, orderServiceType=$finalOrderServiceType',
+      );
+
       final order = DeliveryOrder(
         orderTypeId: finalOrderTypeId,
-        orderServiceType: orderServiceType ?? 'DeliveryByClient',
+        orderServiceType: finalOrderServiceType,
         phone: phone,
         customer: customer,
         guests: guests ?? Guests(count: 1),

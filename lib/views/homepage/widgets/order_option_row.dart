@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
+import '../../../theme/colors.dart';
+import '../../../utils/color_filter.dart';
 import 'order_option_button.dart';
 
 class OrderOptionsRow extends StatelessWidget {
@@ -19,34 +21,32 @@ class OrderOptionsRow extends StatelessWidget {
     final horizontalMargin = isTabletPortrait ? 0.035.sw : 0.052.sw;
 
     return IntrinsicHeight(
-      child: Obx(
-        () => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            OrderOptionButton(
-              isSelected:
-                  orderController.selectedType.value == OrderType.dineIn,
-              onTap: () => orderController.selectOrderType(OrderType.dineIn),
-              isTabletPortrait: isTabletPortrait,
-              label: 'dine_in'.tr,
-              child: Assets.svg.dinein.svg(height: iconSize, width: iconSize),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          OrderOptionButton(
+            onTap: () => orderController.selectOrderType(OrderType.dineIn),
+            isTabletPortrait: isTabletPortrait,
+            label: 'dine_in'.tr,
+            child: Assets.svg.dinein.svg(
+              height: iconSize,
+              width: iconSize,
+              colorFilter: getColorFilter(AppColors.BLACK),
             ),
-            Container(
-              width: 2.w,
-              height: dividerHeight,
-              margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
-              color: const Color(0xFFD9D9D9),
-            ),
-            OrderOptionButton(
-              isSelected:
-                  orderController.selectedType.value == OrderType.takeaway,
-              onTap: () => orderController.selectOrderType(OrderType.takeaway),
-              isTabletPortrait: isTabletPortrait,
-              label: 'takeaway'.tr,
-              child: Assets.svg.takeaway.svg(height: iconSize, width: iconSize),
-            ),
-          ],
-        ),
+          ),
+          Container(
+            width: 2.w,
+            height: dividerHeight,
+            margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+            color: const Color(0xFFD9D9D9),
+          ),
+          OrderOptionButton(
+            onTap: () => orderController.selectOrderType(OrderType.takeaway),
+            isTabletPortrait: isTabletPortrait,
+            label: 'takeaway'.tr,
+            child: Assets.svg.takeaway.svg(height: iconSize, width: iconSize),
+          ),
+        ],
       ),
     );
   }

@@ -317,12 +317,12 @@ OrderPayment _$OrderPaymentFromJson(Map<String, dynamic> json) => OrderPayment(
 Map<String, dynamic> _$OrderPaymentToJson(OrderPayment instance) =>
     <String, dynamic>{
       'paymentTypeKind': instance.paymentTypeKind,
-      'sum': instance.sum,
+      'sum': ?instance.sum,
       'paymentTypeId': instance.paymentTypeId,
-      'isProcessedExternally': instance.isProcessedExternally,
-      'isPreliminary': instance.isPreliminary,
-      'isExternal': instance.isExternal,
-      'isFiscalizedExternally': instance.isFiscalizedExternally,
+      'isProcessedExternally': ?instance.isProcessedExternally,
+      'isPreliminary': ?instance.isPreliminary,
+      'isExternal': ?instance.isExternal,
+      'isFiscalizedExternally': ?instance.isFiscalizedExternally,
     };
 
 OrderTip _$OrderTipFromJson(Map<String, dynamic> json) => OrderTip(

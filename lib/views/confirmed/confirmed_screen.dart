@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+// TODO: Re-enable when receipt URL is available
+// import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../controllers/order_controller.dart';
 import '../../controllers/syrve_controller.dart';
@@ -20,8 +21,21 @@ class ConfirmedScreen extends StatelessWidget {
 
     final orderResponse = syrveController.lastOrderResponse.value;
     final orderDetails = orderResponse?.orderInfo?.order;
-    final orderNumber = orderDetails?.number?.toString() ?? '-';
-    final orderId = orderResponse?.orderInfo?.id ?? '';
+    
+    // Use order.number if available, otherwise generate from posId last 4 chars
+    String orderNumber = '-';
+    if (orderDetails?.number != null) {
+      orderNumber = orderDetails!.number.toString();
+    } else if (orderResponse?.orderInfo?.posId != null) {
+      // Use last 4 characters of posId as display number
+      final posId = orderResponse!.orderInfo!.posId!;
+      orderNumber = posId.length >= 4 
+          ? posId.substring(posId.length - 4).toUpperCase()
+          : posId.toUpperCase();
+    }
+    
+    // Keep orderId for future use when receipt URL is available
+    // final orderId = orderResponse?.orderInfo?.id ?? '';
 
     final discounts = orderDetails?.discounts ?? [];
     final totalSavings = discounts.fold<num>(0, (sum, d) => sum + (d.sum ?? 0));
@@ -118,70 +132,71 @@ class ConfirmedScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 40.h),
-                    Container(
-                      padding: EdgeInsets.all(32.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.WHITE,
-                        borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(
-                          color: AppColors.GREY_LIGHT,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          QrImageView(
-                            data: orderId.isNotEmpty
-                                ? 'https://chicket.com/receipt/$orderId'
-                                : 'https://chicket.com/order/$orderNumber',
-                            version: QrVersions.auto,
-                            size: 180.w,
-                            backgroundColor: AppColors.WHITE,
-                          ),
-                          SizedBox(height: 24.h),
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontFamily: 'Oswald',
-                                fontSize: 28.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: 'scan_for'.tr,
-                                  style: TextStyle(color: AppColors.GREY),
-                                ),
-                                TextSpan(
-                                  text: 'e_receipt'.tr,
-                                  style: TextStyle(color: AppColors.GREEN),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontFamily: 'Oswald',
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: 'e_receipt'.tr,
-                                  style: TextStyle(color: AppColors.GREEN),
-                                ),
-                                TextSpan(
-                                  text: ' ${'sent_to_number'.tr}',
-                                  style: TextStyle(color: AppColors.GREY),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // TODO: Enable QR code when receipt URL is available
+                    // SizedBox(height: 40.h),
+                    // Container(
+                    //   padding: EdgeInsets.all(32.w),
+                    //   decoration: BoxDecoration(
+                    //     color: AppColors.WHITE,
+                    //     borderRadius: BorderRadius.circular(16.r),
+                    //     border: Border.all(
+                    //       color: AppColors.GREY_LIGHT,
+                    //       width: 1,
+                    //     ),
+                    //   ),
+                    //   child: Column(
+                    //     children: [
+                    //       QrImageView(
+                    //         data: orderId.isNotEmpty
+                    //             ? 'https://chicket.com/receipt/$orderId'
+                    //             : 'https://chicket.com/order/$orderNumber',
+                    //         version: QrVersions.auto,
+                    //         size: 180.w,
+                    //         backgroundColor: AppColors.WHITE,
+                    //       ),
+                    //       SizedBox(height: 24.h),
+                    //       RichText(
+                    //         text: TextSpan(
+                    //           style: TextStyle(
+                    //             fontFamily: 'Oswald',
+                    //             fontSize: 28.sp,
+                    //             fontWeight: FontWeight.w500,
+                    //           ),
+                    //           children: [
+                    //             TextSpan(
+                    //               text: 'scan_for'.tr,
+                    //               style: TextStyle(color: AppColors.GREY),
+                    //             ),
+                    //             TextSpan(
+                    //               text: 'e_receipt'.tr,
+                    //               style: TextStyle(color: AppColors.GREEN),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //       SizedBox(height: 8.h),
+                    //       RichText(
+                    //         text: TextSpan(
+                    //           style: TextStyle(
+                    //             fontFamily: 'Oswald',
+                    //             fontSize: 24.sp,
+                    //             fontWeight: FontWeight.w500,
+                    //           ),
+                    //           children: [
+                    //             TextSpan(
+                    //               text: 'e_receipt'.tr,
+                    //               style: TextStyle(color: AppColors.GREEN),
+                    //             ),
+                    //             TextSpan(
+                    //               text: ' ${'sent_to_number'.tr}',
+                    //               style: TextStyle(color: AppColors.GREY),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     SizedBox(height: 40.h),
                     Text(
                       'collect_order'.tr,

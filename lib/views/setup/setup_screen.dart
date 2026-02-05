@@ -230,12 +230,12 @@ class _SetupScreenState extends State<SetupScreen> {
       child: Column(
         children: [
           SizedBox(
-            height: 0.15.sh,
+            height: 0.2.sh,
             width: 1.sw,
             child: GifView.asset(
               Assets.gif.chicket.path,
               controller: _gifController,
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
               loop: true,
             ),
           ),
@@ -564,27 +564,28 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildSaveButton() {
-    return SizedBox(
-      height: 72.h,
-      child: ElevatedButton(
-        onPressed: _canSave && !_isSaving ? _saveConfig : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.RED,
-          disabledBackgroundColor: Colors.grey[400],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
+    return ElevatedButton(
+      onPressed: _canSave && !_isSaving ? _saveConfig : null,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.RED,
+        disabledBackgroundColor: Colors.grey[400],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
         ),
-        child: _isSaving
-            ? SizedBox(
-                width: 24.w,
-                height: 24.w,
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
+        padding: EdgeInsets.symmetric(vertical: 12.w),
+      ),
+      child: _isSaving
+          ? SizedBox(
+              width: 24.w,
+              height: 24.w,
+              child: const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.h),
+              child: Text(
                 'Save Configuration',
                 style: TextStyle(
                   fontFamily: 'Oswald',
@@ -593,7 +594,7 @@ class _SetupScreenState extends State<SetupScreen> {
                   color: Colors.white,
                 ),
               ),
-      ),
+            ),
     );
   }
 

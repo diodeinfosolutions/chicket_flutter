@@ -2,7 +2,8 @@ import 'package:chicket/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+// TODO: Re-enable when payment QR is available
+// import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../controllers/order_controller.dart';
 import '../../controllers/syrve_controller.dart';
@@ -44,34 +45,35 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                       color: AppColors.BLACK,
                     ),
                   ),
-                  SizedBox(height: 24.h),
-                  Text(
-                    'scan_qr_to_pay'.tr,
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.GREY,
-                    ),
-                  ),
+                  // TODO: Re-enable when payment QR is available
+                  // SizedBox(height: 24.h),
+                  // Text(
+                  //   'scan_qr_to_pay'.tr,
+                  //   style: TextStyle(
+                  //     fontFamily: 'Oswald',
+                  //     fontSize: 24.sp,
+                  //     fontWeight: FontWeight.w500,
+                  //     color: AppColors.GREY,
+                  //   ),
+                  // ),
+                  // SizedBox(height: 48.h),
+                  // QrImageView(
+                  //   data: 'https://chicket.com/pay/order123',
+                  //   version: QrVersions.auto,
+                  //   size: 280.w,
+                  //   backgroundColor: AppColors.WHITE,
+                  // ),
+                  // SizedBox(height: 80.h),
+                  // Text(
+                  //   'others'.tr,
+                  //   style: TextStyle(
+                  //     fontFamily: 'Oswald',
+                  //     fontSize: 28.sp,
+                  //     fontWeight: FontWeight.w500,
+                  //     color: AppColors.GREY,
+                  //   ),
+                  // ),
                   SizedBox(height: 48.h),
-                  QrImageView(
-                    data: 'https://chicket.com/pay/order123',
-                    version: QrVersions.auto,
-                    size: 280.w,
-                    backgroundColor: AppColors.WHITE,
-                  ),
-                  SizedBox(height: 80.h),
-                  Text(
-                    'others'.tr,
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.GREY,
-                    ),
-                  ),
-                  SizedBox(height: 32.h),
                   _buildPaymentOptionsGrid(),
                 ],
               ),
@@ -136,25 +138,21 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
       );
     }
 
-    // Create rows of 3 items each (3x2 grid)
+    // Create rows of 2 items each (2x2 grid)
     final List<Widget> rows = [];
-    for (int i = 0; i < paymentTypes.length; i += 3) {
+    for (int i = 0; i < paymentTypes.length; i += 2) {
       final rowItems = <Widget>[];
       rowItems.add(_buildPaymentOption(paymentTypes[i]));
       if (i + 1 < paymentTypes.length) {
-        rowItems.add(SizedBox(width: 16.w));
+        rowItems.add(SizedBox(width: 40.w));
         rowItems.add(_buildPaymentOption(paymentTypes[i + 1]));
-      }
-      if (i + 2 < paymentTypes.length) {
-        rowItems.add(SizedBox(width: 16.w));
-        rowItems.add(_buildPaymentOption(paymentTypes[i + 2]));
       }
       rows.add(Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: rowItems,
       ));
-      if (i + 3 < paymentTypes.length) {
-        rows.add(SizedBox(height: 16.h));
+      if (i + 2 < paymentTypes.length) {
+        rows.add(SizedBox(height: 40.h));
       }
     }
 
@@ -215,13 +213,20 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
   }
 
   AssetGenImage? _getPaymentImage(String? paymentTypeKind) {
+    // TODO: Update with correct payment icons when available
     switch (paymentTypeKind?.toLowerCase()) {
       case 'cash':
         return Assets.png.cash;
       case 'card':
+      case 'creditcard':
+      case 'visa':
+      case 'mastercard':
         return Assets.png.cc;
       case 'voucher':
+      case 'coupon':
         return Assets.png.giftVoucher;
+      case 'external':
+      case 'iikocard':
       default:
         return null;
     }

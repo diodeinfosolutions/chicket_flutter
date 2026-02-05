@@ -2,6 +2,7 @@ import 'package:chicket/api/api_constants.dart';
 import 'package:chicket/api/models/models.dart';
 import 'package:chicket/api/services/dio_client.dart';
 import 'package:chicket/api/services/syrve_api_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 class ApiResult<T> {
@@ -338,6 +339,14 @@ class SyrveRepository {
     if (!tokenResult.isSuccess) return ApiResult.failure(tokenResult.error);
 
     try {
+      debugPrint('Creating order with payload:');
+      debugPrint('  organizationId: $organizationId');
+      debugPrint('  terminalGroupId: $terminalGroupId');
+      debugPrint('  orderTypeId: ${order.orderTypeId}');
+      debugPrint('  orderServiceType: ${order.orderServiceType}');
+      debugPrint('  items count: ${order.items.length}');
+      debugPrint('  phone: ${order.phone}');
+      
       final response = await _apiService.createDelivery(
         _bearerToken,
         CreateDeliveryRequest(
@@ -352,6 +361,27 @@ class SyrveRepository {
         ),
       );
       return ApiResult.success(response);
+    } on DioException catch (e) {
+      final responseData = e.response?.data;
+      String errorMessage = 'Failed to create order';
+      
+      if (responseData is Map<String, dynamic>) {
+        // Extract error details from Syrve API response
+        final errorDescription = responseData['errorDescription'] ?? 
+                                 responseData['message'] ?? 
+                                 responseData['error'];
+        if (errorDescription != null) {
+          errorMessage = errorDescription.toString();
+        }
+        debugPrint('API Error Response: $responseData');
+      } else if (responseData != null) {
+        errorMessage = responseData.toString();
+        debugPrint('API Error: $errorMessage');
+      }
+      
+      debugPrint('DioException: ${e.message}');
+      debugPrint('Status Code: ${e.response?.statusCode}');
+      return ApiResult.failure(errorMessage);
     } catch (e) {
       debugPrint('Error creating delivery: $e');
       return ApiResult.failure('Failed to create delivery: $e');

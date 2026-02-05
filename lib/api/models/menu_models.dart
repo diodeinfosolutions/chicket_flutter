@@ -167,6 +167,25 @@ class MenuResponse {
   factory MenuResponse.fromJson(Map<String, dynamic> json) =>
       _$MenuResponseFromJson(json);
   Map<String, dynamic> toJson() => _$MenuResponseToJson(this);
+
+  /// Content hash for strict equality checking
+  String get contentHash {
+    final catCount = itemCategories?.length ?? 0;
+    final itemCount = itemCategories?.fold<int>(0, (sum, cat) => sum + (cat.items?.length ?? 0)) ?? 0;
+    final catIds = itemCategories?.map((c) => c.id).join(',') ?? '';
+    return '${revision}_${catCount}_${itemCount}_${catIds.hashCode}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MenuResponse) return false;
+    // Strict equality: same revision and same content hash
+    return revision == other.revision && contentHash == other.contentHash;
+  }
+
+  @override
+  int get hashCode => Object.hash(revision, contentHash);
 }
 
 @JsonSerializable()
