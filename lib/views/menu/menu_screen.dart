@@ -117,7 +117,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 ],
               ),
             ),
-            const CartBottomBar(),
+            const CartBottomBar(showHomeButton: true),
           ],
         );
       }),

@@ -298,6 +298,9 @@ class OrderController extends GetxController {
 
   void removeItem(int index) {
     cart.removeAt(index);
+    if (cart.isEmpty) {
+      Get.offNamed(Routes.menu);
+    }
   }
 
   void clearCart() {

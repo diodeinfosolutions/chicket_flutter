@@ -11,9 +11,11 @@ class CartBottomBar extends StatelessWidget {
     super.key,
     this.hideButtons = false,
     this.customActionButton,
+    this.showHomeButton = false,
   });
   final bool hideButtons;
   final Widget? customActionButton;
+  final bool showHomeButton;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,31 @@ class CartBottomBar extends StatelessWidget {
         ),
         child: Row(
           children: [
+            if (showHomeButton) ...[
+              GestureDetector(
+                onTap: () => Get.toNamed(Routes.home),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 32.w,
+                    vertical: 16.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF642F21),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    'home'.tr,
+                    style: TextStyle(
+                      fontFamily: 'Oswald',
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFF7BE26),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 16.w),
+            ],
             Expanded(
               child: GestureDetector(
                 onTap: itemCount > 0 ? () => Get.toNamed(Routes.cart) : null,

@@ -15,6 +15,7 @@ class AppTranslations extends Translations {
     'takeaway': 'TAKEAWAY',
     'english': 'ENGLISH',
     'arabic': 'عربي',
+    'home': 'HOME',
 
     // Menu
     'all': 'All',
@@ -69,8 +70,8 @@ class AppTranslations extends Translations {
     'to_skip_queue': 'لتخطي الطابور',
     'dine_in': 'تناول بالمطعم',
     'takeaway': 'سفري',
-    'english': 'ENGLISH',
-    'arabic': 'عربي',
+    'english': 'ENGLISH',    'arabic': 'عربي',
+    'home': 'المنزل',
 
     // Menu
     'all': 'الكل',
