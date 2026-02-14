@@ -7,9 +7,11 @@ class KioskService {
   );
 
   static Future<void> initKioskMode() async {
-    await enableImmersiveMode();
-    await enableWakeLock();
-    await startLockTask();
+    await Future.wait([
+      enableImmersiveMode(),
+      enableWakeLock(),
+      startLockTask(),
+    ]);
   }
 
   static Future<void> enableImmersiveMode() async {

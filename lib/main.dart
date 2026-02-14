@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:chicket/routes.dart';
 import 'package:chicket/init.dart';
 import 'package:chicket/utils/kiosk_service.dart';
+import 'package:chicket/utils/cache_config.dart';
 import 'package:chicket/controllers/idle_controller.dart';
 import 'package:chicket/localization/app_translations.dart';
 
@@ -18,10 +19,14 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  CacheConfig.configure();
+
   await Hive.initFlutter();
-  await KioskService.initKioskMode();
-  await initControllers();
-  
+  await Future.wait([
+    KioskService.initKioskMode(),
+    initControllers(),
+  ]);
+
   runApp(const MyApp());
 }
 
@@ -67,7 +72,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             getPages: Routes.pages,
             debugShowCheckedModeBanner: kDebugMode,
             translations: AppTranslations(),
-            locale: const Locale('en'),
+            locale: Get.deviceLocale?.languageCode == 'ar'
+                ? const Locale('ar')
+                : const Locale('en'),
             fallbackLocale: const Locale('en'),
             builder: (context, child) {
               final isArabic = Get.locale?.languageCode == 'ar';

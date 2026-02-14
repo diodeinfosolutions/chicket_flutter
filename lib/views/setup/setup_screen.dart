@@ -89,7 +89,7 @@ class _SetupScreenState extends State<SetupScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _error = 'Failed to load data: $e';
+        _error = '${"failed_to_load_data".tr} $e';
       });
     }
   }
@@ -138,7 +138,7 @@ class _SetupScreenState extends State<SetupScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _error = 'Failed to load organization data: $e';
+        _error = '${"failed_to_load_organization_data".tr} $e';
       });
     }
   }
@@ -162,9 +162,9 @@ class _SetupScreenState extends State<SetupScreen> {
 
       final config = KioskConfig(
         organizationId: _selectedOrg!.id,
-        organizationName: _selectedOrg!.name ?? 'Unknown',
+        organizationName: _selectedOrg!.name ?? 'unknown'.tr,
         terminalGroupId: _selectedTerminal!.id,
-        terminalGroupName: _selectedTerminal!.name ?? 'Unknown',
+        terminalGroupName: _selectedTerminal!.name ?? 'unknown'.tr,
         externalMenuId: _selectedMenu!.id,
         externalMenuName: _selectedMenu!.name,
         defaultOrderTypeId: _selectedOrderType?.id,
@@ -175,10 +175,10 @@ class _SetupScreenState extends State<SetupScreen> {
       if (success) {
         Get.offAllNamed(Routes.splash);
       } else {
-        _showError('Failed to save configuration');
+        _showError('failed_to_save_configuration'.tr);
       }
     } catch (e) {
-      _showError('Error saving configuration: $e');
+      _showError('${"error_saving_configuration".tr} $e');
     } finally {
       setState(() {
         _isSaving = false;
@@ -241,7 +241,7 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           Gap(8.h),
           Text(
-            "Kiosk Setup",
+            "kiosk_setup".tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: 36.sp,
@@ -250,7 +250,7 @@ class _SetupScreenState extends State<SetupScreen> {
             ),
           ),
           Text(
-            "Configure your branch settings",
+            "configure_branch_settings".tr,
             style: TextStyle(
               fontFamily: 'Oswald',
               fontSize: 20.sp,
@@ -274,7 +274,7 @@ class _SetupScreenState extends State<SetupScreen> {
             Icon(Icons.error_outline, size: 64.sp, color: AppColors.RED),
             Gap(16.h),
             Text(
-              _error ?? 'Unknown error',
+              _error ?? 'unknown_error'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18.sp, color: Colors.grey[700]),
             ),
@@ -286,7 +286,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
               ),
               child: Text(
-                'Retry',
+                'retry'.tr,
                 style: TextStyle(fontSize: 18.sp, color: Colors.white),
               ),
             ),
@@ -306,27 +306,27 @@ class _SetupScreenState extends State<SetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildDropdownCard(
-                  title: 'Organization (Branch)',
+                  title: 'organization_branch'.tr,
                   icon: Icons.store_outlined,
                   child: _buildOrganizationDropdown(),
                 ),
                 Gap(16.h),
                 _buildDropdownCard(
-                  title: 'Terminal Group',
+                  title: 'terminal_group'.tr,
                   icon: Icons.point_of_sale_outlined,
                   child: _buildTerminalDropdown(),
                   enabled: _selectedOrg != null,
                 ),
                 Gap(16.h),
                 _buildDropdownCard(
-                  title: 'Menu',
+                  title: 'menu'.tr,
                   icon: Icons.restaurant_menu_outlined,
                   child: _buildMenuDropdown(),
                   enabled: _selectedOrg != null,
                 ),
                 Gap(16.h),
                 _buildDropdownCard(
-                  title: 'Default Order Type (Optional)',
+                  title: 'default_order_type_optional'.tr,
                   icon: Icons.shopping_bag_outlined,
                   child: _buildOrderTypeDropdown(),
                   enabled: _selectedOrg != null,
@@ -384,7 +384,7 @@ class _SetupScreenState extends State<SetupScreen> {
           Gap(12.w),
           Expanded(
             child: Text(
-              'Configure the kiosk to connect to the correct branch and menu. This only needs to be done once.',
+              'kiosk_setup_description'.tr,
               style: TextStyle(fontSize: 16.sp, color: Colors.blue[900]),
             ),
           ),
@@ -445,12 +445,12 @@ class _SetupScreenState extends State<SetupScreen> {
       initialValue: _selectedOrg,
       isExpanded: true,
       decoration: _dropdownDecoration(),
-      hint: Text('Select organization', style: TextStyle(fontSize: 16.sp)),
+      hint: Text('select_organization'.tr, style: TextStyle(fontSize: 16.sp)),
       items: _organizations.map((org) {
         return DropdownMenuItem(
           value: org,
           child: Text(
-            org.name ?? 'Unknown',
+            org.name ?? 'unknown'.tr,
             style: TextStyle(fontSize: 16.sp),
             overflow: TextOverflow.ellipsis,
           ),
@@ -467,15 +467,15 @@ class _SetupScreenState extends State<SetupScreen> {
       decoration: _dropdownDecoration(),
       hint: Text(
         _terminalGroups.isEmpty
-            ? 'Select organization first'
-            : 'Select terminal group',
+            ? 'select_organization_first'.tr
+            : 'select_terminal_group'.tr,
         style: TextStyle(fontSize: 16.sp),
       ),
       items: _terminalGroups.map((terminal) {
         return DropdownMenuItem(
           value: terminal,
           child: Text(
-            terminal.name ?? 'Unknown',
+            terminal.name ?? 'unknown'.tr,
             style: TextStyle(fontSize: 16.sp),
             overflow: TextOverflow.ellipsis,
           ),
@@ -495,7 +495,9 @@ class _SetupScreenState extends State<SetupScreen> {
       isExpanded: true,
       decoration: _dropdownDecoration(),
       hint: Text(
-        _externalMenus.isEmpty ? 'Select organization first' : 'Select menu',
+        _externalMenus.isEmpty
+            ? 'select_organization_first'.tr
+            : 'select_menu'.tr,
         style: TextStyle(fontSize: 16.sp),
       ),
       items: _externalMenus.map((menu) {
@@ -523,8 +525,8 @@ class _SetupScreenState extends State<SetupScreen> {
       decoration: _dropdownDecoration(),
       hint: Text(
         _orderTypes.isEmpty
-            ? 'Select organization first'
-            : 'Select order type (optional)',
+            ? 'select_organization_first'.tr
+            : 'select_order_type_optional'.tr,
         style: TextStyle(fontSize: 16.sp),
       ),
       items: _orderTypes.map((orderType) {
@@ -586,7 +588,7 @@ class _SetupScreenState extends State<SetupScreen> {
           : Padding(
               padding: EdgeInsets.symmetric(vertical: 12.h),
               child: Text(
-                'Save Configuration',
+                'save_configuration'.tr,
                 style: TextStyle(
                   fontFamily: 'Oswald',
                   fontSize: 20.sp,
@@ -602,7 +604,7 @@ class _SetupScreenState extends State<SetupScreen> {
     return TextButton(
       onPressed: () => Get.back(),
       child: Text(
-        'Cancel',
+        'cancel_btn'.tr,
         style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
       ),
     );

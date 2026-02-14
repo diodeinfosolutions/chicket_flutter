@@ -2,10 +2,7 @@ import 'package:get/get.dart';
 
 class AppTranslations extends Translations {
   @override
-  Map<String, Map<String, String>> get keys => {
-        'en': _enUS,
-        'ar': _arSA,
-      };
+  Map<String, Map<String, String>> get keys => {'en': _enUS, 'ar': _arSA};
 
   static const Map<String, String> _enUS = {
     // Homepage
@@ -20,6 +17,8 @@ class AppTranslations extends Translations {
     // Menu
     'all': 'All',
     'add_to_cart': 'ADD TO CART',
+    'menu': 'MENU',
+    "back_to_home": "Back to Home",
 
     // Cart
     'your_cart': 'YOUR CART',
@@ -29,6 +28,8 @@ class AppTranslations extends Translations {
     'cancel_order': 'CANCEL ORDER',
     'proceed': 'PROCEED',
     'items_added': 'Items has been added to the cart',
+    "order_failed": "Order Failed",
+    "order_on_its_way": "ORDER IS ON ITS WAY TO\nTHE KITCHEN",
 
     // Clear cart dialog
     'clear_cart_question': 'WOULD YOU LIKE TO CLEAR THE ITEMS\nIN THE CART?',
@@ -62,6 +63,29 @@ class AppTranslations extends Translations {
     'sent_to_number': 'SENT TO YOUR NUMBER',
     'collect_order': 'COLLECT YOUR ORDER\nAT THE COUNTER WHEN IT\'S READY',
     'thank_you': 'THANK YOU !',
+
+    // Kiosk Setup
+    'kiosk_setup': 'Kiosk Setup',
+    'configure_branch_settings': 'Configure your branch settings',
+    'select_organization': 'Select organization',
+    'select_organization_first': 'Select organization first',
+    'select_terminal_group': 'Select terminal group',
+    'select_menu': 'Select menu',
+    'select_order_type_optional': 'Select order type (optional)',
+    'kiosk_setup_description':
+        'Configure the kiosk to connect to the correct branch and menu. This only needs to be done once.',
+    'unknown_error': 'Unknown error',
+    'retry': 'Retry',
+    'cancel_btn': 'Cancel',
+    'save_configuration': 'Save Configuration',
+    'failed_to_load_data': 'Failed to load data:',
+    'failed_to_load_organization_data': 'Failed to load organization data:',
+    'unknown': 'Unknown',
+    'failed_to_save_configuration': 'Failed to save configuration',
+    'error_saving_configuration': 'Error saving configuration:',
+    'organization_branch': 'Organization (Branch)',
+    'terminal_group': 'Terminal Group',
+    'default_order_type_optional': 'Default Order Type (Optional)',
   };
 
   static const Map<String, String> _arSA = {
@@ -70,12 +94,14 @@ class AppTranslations extends Translations {
     'to_skip_queue': 'لتخطي الطابور',
     'dine_in': 'تناول بالمطعم',
     'takeaway': 'سفري',
-    'english': 'ENGLISH',    'arabic': 'عربي',
+    'english': 'ENGLISH', 'arabic': 'عربي',
     'home': 'المنزل',
 
     // Menu
     'all': 'الكل',
     'add_to_cart': 'أضف للسلة',
+    'menu': 'القائمة',
+    "back_to_home": "العودة إلى الصفحة الرئيسية",
 
     // Cart
     'your_cart': 'سلة التسوق',
@@ -85,6 +111,8 @@ class AppTranslations extends Translations {
     'cancel_order': 'إلغاء الطلب',
     'proceed': 'متابعة',
     'items_added': 'تمت إضافة المنتجات إلى السلة',
+    "order_failed": "فشل الطلب",
+    "order_on_its_way": "طلبك في طريقه\nإلى المطبخ",
 
     // Clear cart dialog
     'clear_cart_question': 'هل تريد مسح المنتجات\nمن السلة؟',
@@ -118,5 +146,28 @@ class AppTranslations extends Translations {
     'sent_to_number': 'تم الإرسال إلى رقمك',
     'collect_order': 'استلم طلبك\nمن الكاونتر عندما يكون جاهزاً',
     'thank_you': 'شكراً لك!',
+
+    // Kiosk Setup
+    'kiosk_setup': 'إعداد الكشك',
+    'configure_branch_settings': 'تهيئة إعدادات الفرع',
+    'select_organization': 'اختر المؤسسة',
+    'select_organization_first': 'اختر المؤسسة أولاً',
+    'select_terminal_group': 'اختر مجموعة الأجهزة',
+    'select_menu': 'اختر القائمة',
+    'select_order_type_optional': 'اختر نوع الطلب (اختياري)',
+    'kiosk_setup_description':
+        'قم بتهيئة الكشك للاتصال بالفرع والقائمة الصحيحة. يتم ذلك مرة واحدة فقط.',
+    'unknown_error': 'خطأ غير معروف',
+    'retry': 'إعادة المحاولة',
+    'cancel_btn': 'إلغاء',
+    'save_configuration': 'حفظ الإعدادات',
+    'failed_to_load_data': 'فشل في تحميل البيانات:',
+    'failed_to_load_organization_data': 'فشل في تحميل بيانات المؤسسة:',
+    'unknown': 'غير معروف',
+    '': 'فشل في حفظ الإعدادات',
+    'error_saving_configuration': 'خطأ أثناء حفظ الإعدادات:',
+    'organization_branch': 'المؤسسة (الفرع)',
+    'terminal_group': 'مجموعة الأجهزة',
+    'default_order_type_optional': 'نوع الطلب الافتراضي (اختياري)',
   };
 }

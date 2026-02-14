@@ -92,6 +92,9 @@ class $AssetsPngGen {
 class $AssetsSvgGen {
   const $AssetsSvgGen();
 
+  /// File path: assets/svg/benefit.svg
+  SvgGenImage get benefit => const SvgGenImage('assets/svg/benefit.svg');
+
   /// File path: assets/svg/clear_cart.svg
   SvgGenImage get clearCart => const SvgGenImage('assets/svg/clear_cart.svg');
 
@@ -128,6 +131,7 @@ class $AssetsSvgGen {
 
   /// List of all assets
   List<SvgGenImage> get values => [
+    benefit,
     clearCart,
     delete,
     dinein,

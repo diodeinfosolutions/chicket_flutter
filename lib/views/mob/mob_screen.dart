@@ -169,7 +169,9 @@ class _MobScreenState extends State<MobScreen> {
                       onPressed: _phoneNumber.length == 8
                           ? () {
                               // Store phone number with country code
-                              _orderController.setCustomerPhone('+973$_phoneNumber');
+                              _orderController.setCustomerPhone(
+                                '+973$_phoneNumber',
+                              );
                               Get.toNamed(Routes.selectPayment);
                             }
                           : null,

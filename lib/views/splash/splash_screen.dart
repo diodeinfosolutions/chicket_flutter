@@ -19,50 +19,41 @@ class _SplashScreenState extends State<SplashScreen> {
   late final IdleController _idleController;
   late final KioskConfigService _configService;
   late final SyrveController _syrveController;
-  late final bool _isFirstLaunch;
   late final GifController _gifController;
+
+  late final bool shouldRepeat;
   bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
+
+    shouldRepeat = Get.arguments == true;
+
     _idleController = Get.find<IdleController>();
     _configService = Get.find<KioskConfigService>();
     _syrveController = Get.find<SyrveController>();
-    _isFirstLaunch = _idleController.isFirstLaunch.value;
     _gifController = GifController();
+
+    _idleController.stopMonitoring();
 
     if (_configService.isConfigured) {
       _syrveController.initialize();
-      
-      // If already configured (returning from setup), navigate after a short delay
-      if (!_isFirstLaunch) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
+
+      if (!shouldRepeat) {
+        Future.delayed(const Duration(milliseconds: 750), () {
           if (mounted && !_hasNavigated) {
-            _navigateToNextScreen();
+            _navigateNext();
           }
         });
       }
     }
   }
 
-  @override
-  void dispose() {
-    _gifController.dispose();
-    super.dispose();
-  }
-
-  void _onGifFinish() {
-    if (_isFirstLaunch && mounted && !_hasNavigated) {
-      _idleController.onFirstLaunchComplete();
-      _navigateToNextScreen();
-    }
-  }
-
-  void _navigateToNextScreen() {
+  void _navigateNext() {
     if (_hasNavigated) return;
     _hasNavigated = true;
-    
+
     if (!_configService.isConfigured) {
       Get.offAllNamed(Routes.setup);
     } else {
@@ -71,9 +62,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _onTap() {
-    if (!_isFirstLaunch) {
+    if (shouldRepeat) {
       _idleController.onUserInteraction();
     }
+  }
+
+  @override
+  void dispose() {
+    _gifController.dispose();
+    super.dispose();
   }
 
   @override
@@ -89,9 +86,9 @@ class _SplashScreenState extends State<SplashScreen> {
             child: GifView.asset(
               Assets.gif.chicket.path,
               controller: _gifController,
-              onFinish: _onGifFinish,
               fit: BoxFit.cover,
-              loop: !_isFirstLaunch,
+              loop: shouldRepeat,
+              onFinish: shouldRepeat ? null : _navigateNext,
             ),
           ),
         ),

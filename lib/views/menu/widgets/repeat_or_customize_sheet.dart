@@ -10,8 +10,13 @@ import 'addon_bottom_sheet.dart';
 
 class RepeatOrCustomizeSheet extends StatelessWidget {
   final MenuItem product;
+  final Map<String, List<Map<String, dynamic>>>? modifiers;
 
-  const RepeatOrCustomizeSheet({super.key, required this.product});
+  const RepeatOrCustomizeSheet({
+    super.key,
+    required this.product,
+    this.modifiers,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,35 +69,37 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
                 height: 72.h,
                 child: OutlinedButton(
                   onPressed: () {
-                    final lastIndex = orderController.cart.lastIndexWhere(
-                      (e) => e['productId'] == product.id,
-                    );
-                    if (lastIndex != -1) {
-                      final lastItem = orderController.cart[lastIndex];
-                      final modifiers =
-                          lastItem['modifiers']
-                              as Map<String, List<Map<String, dynamic>>>?;
+                    final Map<String, List<Map<String, dynamic>>>? modsToUse =
+                        modifiers ??
+                        (() {
+                          final lastIndex = orderController.cart.lastIndexWhere(
+                            (e) => e['productId'] == product.id,
+                          );
+                          if (lastIndex != -1) {
+                            final lastItem = orderController.cart[lastIndex];
+                            return lastItem['modifiers']
+                                as Map<String, List<Map<String, dynamic>>>?;
+                          }
+                          return null;
+                        })();
 
-                      orderController.addToCart(
-                        productId: product.id,
-                        name: productName,
-                        price: price,
-                        modifiers: modifiers != null
-                            ? Map<String, List<Map<String, dynamic>>>.from(
-                                modifiers.map(
-                                  (key, value) => MapEntry(
-                                    key,
-                                    value
-                                        .map(
-                                          (e) => Map<String, dynamic>.from(e),
-                                        )
-                                        .toList(),
-                                  ),
+                    orderController.addToCart(
+                      productId: product.id,
+                      name: productName,
+                      price: price,
+                      modifiers: modsToUse != null
+                          ? Map<String, List<Map<String, dynamic>>>.from(
+                              modsToUse.map(
+                                (key, value) => MapEntry(
+                                  key,
+                                  value
+                                      .map((e) => Map<String, dynamic>.from(e))
+                                      .toList(),
                                 ),
-                              )
-                            : null,
-                      );
-                    }
+                              ),
+                            )
+                          : null,
+                    );
                     Get.back();
                   },
                   style: OutlinedButton.styleFrom(
@@ -150,12 +157,17 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
   }
 }
 
-void showRepeatOrCustomizeSheet(BuildContext context, MenuItem product) {
+void showRepeatOrCustomizeSheet(
+  BuildContext context,
+  MenuItem product, {
+  Map<String, List<Map<String, dynamic>>>? modifiers,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
-    builder: (context) => RepeatOrCustomizeSheet(product: product),
+    builder: (context) =>
+        RepeatOrCustomizeSheet(product: product, modifiers: modifiers),
   );
 }

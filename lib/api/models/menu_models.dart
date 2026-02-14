@@ -151,6 +151,18 @@ class MenuResponse {
   @JsonKey(name: 'revision', fromJson: _parseIntNullable)
   final int? revision;
 
+  @JsonKey(name: 'formatVersion', fromJson: _parseIntNullable)
+  final int? formatVersion;
+
+  @JsonKey(name: 'customerTagGroups')
+  final List? customerTagGroups;
+
+  @JsonKey(name: 'intervals')
+  final List? intervals;
+
+  @JsonKey(name: 'comboCategories')
+  final List? comboCategories;
+
   MenuResponse({
     this.correlationId,
     this.id,
@@ -162,6 +174,10 @@ class MenuResponse {
     this.products,
     this.sizes,
     this.revision,
+    this.formatVersion,
+    this.customerTagGroups,
+    this.intervals,
+    this.comboCategories,
   });
 
   factory MenuResponse.fromJson(Map<String, dynamic> json) =>
@@ -171,7 +187,12 @@ class MenuResponse {
   /// Content hash for strict equality checking
   String get contentHash {
     final catCount = itemCategories?.length ?? 0;
-    final itemCount = itemCategories?.fold<int>(0, (sum, cat) => sum + (cat.items?.length ?? 0)) ?? 0;
+    final itemCount =
+        itemCategories?.fold<int>(
+          0,
+          (sum, cat) => sum + (cat.items?.length ?? 0),
+        ) ??
+        0;
     final catIds = itemCategories?.map((c) => c.id).join(',') ?? '';
     return '${revision}_${catCount}_${itemCount}_${catIds.hashCode}';
   }
@@ -205,8 +226,17 @@ class MenuItemCategory {
   @JsonKey(name: 'headerImageUrl')
   final String? headerImageUrl;
 
-  @JsonKey(name: 'order', fromJson: _parseIntNullable)
-  final int? order;
+  @JsonKey(name: 'iikoGroupId')
+  final String? iikoGroupId;
+
+  @JsonKey(name: 'scheduleId')
+  final String? scheduleId;
+
+  @JsonKey(name: 'scheduleName')
+  final String? scheduleName;
+
+  @JsonKey(name: 'schedules')
+  final List? schedules;
 
   @JsonKey(name: 'isHidden')
   final bool? isHidden;
@@ -214,15 +244,26 @@ class MenuItemCategory {
   @JsonKey(name: 'items')
   final List<MenuItem>? items;
 
+  @JsonKey(name: 'tags')
+  final List<String>? tags;
+
+  @JsonKey(name: 'labels')
+  final List<String>? labels;
+
   MenuItemCategory({
     this.id,
     this.name,
     this.description,
     this.buttonImageUrl,
     this.headerImageUrl,
-    this.order,
+    this.iikoGroupId,
+    this.scheduleId,
+    this.scheduleName,
+    this.schedules,
     this.isHidden,
     this.items,
+    this.tags,
+    this.labels,
   });
 
   factory MenuItemCategory.fromJson(Map<String, dynamic> json) =>
@@ -265,6 +306,28 @@ class MenuItem {
   @JsonKey(name: 'isHidden')
   final bool? isHidden;
 
+  @JsonKey(name: 'allergens')
+  final List<String>? allergens;
+
+  @JsonKey(name: 'orderItemType')
+  final String? orderItemType;
+
+  @JsonKey(name: 'tags')
+  final List<String>? tags;
+
+  @JsonKey(name: 'labels')
+  final List<String>? labels;
+
+  // Add a getter for productCategoryId by looking up the field in the JSON structure if present
+  String? get productCategoryId {
+    // Try to find productCategoryId in the MenuItem fields (if present in JSON)
+    final map = toJson();
+    if (map.containsKey('productCategoryId')) {
+      return map['productCategoryId'] as String?;
+    }
+    return null;
+  }
+
   MenuItem({
     this.sku,
     this.itemId,
@@ -277,6 +340,10 @@ class MenuItem {
     this.taxCategory,
     this.type,
     this.isHidden,
+    this.allergens,
+    this.orderItemType,
+    this.tags,
+    this.labels,
   });
 
   num? get currentPrice {
@@ -336,6 +403,18 @@ class MenuItemSize {
   @JsonKey(name: 'nutritionPerHundredGrams')
   final NutritionInfo? nutritionPerHundredGrams;
 
+  @JsonKey(name: 'sku')
+  final String? sku;
+
+  @JsonKey(name: 'itemModifierGroups')
+  final List<MenuModifierGroup>? itemModifierGroups;
+
+  @JsonKey(name: 'tags')
+  final List<String>? tags;
+
+  @JsonKey(name: 'labels')
+  final List<String>? labels;
+
   MenuItemSize({
     this.sizeId,
     this.sizeName,
@@ -345,6 +424,10 @@ class MenuItemSize {
     this.portionWeightGrams,
     this.buttonImageUrl,
     this.nutritionPerHundredGrams,
+    this.sku,
+    this.itemModifierGroups,
+    this.tags,
+    this.labels,
   });
 
   factory MenuItemSize.fromJson(Map<String, dynamic> json) =>

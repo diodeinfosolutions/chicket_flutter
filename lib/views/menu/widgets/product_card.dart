@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../api/models/menu_models.dart';
+import '../../../utils/cache_config.dart';
 import 'addon_bottom_sheet.dart';
 import 'repeat_or_customize_sheet.dart';
 
@@ -44,6 +45,7 @@ class ProductCard extends StatelessWidget {
                   ? CachedNetworkImage(
                       imageUrl: product.imageUrl!,
                       fit: BoxFit.cover,
+                      cacheManager: CacheConfig.optimizedCacheManager,
                       placeholder: (_, _) => Container(
                         color: Colors.grey[200],
                         child: Icon(
@@ -137,13 +139,19 @@ class ProductCard extends StatelessWidget {
     double price,
     String productName,
   ) {
-    final hasModifiers = product.modifierGroups?.isNotEmpty ?? false;
-
+    final hasModifiers =
+        (product.itemSizes?.any(
+              (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
+            ) ??
+            false) ||
+        (product.modifierGroups?.isNotEmpty ?? false);
     return Obx(() {
       final totalQty = orderController.getProductQuantity(product.id);
 
       final cartIndexNoAddons = orderController.cart.indexWhere(
-        (e) => e['productId'] == product.id && ((e['modifiers'] as Map?)?.isEmpty ?? true),
+        (e) =>
+            e['productId'] == product.id &&
+            ((e['modifiers'] as Map?)?.isEmpty ?? true),
       );
 
       if (totalQty > 0) {
@@ -213,6 +221,7 @@ class ProductCard extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
+                  // Always show RepeatOrCustomizeSheet for items with modifiers
                   if (hasModifiers) {
                     showRepeatOrCustomizeSheet(context, product);
                   } else {

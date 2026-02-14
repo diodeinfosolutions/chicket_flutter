@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../api/models/menu_models.dart';
+import '../../../utils/cache_config.dart';
 
 class CategoryWidget extends StatelessWidget {
   final MenuItemCategory category;
@@ -18,7 +19,8 @@ class CategoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = category.buttonImageUrl != null && category.buttonImageUrl!.isNotEmpty;
+    final hasImage =
+        category.buttonImageUrl != null && category.buttonImageUrl!.isNotEmpty;
     final categoryName = category.name ?? '';
 
     return GestureDetector(
@@ -56,6 +58,7 @@ class CategoryWidget extends StatelessWidget {
                           width: 56.w,
                           height: 56.w,
                           fit: BoxFit.contain,
+                          cacheManager: CacheConfig.optimizedCacheManager,
                           placeholder: (context, url) => Icon(
                             Icons.restaurant_menu_outlined,
                             size: 56.w,

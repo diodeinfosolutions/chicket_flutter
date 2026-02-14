@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a41f36;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7a1526;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" rx="60" ry="60" fill="url(#grad1)" />
+  
+  <g transform="translate(150, 150)">
+    <!-- Stylized 'Benefit' text representation -->
+    <path fill="#ffffff" d="M40,50 h40 c20,0 30,10 30,30 s-10,30 -30,30 h-30 v40 h-10 z M50,60 v40 h30 c10,0 20,-5 20,-20 s-10,-20 -20,-20 z" />
+    <path fill="#ffffff" d="M130,100 h50 v10 h-40 v20 h30 v10 h-30 v30 h40 v10 h-50 z" />
+    <path fill="#ffffff" d="M200,100 h10 v80 h-10 v-60 l-30,60 h-10 l-30,-60 v60 h-10 v-80 h15 l30,60 l30,-60 h5 z" />
+    <path fill="#ffffff" d="M280,100 h50 v10 h-40 v20 h30 v10 h-30 v30 h40 v10 h-50 z" />
+    <path fill="#ffffff" d="M350,100 h50 v10 h-40 v25 h35 v10 h-35 v35 h-10 z" />
+    <path fill="#ffffff" d="M420,100 h10 v80 h-10 z" />
+    <path fill="#ffffff" d="M450,100 h60 v10 h-25 v70 h-10 v-70 h-25 z" />
+    
+    <!-- 'Pay' text below or next to it -->
+    <g transform="translate(260, 110)">
+         <text x="0" y="0" font-family="Arial, sans-serif" font-weight="bold" font-size="60" fill="white" letter-spacing="2">PAY</text>
+    </g>
+  </g>
+  
+  <!-- Re-doing the paths to look closer to the real logo which is just text mostly -->
+  <!-- Let's just use nice text with the registered trademark symbol -->
+  <rect width="800" height="500" rx="60" ry="60" fill="#981b32" /> <!-- Official-ish reddish color -->
+  
+  <text x="400" y="240" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="140" fill="white" text-anchor="middle" letter-spacing="-2">Benefit</text>
+  <text x="400" y="360" font-family="Arial, Helvetica, sans-serif" font-weight="normal" font-size="90" fill="white" text-anchor="middle" letter-spacing="10">PAY</text>
+  
+</svg>

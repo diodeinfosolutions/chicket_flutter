@@ -32,14 +32,14 @@ class _HeaderSectionState extends State<HeaderSection> {
 
   void _handleLogoTap() {
     final now = DateTime.now();
-    
+
     if (_lastTapTime != null && now.difference(_lastTapTime!) > _tapTimeout) {
       _tapCount = 0;
     }
-    
+
     _tapCount++;
     _lastTapTime = now;
-    
+
     if (_tapCount >= _requiredTaps) {
       _tapCount = 0;
       _lastTapTime = null;

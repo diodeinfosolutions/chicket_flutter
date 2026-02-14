@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
 import '../../../api/models/menu_models.dart';
+import '../../../utils/cache_config.dart';
 
 class AddonBottomSheet extends StatelessWidget {
   final MenuItem product;
@@ -18,158 +19,165 @@ class AddonBottomSheet extends StatelessWidget {
     final description = product.description ?? '';
     final productName = product.name ?? '';
 
+    // Collect all modifier groups: product-level and all itemSizes' itemModifierGroups
+    final List<MenuModifierGroup> allModifierGroups = [
+      ...?product.modifierGroups,
+      ...?product.itemSizes?.expand((size) => size.itemModifierGroups ?? []),
+    ];
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(64.w),
       decoration: BoxDecoration(color: Colors.white),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'your_cart'.tr,
-            style: TextStyle(
-              fontFamily: 'Oswald',
-              fontSize: 40.sp,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF283034),
-            ),
-          ),
-          SizedBox(height: 24.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
-                child: product.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrl!,
-                        width: 220.w,
-                        height: 200.h,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => Container(
-                          width: 220.w,
-                          height: 200.h,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.restaurant, size: 48.w),
-                        ),
-                        errorWidget: (_, _, _) => Container(
-                          width: 220.w,
-                          height: 200.h,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.restaurant, size: 48.w),
-                        ),
-                      )
-                    : Container(
-                        width: 220.w,
-                        height: 200.h,
-                        color: Colors.grey[200],
-                        child: Icon(Icons.restaurant, size: 48.w),
-                      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'your_cart'.tr,
+              style: TextStyle(
+                fontFamily: 'Oswald',
+                fontSize: 40.sp,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF283034),
               ),
-              SizedBox(width: 24.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      productName.toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: 'Oswald',
-                        fontSize: 32.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFF7BE26),
+            ),
+            SizedBox(height: 24.h),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: product.imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: product.imageUrl!,
+                          width: 220.w,
+                          height: 200.h,
+                          fit: BoxFit.cover,
+                          cacheManager: CacheConfig.optimizedCacheManager,
+                          placeholder: (_, _) => Container(
+                            width: 220.w,
+                            height: 200.h,
+                            color: Colors.grey[200],
+                            child: Icon(Icons.restaurant, size: 48.w),
+                          ),
+                          errorWidget: (_, _, _) => Container(
+                            width: 220.w,
+                            height: 200.h,
+                            color: Colors.grey[200],
+                            child: Icon(Icons.restaurant, size: 48.w),
+                          ),
+                        )
+                      : Container(
+                          width: 220.w,
+                          height: 200.h,
+                          color: Colors.grey[200],
+                          child: Icon(Icons.restaurant, size: 48.w),
+                        ),
+                ),
+                SizedBox(width: 24.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        productName.toUpperCase(),
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontSize: 32.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFF7BE26),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      description.toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF757575),
-                        height: 1.4,
+                      SizedBox(height: 8.h),
+                      Text(
+                        description.toUpperCase(),
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF757575),
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 16.h),
-                    ...?product.modifierGroups?.map(
-                      (modGroup) => _buildModifierGroup(
-                        modGroup,
-                        orderController,
+                      SizedBox(height: 16.h),
+                      ...allModifierGroups.map(
+                        (modGroup) =>
+                            _buildModifierGroup(modGroup, orderController),
                       ),
-                    ),
-                    SizedBox(height: 16.h),
-                    Obx(
-                      () => Row(
-                        children: [
-                          SizedBox(
-                            width: 224.w,
+                      SizedBox(height: 16.h),
+                      Obx(
+                        () => Row(
+                          children: [
+                            SizedBox(
+                              width: 224.w,
+                              child: Text(
+                                'BHD ${orderController.addonTotalPrice.toStringAsFixed(3)}',
+                                style: TextStyle(
+                                  fontFamily: 'Oswald',
+                                  fontSize: 40.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF283034),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 24.w),
+                            _buildQuantitySelector(orderController),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      Obx(
+                        () => SizedBox(
+                          width: 220.w,
+                          height: 72.h,
+                          child: ElevatedButton(
+                            onPressed: orderController.canAddToCart
+                                ? orderController.addCurrentProductToCart
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF642F21),
+                              foregroundColor: const Color(0xFFF7BE26),
+                              disabledBackgroundColor: const Color(
+                                0xFF642F21,
+                              ).withValues(alpha: 0.5),
+                              disabledForegroundColor: const Color(
+                                0xFFF7BE26,
+                              ).withValues(alpha: 0.5),
+                              padding: EdgeInsets.zero,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.r),
+                              ),
+                            ),
                             child: Text(
-                              'BHD ${orderController.addonTotalPrice.toStringAsFixed(3)}',
+                              'add_to_cart'.tr,
                               style: TextStyle(
                                 fontFamily: 'Oswald',
-                                fontSize: 40.sp,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF283034),
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                          SizedBox(width: 24.w),
-                          _buildQuantitySelector(orderController),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-                    Obx(
-                      () => SizedBox(
-                        width: 220.w,
-                        height: 72.h,
-                        child: ElevatedButton(
-                          onPressed: orderController.canAddToCart
-                              ? orderController.addCurrentProductToCart
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF642F21),
-                            foregroundColor: const Color(0xFFF7BE26),
-                            disabledBackgroundColor: const Color(
-                              0xFF642F21,
-                            ).withValues(alpha: 0.5),
-                            disabledForegroundColor: const Color(
-                              0xFFF7BE26,
-                            ).withValues(alpha: 0.5),
-                            padding: EdgeInsets.zero,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6.r),
-                            ),
-                          ),
-                          child: Text(
-                            'add_to_cart'.tr,
-                            style: TextStyle(
-                              fontFamily: 'Oswald',
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              InkWell(
-                onTap: () {
-                  orderController.resetAddonSelection();
-                  Get.back();
-                },
-                child: Assets.svg.delete.svg(),
-              ),
-            ],
-          ),
-        ],
+                InkWell(
+                  onTap: () {
+                    orderController.resetAddonSelection();
+                    Get.back();
+                  },
+                  child: Assets.svg.delete.svg(),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -180,7 +188,10 @@ class AddonBottomSheet extends StatelessWidget {
   ) {
     final groupName = modGroup.name ?? 'Options';
     final isRequired = modGroup.required ?? false;
-    final groupId = modGroup.id ?? '';
+    // Use a unique groupId for each group, fallback to name+hash if id is missing
+    final groupId = (modGroup.id != null && modGroup.id!.isNotEmpty)
+        ? modGroup.id!
+        : '${modGroup.name}_${modGroup.hashCode}';
 
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
@@ -213,60 +224,146 @@ class AddonBottomSheet extends StatelessWidget {
             ],
           ),
           SizedBox(height: 8.h),
-          Obx(
-            () => Wrap(
-              spacing: 12.w,
-              runSpacing: 8.h,
-              children:
-                  modGroup.items?.map((modItem) {
-                    final modName = modItem.name ?? 'Option';
-                    final modPrice = (modItem.price ?? 0).toDouble();
-                    final modId = modItem.id;
-
-                    final isSelected = orderController.isModifierSelected(
-                      groupId,
-                      modId,
-                    );
-                    return GestureDetector(
-                      onTap: () => orderController.toggleModifier(
+          Obx(() {
+            final maxQuantity = modGroup.maxQuantity ?? 1;
+            if (maxQuantity == 1) {
+              // Radio button logic: only one selectable
+              return Wrap(
+                spacing: 12.w,
+                runSpacing: 8.h,
+                children:
+                    modGroup.items?.map((modItem) {
+                      final modName = modItem.name ?? 'Option';
+                      final modPrice = (modItem.price ?? 0).toDouble();
+                      final modId = modItem.id;
+                      final isSelected = orderController.isModifierSelected(
                         groupId,
                         modId,
-                        modName,
-                        modPrice,
-                        modGroup.maxQuantity ?? 999,
-                      ),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24.w,
-                          vertical: 12.h,
+                      );
+                      return GestureDetector(
+                        onTap: () => orderController.toggleModifier(
+                          groupId,
+                          modId,
+                          modName,
+                          modPrice,
+                          1,
                         ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0x1A642F21)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(8.r),
-                          border: Border.all(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24.w,
+                            vertical: 12.h,
+                          ),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFF642F21)
-                                : const Color(0xFF757575),
-                            width: 1,
+                                ? const Color(0x1A642F21)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF642F21)
+                                  : const Color(0xFF757575),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isSelected
+                                    ? Icons.radio_button_checked
+                                    : Icons.radio_button_unchecked,
+                                color: isSelected
+                                    ? const Color(0xFF642F21)
+                                    : const Color(0xFF757575),
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                modName.toUpperCase(),
+                                style: TextStyle(
+                                  fontFamily: 'Oswald',
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF642F21),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Text(
-                          modName.toUpperCase(),
-                          style: TextStyle(
-                            fontFamily: 'Oswald',
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF642F21),
+                      );
+                    }).toList() ??
+                    [],
+              );
+            } else {
+              // Checkbox logic: multiple selectable
+              return Wrap(
+                spacing: 12.w,
+                runSpacing: 8.h,
+                children:
+                    modGroup.items?.map((modItem) {
+                      final modName = modItem.name ?? 'Option';
+                      final modPrice = (modItem.price ?? 0).toDouble();
+                      final modId = modItem.id;
+                      final isSelected = orderController.isModifierSelected(
+                        groupId,
+                        modId,
+                      );
+                      return GestureDetector(
+                        onTap: () => orderController.toggleModifier(
+                          groupId,
+                          modId,
+                          modName,
+                          modPrice,
+                          maxQuantity,
+                        ),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24.w,
+                            vertical: 12.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0x1A642F21)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFF642F21)
+                                  : const Color(0xFF757575),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isSelected
+                                    ? Icons.check_box
+                                    : Icons.check_box_outline_blank,
+                                color: isSelected
+                                    ? const Color(0xFF642F21)
+                                    : const Color(0xFF757575),
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 8.w),
+                              Text(
+                                modName.toUpperCase(),
+                                style: TextStyle(
+                                  fontFamily: 'Oswald',
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFF642F21),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    );
-                  }).toList() ??
-                  [],
-            ),
-          ),
+                      );
+                    }).toList() ??
+                    [],
+              );
+            }
+          }),
         ],
       ),
     );

@@ -14,9 +14,9 @@ Future<void> initControllers() async {
   final cacheService = await MenuCacheService().init();
   Get.put(cacheService);
 
-  Get.put(LanguageController());
-  Get.put(SyrveController());
+  Get.put(LanguageController(), permanent: true);
+  Get.put(SyrveController(), permanent: true);
 
-  Get.put(IdleController());
-  Get.put(OrderController());
+  Get.put(IdleController(), permanent: true);
+  Get.put(OrderController(), permanent: true);
 }

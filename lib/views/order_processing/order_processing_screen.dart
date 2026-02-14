@@ -24,10 +24,10 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
   late final GifController _gifController;
   late final AnimationController _animationController;
   late final Animation<double> _positionAnimation;
-  
+
   final OrderController _orderController = Get.find<OrderController>();
   final SyrveController _syrveController = Get.find<SyrveController>();
-  
+
   String? _errorMessage;
 
   @override
@@ -66,26 +66,27 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
     try {
       // Build order items from cart
       final orderItems = _buildOrderItems();
-      
+
       // Get payment info
       final paymentType = _orderController.selectedPaymentType.value;
       List<OrderPayment>? payments;
-      
+
       if (paymentType != null) {
         payments = [
           OrderPayment(
             paymentTypeKind: paymentType.paymentTypeKind ?? 'Cash',
             paymentTypeId: paymentType.id,
             sum: _orderController.cartTotal,
-            isProcessedExternally: paymentType.paymentTypeKind == 'Card' || 
-                                   paymentType.paymentTypeKind == 'External',
+            isProcessedExternally:
+                paymentType.paymentTypeKind == 'Card' ||
+                paymentType.paymentTypeKind == 'External',
           ),
         ];
       }
 
       // Find matching API order type
       final orderServiceType = _orderController.orderServiceType;
-      final apiOrderType = orderServiceType != null 
+      final apiOrderType = orderServiceType != null
           ? _syrveController.getOrderTypeByServiceType(orderServiceType)
           : null;
 
@@ -94,8 +95,8 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
         items: orderItems,
         orderTypeId: apiOrderType?.id,
         orderServiceType: orderServiceType,
-        phone: _orderController.customerPhone.value.isNotEmpty 
-            ? _orderController.customerPhone.value 
+        phone: _orderController.customerPhone.value.isNotEmpty
+            ? _orderController.customerPhone.value
             : null,
         payments: payments,
         guests: Guests(count: 1),
@@ -111,7 +112,8 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
         });
       } else {
         setState(() {
-          _errorMessage = _syrveController.orderError.value ?? 'Failed to create order';
+          _errorMessage =
+              _syrveController.orderError.value ?? 'Failed to create order';
         });
       }
     } catch (e) {
@@ -123,34 +125,36 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
   List<OrderItem> _buildOrderItems() {
     final items = <OrderItem>[];
-    
+
     for (final cartItem in _orderController.cart) {
       final productId = cartItem['productId'] as String;
       final qty = cartItem['qty'] as int;
-      final modifiersMap = cartItem['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
-      
+      final modifiersMap =
+          cartItem['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
+
       // Build modifiers list
       List<OrderItemModifier>? modifiers;
       if (modifiersMap != null && modifiersMap.isNotEmpty) {
         modifiers = [];
         for (final groupMods in modifiersMap.values) {
           for (final mod in groupMods) {
-            modifiers.add(OrderItemModifier(
-              productId: mod['id'] as String,
-              amount: 1,
-            ));
+            modifiers.add(
+              OrderItemModifier(productId: mod['id'] as String, amount: 1),
+            );
           }
         }
       }
-      
-      items.add(OrderItem(
-        productId: productId,
-        type: 'Product',
-        amount: qty,
-        modifiers: modifiers,
-      ));
+
+      items.add(
+        OrderItem(
+          productId: productId,
+          type: 'Product',
+          amount: qty,
+          modifiers: modifiers,
+        ),
+      );
     }
-    
+
     return items;
   }
 
@@ -174,7 +178,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
               Icon(Icons.error_outline, size: 80.w, color: Colors.red),
               SizedBox(height: 24.h),
               Text(
-                'Order Failed',
+                'order_failed'.tr,
                 style: TextStyle(
                   fontFamily: "Oswald",
                   fontSize: 36.sp,
@@ -201,10 +205,13 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.BROWN,
                   foregroundColor: AppColors.YELLOW,
-                  padding: EdgeInsets.symmetric(horizontal: 48.w, vertical: 16.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 48.w,
+                    vertical: 16.h,
+                  ),
                 ),
                 child: Text(
-                  'Back to Home',
+                  'back_to_home'.tr,
                   style: TextStyle(
                     fontFamily: "Oswald",
                     fontSize: 24.sp,
@@ -221,7 +228,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if(didPop) return;
+        if (didPop) return;
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF6F6F6),
@@ -285,7 +292,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                         ),
                         SizedBox(height: 48.h),
                         Text(
-                          'ORDER IS ON ITS WAY TO\nTHE KITCHEN',
+                          'order_on_its_way'.tr,
                           style: TextStyle(
                             fontFamily: "Oswald",
                             fontSize: 52.sp,

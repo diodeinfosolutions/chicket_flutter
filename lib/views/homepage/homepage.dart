@@ -48,10 +48,10 @@ class _HomeScreenState extends State<HomeScreen> {
           final screenHeight = constraints.maxHeight;
           final screenWidth = constraints.maxWidth;
           final aspectRatio = screenWidth / screenHeight;
-    
+
           final isTabletPortrait = aspectRatio < 0.7 && screenWidth > 600;
           final headerHeightFactor = isTabletPortrait ? 0.32 : 0.44;
-    
+
           return SizedBox(
             height: screenHeight,
             width: screenWidth,

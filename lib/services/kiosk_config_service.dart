@@ -48,17 +48,18 @@ class KioskConfig {
   );
 
   @override
-  String toString() => 'KioskConfig(org: $organizationName, terminal: $terminalGroupName, menu: $externalMenuName)';
+  String toString() =>
+      'KioskConfig(org: $organizationName, terminal: $terminalGroupName, menu: $externalMenuName)';
 }
 
 class KioskConfigService extends GetxService {
   static const String _configKey = 'kiosk_config';
-  
+
   SharedPreferences? _prefs;
   final Rx<KioskConfig?> config = Rx<KioskConfig?>(null);
-  
+
   bool get isConfigured => config.value != null;
-  
+
   KioskConfig get currentConfig {
     if (config.value == null) {
       throw StateError('Kiosk not configured. Call loadConfig() first.');
@@ -78,13 +79,13 @@ class KioskConfigService extends GetxService {
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         config.value = KioskConfig.fromJson(json);
-        debugPrint('Kiosk config loaded: ${config.value}');
+        if (kDebugMode) debugPrint('Kiosk config loaded: ${config.value}');
       } else {
-        debugPrint('No kiosk config found');
+        if (kDebugMode) debugPrint('No kiosk config found');
         config.value = null;
       }
     } catch (e) {
-      debugPrint('Error loading kiosk config: $e');
+      if (kDebugMode) debugPrint('Error loading kiosk config: $e');
       config.value = null;
     }
   }
@@ -95,11 +96,11 @@ class KioskConfigService extends GetxService {
       final success = await _prefs?.setString(_configKey, jsonString) ?? false;
       if (success) {
         config.value = newConfig;
-        debugPrint('Kiosk config saved: $newConfig');
+        if (kDebugMode) debugPrint('Kiosk config saved: $newConfig');
       }
       return success;
     } catch (e) {
-      debugPrint('Error saving kiosk config: $e');
+      if (kDebugMode) debugPrint('Error saving kiosk config: $e');
       return false;
     }
   }
@@ -109,11 +110,11 @@ class KioskConfigService extends GetxService {
       final success = await _prefs?.remove(_configKey) ?? false;
       if (success) {
         config.value = null;
-        debugPrint('Kiosk config cleared');
+        if (kDebugMode) debugPrint('Kiosk config cleared');
       }
       return success;
     } catch (e) {
-      debugPrint('Error clearing kiosk config: $e');
+      if (kDebugMode) debugPrint('Error clearing kiosk config: $e');
       return false;
     }
   }

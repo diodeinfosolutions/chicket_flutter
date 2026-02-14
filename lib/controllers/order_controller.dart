@@ -26,14 +26,10 @@ class OrderController extends GetxController {
   final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
 
   void selectOrderType(OrderType type) {
-    if (selectedType.value == type) {
-      selectedType.value = null;
-    } else {
-      selectedType.value = type;
-      Future.delayed(const Duration(milliseconds: 300), () {
-        Get.toNamed(Routes.menu);
-      });
-    }
+    selectedType.value = type;
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Get.offNamed(Routes.menu);
+    });
   }
 
   void resetSelection() {
@@ -111,7 +107,6 @@ class OrderController extends GetxController {
     _basePrice = 0.0;
   }
 
-  
   void toggleModifier(
     String groupId,
     String modifierId,
@@ -122,19 +117,17 @@ class OrderController extends GetxController {
     final current = selectedModifiers[groupId] ?? <String>{};
 
     if (current.contains(modifierId)) {
-      
       current.remove(modifierId);
       modifierInfo.remove('$groupId:$modifierId');
     } else {
-      
       if (maxAmount == 1) {
-        
+        // Only one selectable in this group, clear others in this group only
         for (final existingId in current.toList()) {
           modifierInfo.remove('$groupId:$existingId');
         }
         current.clear();
       } else if (current.length >= maxAmount) {
-        
+        // Do not allow more than maxAmount in this group
         return;
       }
       current.add(modifierId);
@@ -145,6 +138,7 @@ class OrderController extends GetxController {
       };
     }
 
+    // Only update this group, not others
     selectedModifiers[groupId] = current;
     selectedModifiers.refresh();
     modifierInfo.refresh();
@@ -181,29 +175,56 @@ class OrderController extends GetxController {
 
     if (product == null && menuItem == null) return false;
 
-    
-    if (product != null) {
-      for (final groupMod in product.groupModifiers ?? []) {
-        if (groupMod.required ?? false) {
-          final selected = selectedModifiers[groupMod.id];
-          final minAmount = groupMod.minAmount ?? 0;
-          if (selected == null || selected.length < minAmount) {
-            return false;
+    // Collect all relevant modifier groups for menuItem (including all itemSizes)
+    final List<MenuModifierGroup> allModifierGroups = [];
+    if (menuItem != null) {
+      if (menuItem.modifierGroups != null) {
+        allModifierGroups.addAll(menuItem.modifierGroups!);
+      }
+      if (menuItem.itemSizes != null) {
+        for (final size in menuItem.itemSizes!) {
+          if (size.itemModifierGroups != null) {
+            allModifierGroups.addAll(size.itemModifierGroups!);
           }
         }
       }
     }
 
-    
-    if (menuItem != null) {
-      for (final modGroup in menuItem.modifierGroups ?? []) {
-        if (modGroup.required ?? false) {
-          final groupId = modGroup.id ?? '';
-          final selected = selectedModifiers[groupId];
-          final minQuantity = modGroup.minQuantity ?? 0;
-          if (selected == null || selected.length < minQuantity) {
-            return false;
-          }
+    // If there are modifier groups, enforce minQuantity/required logic
+    if (allModifierGroups.isNotEmpty) {
+      for (final modGroup in allModifierGroups) {
+        final groupId = modGroup.id ?? '';
+        final selected = selectedModifiers[groupId] ?? <String>{};
+        final minQuantity = modGroup.minQuantity ?? 0;
+        final maxQuantity = modGroup.maxQuantity ?? 9999;
+        final requiredMin = (modGroup.required ?? false)
+            ? (minQuantity > 0 ? minQuantity : 1)
+            : minQuantity;
+
+        // If group is required or minQuantity > 0, must select at least minQuantity
+        if (requiredMin > 0 && selected.length < requiredMin) {
+          return false;
+        }
+        if (selected.length > maxQuantity) {
+          return false;
+        }
+      }
+    }
+
+    // For product-level groupModifiers (legacy or other use)
+    if (product != null) {
+      for (final groupMod in product.groupModifiers ?? []) {
+        final selected = selectedModifiers[groupMod.id] ?? <String>{};
+        final minAmount = groupMod.minAmount ?? 0;
+        final maxAmount = groupMod.maxAmount ?? 9999;
+        final requiredMin = (groupMod.required ?? false)
+            ? (minAmount > 0 ? minAmount : 1)
+            : minAmount;
+        if (selected.length < requiredMin) {
+          return false;
+        }
+        if (selected.length > maxAmount) {
+          return false;
         }
       }
     }
@@ -218,7 +239,6 @@ class OrderController extends GetxController {
     if (product == null && menuItem == null) return;
     if (!canAddToCart) return;
 
-    
     final Map<String, List<Map<String, dynamic>>> modifiersMap = {};
 
     for (final entry in selectedModifiers.entries) {
@@ -239,7 +259,6 @@ class OrderController extends GetxController {
       }
     }
 
-    
     final productId = product?.id ?? menuItem?.id ?? '';
     final productName = product?.name ?? menuItem?.name ?? '';
 
@@ -294,10 +313,14 @@ class OrderController extends GetxController {
       cart.removeAt(index);
     }
     cart.refresh();
+    if (cart.isEmpty) {
+      Get.offNamed(Routes.menu);
+    }
   }
 
   void removeItem(int index) {
     cart.removeAt(index);
+    cart.refresh();
     if (cart.isEmpty) {
       Get.offNamed(Routes.menu);
     }

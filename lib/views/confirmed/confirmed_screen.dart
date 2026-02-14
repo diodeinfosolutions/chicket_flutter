@@ -21,7 +21,7 @@ class ConfirmedScreen extends StatelessWidget {
 
     final orderResponse = syrveController.lastOrderResponse.value;
     final orderDetails = orderResponse?.orderInfo?.order;
-    
+
     // Use order.number if available, otherwise generate from posId last 4 chars
     String orderNumber = '-';
     if (orderDetails?.number != null) {
@@ -29,11 +29,11 @@ class ConfirmedScreen extends StatelessWidget {
     } else if (orderResponse?.orderInfo?.posId != null) {
       // Use last 4 characters of posId as display number
       final posId = orderResponse!.orderInfo!.posId!;
-      orderNumber = posId.length >= 4 
+      orderNumber = posId.length >= 4
           ? posId.substring(posId.length - 4).toUpperCase()
           : posId.toUpperCase();
     }
-    
+
     // Keep orderId for future use when receipt URL is available
     // final orderId = orderResponse?.orderInfo?.id ?? '';
 

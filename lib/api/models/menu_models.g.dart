@@ -86,6 +86,10 @@ MenuResponse _$MenuResponseFromJson(Map<String, dynamic> json) => MenuResponse(
       ?.map((e) => ProductSize.fromJson(e as Map<String, dynamic>))
       .toList(),
   revision: _parseIntNullable(json['revision']),
+  formatVersion: _parseIntNullable(json['formatVersion']),
+  customerTagGroups: json['customerTagGroups'] as List<dynamic>?,
+  intervals: json['intervals'] as List<dynamic>?,
+  comboCategories: json['comboCategories'] as List<dynamic>?,
 );
 
 Map<String, dynamic> _$MenuResponseToJson(MenuResponse instance) =>
@@ -100,6 +104,10 @@ Map<String, dynamic> _$MenuResponseToJson(MenuResponse instance) =>
       'products': instance.products,
       'sizes': instance.sizes,
       'revision': instance.revision,
+      'formatVersion': instance.formatVersion,
+      'customerTagGroups': instance.customerTagGroups,
+      'intervals': instance.intervals,
+      'comboCategories': instance.comboCategories,
     };
 
 MenuItemCategory _$MenuItemCategoryFromJson(Map<String, dynamic> json) =>
@@ -109,10 +117,17 @@ MenuItemCategory _$MenuItemCategoryFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String?,
       buttonImageUrl: json['buttonImageUrl'] as String?,
       headerImageUrl: json['headerImageUrl'] as String?,
-      order: _parseIntNullable(json['order']),
+      iikoGroupId: json['iikoGroupId'] as String?,
+      scheduleId: json['scheduleId'] as String?,
+      scheduleName: json['scheduleName'] as String?,
+      schedules: json['schedules'] as List<dynamic>?,
       isHidden: json['isHidden'] as bool?,
       items: (json['items'] as List<dynamic>?)
           ?.map((e) => MenuItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      labels: (json['labels'] as List<dynamic>?)
+          ?.map((e) => e as String)
           .toList(),
     );
 
@@ -123,9 +138,14 @@ Map<String, dynamic> _$MenuItemCategoryToJson(MenuItemCategory instance) =>
       'description': instance.description,
       'buttonImageUrl': instance.buttonImageUrl,
       'headerImageUrl': instance.headerImageUrl,
-      'order': instance.order,
+      'iikoGroupId': instance.iikoGroupId,
+      'scheduleId': instance.scheduleId,
+      'scheduleName': instance.scheduleName,
+      'schedules': instance.schedules,
       'isHidden': instance.isHidden,
       'items': instance.items,
+      'tags': instance.tags,
+      'labels': instance.labels,
     };
 
 MenuItem _$MenuItemFromJson(Map<String, dynamic> json) => MenuItem(
@@ -146,6 +166,12 @@ MenuItem _$MenuItemFromJson(Map<String, dynamic> json) => MenuItem(
       : MenuTaxCategory.fromJson(json['taxCategory'] as Map<String, dynamic>),
   type: json['type'] as String?,
   isHidden: json['isHidden'] as bool?,
+  allergens: (json['allergens'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+  orderItemType: json['orderItemType'] as String?,
+  tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  labels: (json['labels'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$MenuItemToJson(MenuItem instance) => <String, dynamic>{
@@ -160,6 +186,10 @@ Map<String, dynamic> _$MenuItemToJson(MenuItem instance) => <String, dynamic>{
   'taxCategory': instance.taxCategory,
   'type': instance.type,
   'isHidden': instance.isHidden,
+  'allergens': instance.allergens,
+  'orderItemType': instance.orderItemType,
+  'tags': instance.tags,
+  'labels': instance.labels,
 };
 
 MenuItemSize _$MenuItemSizeFromJson(Map<String, dynamic> json) => MenuItemSize(
@@ -177,6 +207,12 @@ MenuItemSize _$MenuItemSizeFromJson(Map<String, dynamic> json) => MenuItemSize(
       : NutritionInfo.fromJson(
           json['nutritionPerHundredGrams'] as Map<String, dynamic>,
         ),
+  sku: json['sku'] as String?,
+  itemModifierGroups: (json['itemModifierGroups'] as List<dynamic>?)
+      ?.map((e) => MenuModifierGroup.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  labels: (json['labels'] as List<dynamic>?)?.map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$MenuItemSizeToJson(MenuItemSize instance) =>
@@ -189,6 +225,10 @@ Map<String, dynamic> _$MenuItemSizeToJson(MenuItemSize instance) =>
       'portionWeightGrams': instance.portionWeightGrams,
       'buttonImageUrl': instance.buttonImageUrl,
       'nutritionPerHundredGrams': instance.nutritionPerHundredGrams,
+      'sku': instance.sku,
+      'itemModifierGroups': instance.itemModifierGroups,
+      'tags': instance.tags,
+      'labels': instance.labels,
     };
 
 MenuItemPrice _$MenuItemPriceFromJson(Map<String, dynamic> json) =>

@@ -1,6 +1,7 @@
 import 'package:chicket/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart' as svg;
 import 'package:get/get.dart';
 // TODO: Re-enable when payment QR is available
 // import 'package:qr_flutter/qr_flutter.dart';
@@ -122,6 +123,15 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
   Widget _buildPaymentOptionsGrid() {
     final paymentTypes = _syrveController.paymentTypes
         .where((p) => p.isDeleted != true)
+        .where((p) {
+          final name = p.name.toLowerCase();
+          // Stricter filter: only debit card, credit card, benefit
+          // Handle API typo 'benifit' as well
+          return name.contains('debit card') ||
+              name.contains('credit card') ||
+              name.contains('benefit') ||
+              name.contains('benifit');
+        })
         .toList();
 
     if (paymentTypes.isEmpty) {
@@ -147,10 +157,9 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
         rowItems.add(SizedBox(width: 40.w));
         rowItems.add(_buildPaymentOption(paymentTypes[i + 1]));
       }
-      rows.add(Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: rowItems,
-      ));
+      rows.add(
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: rowItems),
+      );
       if (i + 2 < paymentTypes.length) {
         rows.add(SizedBox(height: 40.h));
       }
@@ -161,7 +170,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
 
   Widget _buildPaymentOption(PaymentType paymentType) {
     final isSelected = _selectedPaymentType?.id == paymentType.id;
-    final image = _getPaymentImage(paymentType.paymentTypeKind);
+    final image = _getPaymentImage(paymentType);
 
     return GestureDetector(
       onTap: () {
@@ -183,18 +192,12 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            image != null
-                ? image.image(
-                    width: 64.w,
-                    height: 48.h,
-                    fit: BoxFit.contain,
-                    color: isSelected ? AppColors.GREEN : AppColors.GREY,
-                  )
-                : Icon(
-                    Icons.payment_outlined,
-                    size: 48.w,
-                    color: isSelected ? AppColors.GREEN : AppColors.GREY,
-                  ),
+            (image ??
+                Icon(
+                  Icons.payment_outlined,
+                  size: 48.w,
+                  color: isSelected ? AppColors.GREEN : AppColors.GREY,
+                )),
             SizedBox(height: 12.h),
             Text(
               paymentType.name,
@@ -212,19 +215,71 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
     );
   }
 
-  AssetGenImage? _getPaymentImage(String? paymentTypeKind) {
-    // TODO: Update with correct payment icons when available
-    switch (paymentTypeKind?.toLowerCase()) {
+  Widget? _getPaymentImage(PaymentType paymentType) {
+    final kind = paymentType.paymentTypeKind?.toLowerCase();
+    final name = paymentType.name.toLowerCase();
+
+    // Specific mapping based on name first
+    // Handle API typo 'benifit'
+    if (name.contains('benefit') || name.contains('benifit')) {
+      return svg.SvgPicture.asset(
+        'assets/svg/benefit.svg',
+        width: 64.w,
+        height: 48.h,
+        colorFilter: ColorFilter.mode(
+          _selectedPaymentType?.id == paymentType.id
+              ? AppColors.GREEN
+              : AppColors.GREY,
+          BlendMode.srcIn,
+        ),
+      );
+    }
+
+    if (name.contains('card') ||
+        name.contains('visa') ||
+        name.contains('mastercard')) {
+      return Assets.png.cc.image(
+        width: 64.w,
+        height: 48.h,
+        fit: BoxFit.contain,
+        color: _selectedPaymentType?.id == paymentType.id
+            ? AppColors.GREEN
+            : AppColors.GREY,
+      );
+    }
+
+    switch (kind) {
       case 'cash':
-        return Assets.png.cash;
+        return Assets.png.cash.image(
+          width: 64.w,
+          height: 48.h,
+          fit: BoxFit.contain,
+          color: _selectedPaymentType?.id == paymentType.id
+              ? AppColors.GREEN
+              : AppColors.GREY,
+        );
       case 'card':
       case 'creditcard':
       case 'visa':
       case 'mastercard':
-        return Assets.png.cc;
+        return Assets.png.cc.image(
+          width: 64.w,
+          height: 48.h,
+          fit: BoxFit.contain,
+          color: _selectedPaymentType?.id == paymentType.id
+              ? AppColors.GREEN
+              : AppColors.GREY,
+        );
       case 'voucher':
       case 'coupon':
-        return Assets.png.giftVoucher;
+        return Assets.png.giftVoucher.image(
+          width: 64.w,
+          height: 48.h,
+          fit: BoxFit.contain,
+          color: _selectedPaymentType?.id == paymentType.id
+              ? AppColors.GREEN
+              : AppColors.GREY,
+        );
       case 'external':
       case 'iikocard':
       default:

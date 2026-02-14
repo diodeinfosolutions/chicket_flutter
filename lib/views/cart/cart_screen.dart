@@ -9,8 +9,10 @@ import '../../gen/assets.gen.dart';
 import '../../api/models/menu_models.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
+import '../../utils/cache_config.dart';
 import '../menu/widgets/addon_bottom_sheet.dart';
 import '../menu/widgets/clear_cart_sheet.dart';
+import '../menu/widgets/repeat_or_customize_sheet.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -126,17 +128,21 @@ class CartScreen extends StatelessWidget {
   ) {
     final productId = item['productId'] as String;
     final menuItem = syrveController.getMenuItemById(productId);
-    final legacyProduct = menuItem == null ? syrveController.getProductById(productId) : null;
-    
+    final legacyProduct = menuItem == null
+        ? syrveController.getProductById(productId)
+        : null;
+
     final productName = menuItem?.name ?? legacyProduct?.name ?? 'Unknown';
     final productImageUrl = menuItem?.imageUrl ?? legacyProduct?.imageUrl;
-    final productDescription = menuItem?.description ?? legacyProduct?.description ?? '';
+    final productDescription =
+        menuItem?.description ?? legacyProduct?.description ?? '';
 
     final qty = item['qty'] as int;
     final modifiers =
         item['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
 
-    double itemPrice = (menuItem?.currentPrice ?? legacyProduct?.currentPrice ?? 0).toDouble();
+    double itemPrice =
+        (menuItem?.currentPrice ?? legacyProduct?.currentPrice ?? 0).toDouble();
     if (modifiers != null) {
       for (final group in modifiers.values) {
         for (final mod in group) {
@@ -163,6 +169,7 @@ class CartScreen extends StatelessWidget {
                     width: 160.w,
                     height: 140.h,
                     fit: BoxFit.cover,
+                    cacheManager: CacheConfig.optimizedCacheManager,
                     placeholder: (context, url) => Container(
                       width: 160.w,
                       height: 140.h,
@@ -231,7 +238,14 @@ class CartScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 24.w),
-                    _buildQuantitySelector(index, qty, orderController),
+                    _buildQuantitySelector(
+                      index,
+                      qty,
+                      orderController,
+                      modifiers,
+                      menuItem,
+                      context,
+                    ),
                   ],
                 ),
               ],
@@ -281,6 +295,9 @@ class CartScreen extends StatelessWidget {
     int index,
     int qty,
     OrderController orderController,
+    Map<String, List<Map<String, dynamic>>>? modifiers,
+    MenuItem? product,
+    BuildContext context,
   ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -330,7 +347,17 @@ class CartScreen extends StatelessWidget {
         ),
         SizedBox(width: 8.w),
         GestureDetector(
-          onTap: () => orderController.increaseQty(index),
+          onTap: () {
+            if (modifiers != null && modifiers.isNotEmpty && product != null) {
+              showRepeatOrCustomizeSheet(
+                context,
+                product,
+                modifiers: modifiers,
+              );
+            } else {
+              orderController.increaseQty(index);
+            }
+          },
           child: Container(
             width: 64.w,
             height: 64.h,
@@ -360,14 +387,15 @@ class CartScreen extends StatelessWidget {
     SyrveController syrveController,
     BuildContext context,
   ) {
+    final allProducts = syrveController.menuItems;
     final cartProductIds = orderController.cart
         .map((e) => e['productId'] as String)
         .toSet();
-    final allProducts = syrveController.menuItems;
-    final recommended = allProducts
+    final filtered = allProducts
         .where((p) => !cartProductIds.contains(p.id))
-        .take(4)
         .toList();
+    filtered.shuffle();
+    final recommended = filtered.take(4).toList();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -387,274 +415,248 @@ class CartScreen extends StatelessWidget {
     OrderController orderController,
     BuildContext context,
   ) {
-    final hasModifiers = product.modifierGroups?.isNotEmpty ?? false;
     final price = (product.currentPrice ?? 0).toDouble();
     final description = product.description ?? '';
     final productName = product.name ?? '';
 
-    return Obx(() {
-      final totalQty = orderController.getProductQuantity(product.id);
-
-      return Container(
-        width: 280.w,
-        margin: EdgeInsetsDirectional.only(end: 24.w),
-        padding: EdgeInsets.all(32.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: product.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrl!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey[200],
-                          child: Icon(Icons.restaurant, size: 32.w),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[200],
-                          child: Icon(Icons.restaurant, size: 32.w),
-                        ),
-                      )
-                    : Container(
+    return Container(
+      width: 280.w,
+      margin: EdgeInsetsDirectional.only(end: 24.w),
+      padding: EdgeInsets.all(32.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8.r),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: product.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: product.imageUrl!,
+                      fit: BoxFit.cover,
+                      cacheManager: CacheConfig.optimizedCacheManager,
+                      placeholder: (context, url) => Container(
                         color: Colors.grey[200],
                         child: Icon(Icons.restaurant, size: 32.w),
                       ),
-              ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Colors.grey[200],
+                        child: Icon(Icons.restaurant, size: 32.w),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      child: Icon(Icons.restaurant, size: 32.w),
+                    ),
             ),
-            SizedBox(height: 16.h),
-            Text(
-              productName.toUpperCase(),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            productName.toUpperCase(),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontFamily: 'Oswald',
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFFF7BE26),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          SizedBox(
+            height: 12.sp * 1.3 * 3,
+            child: Text(
+              description.toUpperCase(),
               textAlign: TextAlign.center,
-              maxLines: 1,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: 'Oswald',
-                fontSize: 20.sp,
+                fontFamily: 'Roboto',
+                fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFFF7BE26),
+                color: const Color(0xFF757575),
+                height: 1.3,
               ),
             ),
-            SizedBox(height: 8.h),
-            SizedBox(
-              height: 12.sp * 1.3 * 3,
-              child: Text(
-                description.toUpperCase(),
-                textAlign: TextAlign.center,
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF757575),
-                  height: 1.3,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'BHD ${price.toStringAsFixed(3)}',
+            style: TextStyle(
+              fontFamily: 'Oswald',
+              fontSize: 24.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          _buildCartButton(context, orderController, price, product),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartButton(
+    BuildContext context,
+    OrderController orderController,
+    double price,
+    MenuItem product,
+  ) {
+    final hasModifiers =
+        (product.itemSizes?.any(
+              (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
+            ) ??
+            false) ||
+        (product.modifierGroups?.isNotEmpty ?? false);
+    return Obx(() {
+      final totalQty = orderController.getProductQuantity(product.id);
+
+      final cartIndexNoAddons = orderController.cart.indexWhere(
+        (e) =>
+            e['productId'] == product.id &&
+            ((e['modifiers'] as Map?)?.isEmpty ?? true),
+      );
+
+      if (totalQty > 0) {
+        return Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  if (hasModifiers) {
+                    final lastIndex = orderController.cart.lastIndexWhere(
+                      (e) => e['productId'] == product.id,
+                    );
+                    if (lastIndex != -1) {
+                      orderController.decreaseQty(lastIndex);
+                    }
+                  } else {
+                    orderController.decreaseQty(cartIndexNoAddons);
+                  }
+                },
+                child: Container(
+                  height: 64.h,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF642F21),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '−',
+                      style: TextStyle(
+                        fontFamily: 'Oswald',
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFF7BE26),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 16.h),
-            Text(
-              'BHD ${price.toStringAsFixed(3)}',
-              style: TextStyle(
-                fontFamily: 'Oswald',
-                fontSize: 24.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
+            SizedBox(width: 8.w),
+            Expanded(
+              flex: 2,
+              child: Container(
+                height: 64.h,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6.r),
+                  border: Border.all(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '$totalQty',
+                    style: TextStyle(
+                      fontFamily: 'Oswald',
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF283034),
+                    ),
+                  ),
+                ),
               ),
             ),
-            SizedBox(height: 16.h),
-            if (hasModifiers)
-              _buildRecommendedAddToCartButton(product, context)
-            else
-              _buildRecommendedQuantitySelector(
-                product,
-                totalQty,
-                orderController,
-                context,
+            SizedBox(width: 8.w),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  // Always show RepeatOrCustomizeSheet for items with modifiers
+                  if (hasModifiers) {
+                    showRepeatOrCustomizeSheet(context, product);
+                  } else {
+                    orderController.increaseQty(cartIndexNoAddons);
+                  }
+                },
+                child: Container(
+                  height: 64.h,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF642F21),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '+',
+                      style: TextStyle(
+                        fontFamily: 'Oswald',
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFF7BE26),
+                      ),
+                    ),
+                  ),
+                ),
               ),
+            ),
           ],
+        );
+      }
+
+      return SizedBox(
+        width: double.infinity,
+        height: 64.h,
+        child: ElevatedButton(
+          onPressed: () {
+            if (hasModifiers) {
+              showAddonBottomSheet(context, product);
+            } else {
+              orderController.addToCart(
+                productId: product.id,
+                name: product.name ?? '',
+                price: price,
+              );
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF642F21),
+            foregroundColor: const Color(0xFFF7BE26),
+            padding: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6.r),
+            ),
+          ),
+          child: Text(
+            'add_to_cart'.tr,
+            style: TextStyle(
+              fontFamily: 'Oswald',
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       );
     });
-  }
-
-  Widget _buildRecommendedAddToCartButton(
-    MenuItem product,
-    BuildContext context,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      height: 64.h,
-      child: ElevatedButton(
-        onPressed: () => showAddonBottomSheet(context, product),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF642F21),
-          foregroundColor: const Color(0xFFF7BE26),
-          padding: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6.r),
-          ),
-        ),
-        child: Text(
-          'add_to_cart'.tr,
-          style: TextStyle(
-            fontFamily: 'Oswald',
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecommendedQuantitySelector(
-    MenuItem product,
-    int qty,
-    OrderController orderController,
-    BuildContext context,
-  ) {
-    final price = (product.currentPrice ?? 0).toDouble();
-    final productName = product.name ?? '';
-    final cartIndexNoModifiers = orderController.cart.indexWhere(
-      (e) =>
-          e['productId'] == product.id &&
-          ((e['modifiers'] as Map?)?.isEmpty ?? true),
-    );
-
-    if (qty > 0) {
-      return Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (cartIndexNoModifiers != -1) {
-                  orderController.decreaseQty(cartIndexNoModifiers);
-                }
-              },
-              child: Container(
-                height: 64.h,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF642F21),
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Center(
-                  child: Text(
-                    '−',
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFFF7BE26),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 64.h,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(6.r),
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '$qty',
-                  style: TextStyle(
-                    fontFamily: 'Oswald',
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF283034),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                if (cartIndexNoModifiers != -1) {
-                  orderController.increaseQty(cartIndexNoModifiers);
-                } else {
-                  orderController.addToCart(
-                    productId: product.id,
-                    name: productName,
-                    price: price,
-                  );
-                }
-              },
-              child: Container(
-                height: 64.h,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF642F21),
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Center(
-                  child: Text(
-                    '+',
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFFF7BE26),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      height: 64.h,
-      child: ElevatedButton(
-        onPressed: () {
-          orderController.addToCart(
-            productId: product.id,
-            name: productName,
-            price: price,
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF642F21),
-          foregroundColor: const Color(0xFFF7BE26),
-          padding: EdgeInsets.zero,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6.r),
-          ),
-        ),
-        child: Text(
-          'add_to_cart'.tr,
-          style: TextStyle(
-            fontFamily: 'Oswald',
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildBottomBar(
@@ -680,6 +682,28 @@ class CartScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
+            GestureDetector(
+              onTap: () {
+                Get.offAllNamed(Routes.menu);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF642F21),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  'menu'.tr,
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFFF7BE26),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 16.w),
             Container(
               width: 0.1.sh,
               padding: EdgeInsets.symmetric(vertical: 22.w, horizontal: 44.w),

@@ -75,7 +75,7 @@ class SyrveRepository {
       _tokenExpiry = DateTime.now().add(const Duration(minutes: 15));
       return ApiResult.success(response.token);
     } catch (e) {
-      debugPrint('Error getting access token: $e');
+      if (kDebugMode) debugPrint('Error getting access token: $e');
       return ApiResult.failure('Failed to get access token: $e');
     }
   }
@@ -114,7 +114,7 @@ class SyrveRepository {
 
       return ApiResult.success(response.organizations);
     } catch (e) {
-      debugPrint('Error getting organizations: $e');
+      if (kDebugMode) debugPrint('Error getting organizations: $e');
       return ApiResult.failure('Failed to get organizations: $e');
     }
   }
@@ -159,7 +159,7 @@ class SyrveRepository {
 
       return ApiResult.success(allTerminals);
     } catch (e) {
-      debugPrint('Error getting terminal groups: $e');
+      if (kDebugMode) debugPrint('Error getting terminal groups: $e');
       return ApiResult.failure('Failed to get terminal groups: $e');
     }
   }
@@ -204,7 +204,7 @@ class SyrveRepository {
       _orderTypes = allOrderTypes;
       return ApiResult.success(allOrderTypes);
     } catch (e) {
-      debugPrint('Error getting order types: $e');
+      if (kDebugMode) debugPrint('Error getting order types: $e');
       return ApiResult.failure('Failed to get order types: $e');
     }
   }
@@ -228,7 +228,7 @@ class SyrveRepository {
       _paymentTypes = response.paymentTypes;
       return ApiResult.success(response.paymentTypes);
     } catch (e) {
-      debugPrint('Error getting payment types: $e');
+      if (kDebugMode) debugPrint('Error getting payment types: $e');
       return ApiResult.failure('Failed to get payment types: $e');
     }
   }
@@ -246,7 +246,7 @@ class SyrveRepository {
       );
       return ApiResult.success(response.externalMenus ?? []);
     } catch (e) {
-      debugPrint('Error getting external menus: $e');
+      if (kDebugMode) debugPrint('Error getting external menus: $e');
       return ApiResult.failure('Failed to get external menus: $e');
     }
   }
@@ -265,7 +265,7 @@ class SyrveRepository {
         menuId = externalMenuId;
       } else if (_externalMenuId != null) {
         menuId = _externalMenuId!;
-        debugPrint('Using cached external menu ID: $menuId');
+        if (kDebugMode) debugPrint('Using cached external menu ID: $menuId');
       } else {
         final externalMenusResult = await getExternalMenus(
           organizationId: organizationId,
@@ -282,9 +282,11 @@ class SyrveRepository {
         }
 
         menuId = externalMenus.first.id;
-        debugPrint(
-          'Using external menu: ${externalMenus.first.name} (ID: $menuId)',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'Using external menu: ${externalMenus.first.name} (ID: $menuId)',
+          );
+        }
       }
 
       final response = await _apiService.getMenuById(
@@ -296,7 +298,7 @@ class SyrveRepository {
       );
       return ApiResult.success(response);
     } catch (e) {
-      debugPrint('Error getting menu: $e');
+      if (kDebugMode) debugPrint('Error getting menu: $e');
       return ApiResult.failure('Failed to get menu: $e');
     }
   }
@@ -324,7 +326,7 @@ class SyrveRepository {
 
       return ApiResult.success(stoppedProductIds.toList());
     } catch (e) {
-      debugPrint('Error getting stop lists: $e');
+      if (kDebugMode) debugPrint('Error getting stop lists: $e');
       return ApiResult.failure('Failed to get stop lists: $e');
     }
   }
@@ -339,14 +341,16 @@ class SyrveRepository {
     if (!tokenResult.isSuccess) return ApiResult.failure(tokenResult.error);
 
     try {
-      debugPrint('Creating order with payload:');
-      debugPrint('  organizationId: $organizationId');
-      debugPrint('  terminalGroupId: $terminalGroupId');
-      debugPrint('  orderTypeId: ${order.orderTypeId}');
-      debugPrint('  orderServiceType: ${order.orderServiceType}');
-      debugPrint('  items count: ${order.items.length}');
-      debugPrint('  phone: ${order.phone}');
-      
+      if (kDebugMode) debugPrint('Creating order with payload:');
+      if (kDebugMode) debugPrint('  organizationId: $organizationId');
+      if (kDebugMode) debugPrint('  terminalGroupId: $terminalGroupId');
+      if (kDebugMode) debugPrint('  orderTypeId: ${order.orderTypeId}');
+      if (kDebugMode) {
+        debugPrint('  orderServiceType: ${order.orderServiceType}');
+      }
+      if (kDebugMode) debugPrint('  items count: ${order.items.length}');
+      if (kDebugMode) debugPrint('  phone: ${order.phone}');
+
       final response = await _apiService.createDelivery(
         _bearerToken,
         CreateDeliveryRequest(
@@ -364,26 +368,27 @@ class SyrveRepository {
     } on DioException catch (e) {
       final responseData = e.response?.data;
       String errorMessage = 'Failed to create order';
-      
+
       if (responseData is Map<String, dynamic>) {
         // Extract error details from Syrve API response
-        final errorDescription = responseData['errorDescription'] ?? 
-                                 responseData['message'] ?? 
-                                 responseData['error'];
+        final errorDescription =
+            responseData['errorDescription'] ??
+            responseData['message'] ??
+            responseData['error'];
         if (errorDescription != null) {
           errorMessage = errorDescription.toString();
         }
-        debugPrint('API Error Response: $responseData');
+        if (kDebugMode) debugPrint('API Error Response: $responseData');
       } else if (responseData != null) {
         errorMessage = responseData.toString();
-        debugPrint('API Error: $errorMessage');
+        if (kDebugMode) debugPrint('API Error: $errorMessage');
       }
-      
-      debugPrint('DioException: ${e.message}');
-      debugPrint('Status Code: ${e.response?.statusCode}');
+
+      if (kDebugMode) debugPrint('DioException: ${e.message}');
+      if (kDebugMode) debugPrint('Status Code: ${e.response?.statusCode}');
       return ApiResult.failure(errorMessage);
     } catch (e) {
-      debugPrint('Error creating delivery: $e');
+      if (kDebugMode) debugPrint('Error creating delivery: $e');
       return ApiResult.failure('Failed to create delivery: $e');
     }
   }
@@ -407,7 +412,7 @@ class SyrveRepository {
       );
       return ApiResult.success(response.orders ?? []);
     } catch (e) {
-      debugPrint('Error retrieving delivery: $e');
+      if (kDebugMode) debugPrint('Error retrieving delivery: $e');
       return ApiResult.failure('Failed to retrieve delivery: $e');
     }
   }
@@ -431,11 +436,13 @@ class SyrveRepository {
         }
       }
 
-      debugPrint('Static data initialized successfully');
-      debugPrint('Organization ID: $_organizationId');
-      debugPrint('Terminal Group ID: $_terminalGroupId');
-      debugPrint('Order Types: ${_orderTypes?.length}');
-      debugPrint('Payment Types: ${_paymentTypes?.length}');
+      if (kDebugMode) {
+        debugPrint('Static data initialized successfully');
+        debugPrint('Organization ID: $_organizationId');
+        debugPrint('Terminal Group ID: $_terminalGroupId');
+        debugPrint('Order Types: ${_orderTypes?.length}');
+        debugPrint('Payment Types: ${_paymentTypes?.length}');
+      }
 
       return ApiResult.success(null);
     } catch (e) {

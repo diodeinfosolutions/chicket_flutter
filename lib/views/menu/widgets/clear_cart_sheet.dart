@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
+import '../../../routes.dart';
 
 class ClearCartSheet extends StatelessWidget {
   final VoidCallback? onDeleted;
@@ -84,7 +85,8 @@ class ClearCartSheet extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     orderController.clearCart();
-                    Get.back();
+                    Get.back(); // Close the sheet first
+                    Get.offAllNamed(Routes.home);
                     onDeleted?.call();
                   },
                   style: ElevatedButton.styleFrom(

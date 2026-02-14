@@ -42,7 +42,10 @@ class CartBottomBar extends StatelessWidget {
           children: [
             if (showHomeButton) ...[
               GestureDetector(
-                onTap: () => Get.toNamed(Routes.home),
+                onTap: () {
+                  orderController.clearCart();
+                  Get.offAllNamed(Routes.home);
+                },
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 32.w,
@@ -189,7 +192,7 @@ class CartBottomBar extends StatelessWidget {
               ),
               SizedBox(width: 16.w),
               GestureDetector(
-                onTap: () => Get.toNamed(Routes.mob),
+                onTap: () => Get.toNamed(Routes.cart),
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 32.w,

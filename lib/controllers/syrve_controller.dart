@@ -37,7 +37,11 @@ class SyrveController extends GetxController {
     final items = <MenuItem>[];
     for (final category in menuCategories) {
       if (category.items != null) {
-        items.addAll(category.items!.where((item) => item.isHidden != true));
+        items.addAll(
+          category.items!
+              .where((item) => item.isHidden != true)
+              .map((item) => getEnrichedMenuItem(item)),
+        );
       }
     }
     return items;
@@ -62,13 +66,17 @@ class SyrveController extends GetxController {
       _repository.setOrganizationId(config.organizationId);
       _repository.setTerminalGroupId(config.terminalGroupId);
       _repository.setExternalMenuId(config.externalMenuId);
-      debugPrint('Applied kiosk config: ${config.organizationName}');
+      if (kDebugMode) {
+        debugPrint('Applied kiosk config: ${config.organizationName}');
+      }
     }
   }
 
   Future<void> initialize({bool forceReload = false}) async {
     if (_isDataLoaded.value && !forceReload) {
-      debugPrint('Data already loaded, skipping initialization');
+      if (kDebugMode) {
+        debugPrint('Data already loaded, skipping initialization');
+      }
       return;
     }
 
@@ -84,18 +92,22 @@ class SyrveController extends GetxController {
 
       if (!result.isSuccess) {
         initError.value = result.error;
-        debugPrint('Failed to initialize Syrve API: ${result.error}');
+        if (kDebugMode) {
+          debugPrint('Failed to initialize Syrve API: ${result.error}');
+        }
         return;
       }
 
       orderTypes.value = _repository.cachedOrderTypes ?? [];
       paymentTypes.value = _repository.cachedPaymentTypes ?? [];
 
-      debugPrint('Syrve API initialized successfully');
-      debugPrint('Organization ID: $organizationId');
-      debugPrint('Terminal Group ID: $terminalGroupId');
-      debugPrint('Order Types: ${orderTypes.length}');
-      debugPrint('Payment Types: ${paymentTypes.length}');
+      if (kDebugMode) {
+        debugPrint('Syrve API initialized successfully');
+        debugPrint('Organization ID: $organizationId');
+        debugPrint('Terminal Group ID: $terminalGroupId');
+        debugPrint('Order Types: ${orderTypes.length}');
+        debugPrint('Payment Types: ${paymentTypes.length}');
+      }
 
       await loadMenu();
       await loadStopLists();
@@ -103,10 +115,34 @@ class SyrveController extends GetxController {
       _isDataLoaded.value = true;
     } catch (e) {
       initError.value = 'Initialization error: $e';
-      debugPrint('Syrve initialization error: $e');
+      if (kDebugMode) debugPrint('Syrve initialization error: $e');
     } finally {
       isInitializing.value = false;
     }
+  }
+
+  MenuResponse _filterDeliveryFee(MenuResponse menu) {
+    final filteredCategories = menu.itemCategories?.where((category) {
+      if (category.name?.toLowerCase() == 'delivery fee') return false;
+
+      category.items?.removeWhere(
+        (item) => item.name?.toLowerCase() == 'delivery fee',
+      );
+      return true;
+    }).toList();
+
+    return MenuResponse(
+      correlationId: menu.correlationId,
+      id: menu.id,
+      name: menu.name,
+      description: menu.description,
+      itemCategories: filteredCategories,
+      groups: menu.groups,
+      productCategories: menu.productCategories,
+      products: menu.products,
+      sizes: menu.sizes,
+      revision: menu.revision,
+    );
   }
 
   Future<void> loadMenu({bool forceRefresh = false}) async {
@@ -115,48 +151,54 @@ class SyrveController extends GetxController {
       return;
     }
 
-    debugPrint('loadMenu called: forceRefresh=$forceRefresh');
+    if (kDebugMode) debugPrint('loadMenu called: forceRefresh=$forceRefresh');
     menuError.value = null;
 
-    // First: Check if we already have menu data in memory - never show shimmer
     if (menu.value != null && menu.value!.itemCategories?.isNotEmpty == true) {
-      debugPrint('Menu already in memory, refreshing in background only');
+      if (kDebugMode) {
+        debugPrint('Menu already in memory, refreshing in background only');
+      }
       _refreshMenuInBackground();
       return;
     }
 
-    // Second: Check cache before showing any loading state
     if (!forceRefresh && _cacheService.hasCachedMenu) {
       final cachedMenu = _cacheService.getCachedMenu();
       if (cachedMenu != null && cachedMenu.itemCategories?.isNotEmpty == true) {
-        menu.value = cachedMenu;
-        debugPrint(
-          'Menu loaded from cache immediately - no loading state needed',
-        );
+        final filteredMenu = _filterDeliveryFee(cachedMenu);
+        if (filteredMenu.itemCategories?.isNotEmpty == true) {
+          menu.value = filteredMenu;
+          if (kDebugMode) {
+            debugPrint(
+              'Menu loaded from cache immediately - no loading state needed',
+            );
+          }
 
-        _refreshMenuInBackground();
-        return;
+          _refreshMenuInBackground();
+          return;
+        }
       }
     }
 
-    // Only show shimmer when we have no data at all
     isLoadingMenu.value = true;
 
     try {
-      debugPrint('Fetching menu from API...');
+      if (kDebugMode) debugPrint('Fetching menu from API...');
       final result = await _repository.getMenu(organizationId: organizationId!);
 
       if (result.isSuccess && result.data != null) {
         final newMenu = result.data!;
-        debugPrint('API returned menu successfully');
+        if (kDebugMode) debugPrint('API returned menu successfully');
 
-        if (_cacheService.hasMenuChanged(newMenu)) {
-          debugPrint('Menu data changed, updating cache');
-          await _cacheService.cacheMenu(newMenu);
+        final filteredMenu = _filterDeliveryFee(newMenu);
+
+        if (_cacheService.hasMenuChanged(filteredMenu)) {
+          if (kDebugMode) debugPrint('Menu data changed, updating cache');
+          await _cacheService.cacheMenu(filteredMenu);
         }
 
-        menu.value = newMenu;
-        final categories = newMenu.itemCategories ?? [];
+        menu.value = filteredMenu;
+        final categories = filteredMenu.itemCategories ?? [];
         int totalItems = 0;
         int itemsWithImages = 0;
         for (final cat in categories) {
@@ -167,33 +209,37 @@ class SyrveController extends GetxController {
             }
           }
         }
-        debugPrint(
-          'Menu loaded: $totalItems items in ${categories.length} categories ($itemsWithImages with images)',
-        );
-        debugPrint('About to set isLoadingMenu to false');
-        if (menuProducts.isNotEmpty || menuGroups.isNotEmpty) {
+        if (kDebugMode) {
           debugPrint(
-            'Legacy format: ${menuProducts.length} products, ${menuGroups.length} groups',
+            'Menu loaded: $totalItems items in ${categories.length} categories ($itemsWithImages with images)',
           );
+        }
+        if (kDebugMode) debugPrint('About to set isLoadingMenu to false');
+        if (menuProducts.isNotEmpty || menuGroups.isNotEmpty) {
+          if (kDebugMode) {
+            debugPrint(
+              'Legacy format: ${menuProducts.length} products, ${menuGroups.length} groups',
+            );
+          }
         }
       } else {
         final cachedMenu = _cacheService.getCachedMenu();
         if (cachedMenu != null) {
-          menu.value = cachedMenu;
-          debugPrint('API failed, using cached menu');
+          menu.value = _filterDeliveryFee(cachedMenu);
+          if (kDebugMode) debugPrint('API failed, using cached menu');
         } else {
           menuError.value = result.error;
-          debugPrint('Failed to load menu: ${result.error}');
+          if (kDebugMode) debugPrint('Failed to load menu: ${result.error}');
         }
       }
     } catch (e) {
       final cachedMenu = _cacheService.getCachedMenu();
       if (cachedMenu != null) {
-        menu.value = cachedMenu;
-        debugPrint('Error occurred, using cached menu: $e');
+        menu.value = _filterDeliveryFee(cachedMenu);
+        if (kDebugMode) debugPrint('Error occurred, using cached menu: $e');
       } else {
         menuError.value = 'Error loading menu: $e';
-        debugPrint('Menu loading error: $e');
+        if (kDebugMode) debugPrint('Menu loading error: $e');
       }
     } finally {
       isLoadingMenu.value = false;
@@ -202,29 +248,38 @@ class SyrveController extends GetxController {
 
   Future<void> _refreshMenuInBackground() async {
     if (!_cacheService.shouldRefresh) {
-      debugPrint('Background refresh: Not needed yet');
+      if (kDebugMode) debugPrint('Background refresh: Not needed yet');
       return;
     }
     if (organizationId == null) return;
 
     try {
-      debugPrint('Background refresh: Fetching menu from API...');
+      if (kDebugMode) {
+        debugPrint('Background refresh: Fetching menu from API...');
+      }
       final result = await _repository.getMenu(organizationId: organizationId!);
       if (result.isSuccess && result.data != null) {
         final newMenu = result.data!;
-        // Use strict equality check
-        if (menu.value != newMenu) {
-          debugPrint('Background refresh: Menu changed (hash: ${newMenu.contentHash}), updating');
-          await _cacheService.cacheMenu(newMenu);
-          menu.value = newMenu;
+        final filteredMenu = _filterDeliveryFee(newMenu);
+
+        if (menu.value != filteredMenu) {
+          if (kDebugMode) {
+            debugPrint(
+              'Background refresh: Menu changed (hash: ${filteredMenu.contentHash}), updating',
+            );
+          }
+          await _cacheService.cacheMenu(filteredMenu);
+          menu.value = filteredMenu;
         } else {
-          debugPrint('Background refresh: Menu unchanged, skipping update');
-          // Still update cache timestamp to prevent repeated checks
-          await _cacheService.cacheMenu(newMenu);
+          if (kDebugMode) {
+            debugPrint('Background refresh: Menu unchanged, skipping update');
+          }
+
+          await _cacheService.cacheMenu(filteredMenu);
         }
       }
     } catch (e) {
-      debugPrint('Background menu refresh error: $e');
+      if (kDebugMode) debugPrint('Background menu refresh error: $e');
     }
   }
 
@@ -243,12 +298,14 @@ class SyrveController extends GetxController {
 
       if (result.isSuccess && result.data != null) {
         outOfStockProductIds.value = result.data!;
-        debugPrint(
-          'Stop list loaded: ${outOfStockProductIds.length} items out of stock',
-        );
+        if (kDebugMode) {
+          debugPrint(
+            'Stop list loaded: ${outOfStockProductIds.length} items out of stock',
+          );
+        }
       }
     } catch (e) {
-      debugPrint('Error loading stop lists: $e');
+      if (kDebugMode) debugPrint('Error loading stop lists: $e');
     }
   }
 
@@ -338,8 +395,7 @@ class SyrveController extends GetxController {
           );
           if (commonOrderType != null) {
             finalOrderTypeId = commonOrderType.id;
-            // DON'T set orderServiceType to "Common" - the API doesn't accept it
-            // For dine-in/Common orders, orderServiceType should remain null
+
             finalOrderServiceType = null;
           }
         } else {
@@ -349,17 +405,16 @@ class SyrveController extends GetxController {
           finalOrderTypeId = takeawayOrderType?.id;
         }
       }
-      
-      // Ensure orderServiceType is only set to valid API values
-      // Valid values: DeliveryByCourier, DeliveryByClient
-      // "Common" is NOT valid for the deliveries API - use null instead
+
       if (finalOrderServiceType == 'Common') {
         finalOrderServiceType = null;
       }
 
-      debugPrint(
-        'Creating order: orderTypeId=$finalOrderTypeId, orderServiceType=$finalOrderServiceType',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'Creating order: orderTypeId=$finalOrderTypeId, orderServiceType=$finalOrderServiceType',
+        );
+      }
 
       final order = DeliveryOrder(
         orderTypeId: finalOrderTypeId,
@@ -383,26 +438,28 @@ class SyrveController extends GetxController {
 
         final creationStatus = result.data!.orderInfo?.creationStatus;
         if (creationStatus == 'Success' || creationStatus == 'InProgress') {
-          debugPrint(
-            'Order created successfully: ${result.data!.orderInfo?.id}',
-          );
+          if (kDebugMode) {
+            debugPrint(
+              'Order created successfully: ${result.data!.orderInfo?.id}',
+            );
+          }
           return true;
         } else {
           final errorMessage =
               result.data!.orderInfo?.errorInfo?.message ??
               'Unknown error creating order';
           orderError.value = errorMessage;
-          debugPrint('Order creation failed: $errorMessage');
+          if (kDebugMode) debugPrint('Order creation failed: $errorMessage');
           return false;
         }
       } else {
         orderError.value = result.error;
-        debugPrint('Failed to create order: ${result.error}');
+        if (kDebugMode) debugPrint('Failed to create order: ${result.error}');
         return false;
       }
     } catch (e) {
       orderError.value = 'Error creating order: $e';
-      debugPrint('Order creation error: $e');
+      if (kDebugMode) debugPrint('Order creation error: $e');
       return false;
     } finally {
       isCreatingOrder.value = false;
@@ -422,7 +479,7 @@ class SyrveController extends GetxController {
         return result.data!.first;
       }
     } catch (e) {
-      debugPrint('Error getting order status: $e');
+      if (kDebugMode) debugPrint('Error getting order status: $e');
     }
     return null;
   }
@@ -435,5 +492,110 @@ class SyrveController extends GetxController {
   void clearLastOrder() {
     lastOrderResponse.value = null;
     orderError.value = null;
+  }
+
+  MenuItem getEnrichedMenuItem(MenuItem item) {
+    if (item.modifierGroups?.isNotEmpty == true) {
+      return item;
+    }
+
+    final product = getProductById(item.id);
+    if (product == null || product.groupModifiers?.isEmpty == true) {
+      return item;
+    }
+
+    final newModifierGroups = <MenuModifierGroup>[];
+
+    for (final groupMod in product.groupModifiers!) {
+      final childItems = <MenuModifierItem>[];
+
+      if (groupMod.childModifiers != null) {
+        for (final child in groupMod.childModifiers!) {
+          final childProduct = getProductById(child.id);
+
+          String? name;
+          List<MenuItemPrice>? prices;
+          String? description;
+          String? buttonImageUrl;
+
+          if (childProduct != null) {
+            name = childProduct.name;
+            description = childProduct.description;
+
+            if (childProduct.sizePrices?.isNotEmpty == true) {
+              final price = childProduct.sizePrices!.first.price?.currentPrice;
+              if (price != null) {
+                prices = [MenuItemPrice(price: price)];
+              }
+            }
+          } else {
+            final childMenuItem = getMenuItemById(child.id);
+            if (childMenuItem != null) {
+              name = childMenuItem.name;
+              description = childMenuItem.description;
+              buttonImageUrl = childMenuItem.buttonImageUrl;
+
+              final price = childMenuItem.currentPrice;
+              if (price != null) {
+                prices = [MenuItemPrice(price: price)];
+              }
+            }
+          }
+
+          if (name != null) {
+            childItems.add(
+              MenuModifierItem(
+                itemId: child.id,
+                name: name,
+                description: description,
+                buttonImageUrl: buttonImageUrl,
+                prices: prices,
+                defaultAmount: child.defaultAmount,
+                minAmount: child.minAmount,
+                maxAmount: child.maxAmount,
+                freeOfChargeAmount: child.freeOfChargeAmount,
+                hideIfDefaultAmount: child.hideIfDefaultAmount,
+              ),
+            );
+          }
+        }
+      }
+
+      if (childItems.isNotEmpty) {
+        final group = getGroupById(groupMod.id);
+
+        newModifierGroups.add(
+          MenuModifierGroup(
+            id: groupMod.id,
+            name: group?.name ?? 'Modifiers',
+            minQuantity: groupMod.minAmount,
+            maxQuantity: groupMod.maxAmount,
+            required: groupMod.required,
+            items: childItems,
+            splittable: groupMod.splittable,
+            childModifiersHaveMinMaxRestrictions:
+                groupMod.childModifiersHaveMinMaxRestrictions,
+          ),
+        );
+      }
+    }
+
+    if (newModifierGroups.isEmpty) {
+      return item;
+    }
+
+    return MenuItem(
+      sku: item.sku,
+      itemId: item.itemId,
+      name: item.name,
+      description: item.description,
+      buttonImageUrl: item.buttonImageUrl,
+      itemSizes: item.itemSizes,
+      modifierGroups: newModifierGroups,
+      order: item.order,
+      taxCategory: item.taxCategory,
+      type: item.type,
+      isHidden: item.isHidden,
+    );
   }
 }

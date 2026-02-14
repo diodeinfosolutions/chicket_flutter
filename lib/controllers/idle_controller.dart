@@ -7,18 +7,28 @@ import 'package:chicket/controllers/order_controller.dart';
 
 class IdleController extends GetxController {
   Timer? _idleTimer;
-  final isFirstLaunch = true.obs;
   final isIdle = false.obs;
+
+  void startMonitoring() {
+    resetIdleTimer();
+  }
 
   void resetIdleTimer() {
     _idleTimer?.cancel();
     isIdle.value = false;
 
-    _idleTimer = Timer(AppConstants.idleTimeout, () {
-      isIdle.value = true;
-      _clearCartOnIdle();
-      Get.offAllNamed(Routes.splash);
-    });
+    _idleTimer = Timer(AppConstants.idleTimeout, _handleTimeout);
+  }
+
+  void _handleTimeout() {
+    isIdle.value = true;
+    _idleTimer?.cancel();
+    _clearCartOnIdle();
+    Get.offAllNamed(Routes.splash, arguments: true);
+  }
+
+  void stopMonitoring() {
+    _idleTimer?.cancel();
   }
 
   void _clearCartOnIdle() {
@@ -37,19 +47,6 @@ class IdleController extends GetxController {
     }
   }
 
-  void onFirstLaunchComplete() {
-    isFirstLaunch.value = false;
-    resetIdleTimer();
-  }
-
-  void startMonitoring() {
-    resetIdleTimer();
-  }
-
-  void stopMonitoring() {
-    _idleTimer?.cancel();
-  }
-
   @override
   void onClose() {
     _idleTimer?.cancel();
@@ -57,23 +54,33 @@ class IdleController extends GetxController {
   }
 }
 
-/// Wrap at the ROOT level (MyApp) for kiosk apps.
-/// Uses Listener instead of GestureDetector to avoid
-/// interfering with child widget gestures.
-class IdleDetector extends StatelessWidget {
+class IdleDetector extends StatefulWidget {
   final Widget child;
 
   const IdleDetector({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    final idleController = Get.find<IdleController>();
+  State<IdleDetector> createState() => _IdleDetectorState();
+}
 
+class _IdleDetectorState extends State<IdleDetector> {
+  final idleController = Get.find<IdleController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      idleController.startMonitoring();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => idleController.onUserInteraction(),
       onPointerMove: (_) => idleController.onUserInteraction(),
-      child: child,
+      child: widget.child,
     );
   }
 }

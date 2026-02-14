@@ -45,11 +45,15 @@ class DioClient {
       InterceptorsWrapper(
         onError: (error, handler) {
           if (error.response?.statusCode == 401) {
-            debugPrint('API Error: Unauthorized - Token may be expired');
+            if (kDebugMode) {
+              debugPrint('API Error: Unauthorized - Token may be expired');
+            }
           } else if (error.response?.statusCode == 400) {
-            debugPrint('API Error: Bad Request - ${error.response?.data}');
+            if (kDebugMode) {
+              debugPrint('API Error: Bad Request - ${error.response?.data}');
+            }
           } else if (error.response?.statusCode == 500) {
-            debugPrint('API Error: Server Error');
+            if (kDebugMode) debugPrint('API Error: Server Error');
           }
           handler.next(error);
         },

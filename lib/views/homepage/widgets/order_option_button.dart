@@ -36,7 +36,7 @@ class OrderOptionButton extends StatelessWidget {
                 fontFamily: 'Oswald',
                 fontSize: 28.sp,
                 fontWeight: FontWeight.w700,
-                color:  AppColors.BLACK,
+                color: AppColors.BLACK,
               ),
             ),
           ],

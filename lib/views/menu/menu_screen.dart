@@ -32,7 +32,9 @@ class _MenuScreenState extends State<MenuScreen> {
         final allCategories = _syrveController.menuCategories;
         final allItems = _syrveController.menuItems;
         // Access .value to make Obx reactive to language changes
-        final isRtl = _languageController.currentLanguage.value == LanguageController.arabic;
+        final isRtl =
+            _languageController.currentLanguage.value ==
+            LanguageController.arabic;
 
         List<MenuItem> filteredItems;
         if (selectedCategoryId == 'all') {
@@ -41,7 +43,8 @@ class _MenuScreenState extends State<MenuScreen> {
           final selectedCategory = allCategories.firstWhereOrNull(
             (c) => c.id == selectedCategoryId,
           );
-          filteredItems = selectedCategory?.items
+          filteredItems =
+              selectedCategory?.items
                   ?.where((item) => item.isHidden != true)
                   .toList() ??
               [];
@@ -69,7 +72,7 @@ class _MenuScreenState extends State<MenuScreen> {
                     right: isRtl ? 0.04.sh : null,
                     bottom: 0,
                     child: SizedBox(
-                      width: 0.52.sh,
+                      width: 0.38.sh,
                       child: _syrveController.isLoadingMenu.value
                           ? const MenuShimmer()
                           : StaggeredGridView.countBuilder(
@@ -80,7 +83,9 @@ class _MenuScreenState extends State<MenuScreen> {
                               crossAxisSpacing: 20.w,
                               staggeredTileBuilder: (_) => StaggeredTile.fit(1),
                               itemBuilder: (context, index) {
-                                return ProductCard(product: filteredItems[index]);
+                                return ProductCard(
+                                  product: filteredItems[index],
+                                );
                               },
                             ),
                     ),
@@ -98,7 +103,8 @@ class _MenuScreenState extends State<MenuScreen> {
                           : ListView.separated(
                               padding: EdgeInsets.symmetric(vertical: 16.h),
                               itemCount: categories.length,
-                              separatorBuilder: (_, _) => SizedBox(height: 12.h),
+                              separatorBuilder: (_, _) =>
+                                  SizedBox(height: 12.h),
                               itemBuilder: (context, index) {
                                 final category = categories[index];
                                 return CategoryWidget(
