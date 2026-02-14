@@ -15,11 +15,14 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late final IdleController _idleController;
   late final KioskConfigService _configService;
   late final SyrveController _syrveController;
   late final GifController _gifController;
+  late final AnimationController _shiftController;
+  late final Animation<Offset> _shiftAnimation;
 
   late final bool shouldRepeat;
   bool _hasNavigated = false;
@@ -34,6 +37,20 @@ class _SplashScreenState extends State<SplashScreen> {
     _configService = Get.find<KioskConfigService>();
     _syrveController = Get.find<SyrveController>();
     _gifController = GifController();
+
+    // Initialize pixel shifting animation for burn-in prevention
+    _shiftController = AnimationController(
+      vsync: this,
+      duration: const Duration(minutes: 10), // Very slow shift every 10 minutes
+    )..repeat(reverse: true); // Oscillate back and forth
+
+    _shiftAnimation =
+        Tween<Offset>(
+          begin: Offset.zero,
+          end: const Offset(0.5, 0.5), // Subtle 0.5 pixel shift
+        ).animate(
+          CurvedAnimation(parent: _shiftController, curve: Curves.easeInOut),
+        );
 
     _idleController.stopMonitoring();
 
@@ -70,6 +87,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void dispose() {
     _gifController.dispose();
+    _shiftController.dispose();
     super.dispose();
   }
 
@@ -83,13 +101,30 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Scaffold(
           backgroundColor: AppColors.RED,
           body: Center(
-            child: GifView.asset(
-              Assets.gif.chicket.path,
-              controller: _gifController,
-              fit: BoxFit.cover,
-              loop: shouldRepeat,
-              onFinish: shouldRepeat ? null : _navigateNext,
-            ),
+            child: shouldRepeat
+                ? AnimatedBuilder(
+                    animation: _shiftAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: _shiftAnimation.value,
+                        child: child,
+                      );
+                    },
+                    child: GifView.asset(
+                      Assets.gif.chicket.path,
+                      controller: _gifController,
+                      fit: BoxFit.cover,
+                      loop: shouldRepeat,
+                      onFinish: shouldRepeat ? null : _navigateNext,
+                    ),
+                  )
+                : GifView.asset(
+                    Assets.gif.chicket.path,
+                    controller: _gifController,
+                    fit: BoxFit.cover,
+                    loop: shouldRepeat,
+                    onFinish: shouldRepeat ? null : _navigateNext,
+                  ),
           ),
         ),
       ),
