@@ -38,17 +38,13 @@ class _SplashScreenState extends State<SplashScreen>
     _syrveController = Get.find<SyrveController>();
     _gifController = GifController();
 
-    // Initialize pixel shifting animation for burn-in prevention
     _shiftController = AnimationController(
       vsync: this,
-      duration: const Duration(minutes: 10), // Very slow shift every 10 minutes
-    )..repeat(reverse: true); // Oscillate back and forth
+      duration: const Duration(minutes: 10),
+    )..repeat(reverse: true);
 
     _shiftAnimation =
-        Tween<Offset>(
-          begin: Offset.zero,
-          end: const Offset(0.5, 0.5), // Subtle 0.5 pixel shift
-        ).animate(
+        Tween<Offset>(begin: Offset.zero, end: const Offset(0.5, 0.5)).animate(
           CurvedAnimation(parent: _shiftController, curve: Curves.easeInOut),
         );
 
