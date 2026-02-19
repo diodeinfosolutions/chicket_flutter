@@ -17,7 +17,6 @@ class MenuCacheService extends GetxService {
   late Box _box;
 
   Future<MenuCacheService> init() async {
-    // Don't call Hive.initFlutter() here - it's already called in main.dart
     _box = await Hive.openBox(_boxName);
     if (kDebugMode) {
       debugPrint(
@@ -90,7 +89,6 @@ class MenuCacheService extends GetxService {
     }
   }
 
-  /// Generate a hash based on menu structure to detect changes
   String _generateHash(MenuResponse menu) {
     final categories = menu.itemCategories ?? [];
     final itemCount = categories.fold<int>(
@@ -100,7 +98,6 @@ class MenuCacheService extends GetxService {
     final categoryIds = categories.map((c) => c.id).join(',');
     final revision = menu.revision ?? 0;
 
-    // Create a hash from revision + category count + item count + category IDs
     return '${revision}_${categories.length}_${itemCount}_${categoryIds.hashCode}';
   }
 

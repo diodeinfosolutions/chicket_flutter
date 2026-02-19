@@ -85,7 +85,7 @@ class ClearCartSheet extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     orderController.clearCart();
-                    Get.back(); // Close the sheet first
+                    Get.back();
                     Get.offAllNamed(Routes.home);
                     onDeleted?.call();
                   },

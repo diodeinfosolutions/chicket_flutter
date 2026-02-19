@@ -156,7 +156,6 @@ class _SetupScreenState extends State<SetupScreen> {
     });
 
     try {
-      // Clear menu cache when config changes
       final cacheService = Get.find<MenuCacheService>();
       await cacheService.clearCache();
 

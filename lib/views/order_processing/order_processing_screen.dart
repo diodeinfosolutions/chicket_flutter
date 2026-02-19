@@ -58,16 +58,13 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       ),
     ]).animate(_animationController);
 
-    // Start order creation
     _createOrder();
   }
 
   Future<void> _createOrder() async {
     try {
-      // Build order items from cart
       final orderItems = _buildOrderItems();
 
-      // Get payment info
       final paymentType = _orderController.selectedPaymentType.value;
       List<OrderPayment>? payments;
 
@@ -84,13 +81,11 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
         ];
       }
 
-      // Find matching API order type
       final orderServiceType = _orderController.orderServiceType;
       final apiOrderType = orderServiceType != null
           ? _syrveController.getOrderTypeByServiceType(orderServiceType)
           : null;
 
-      // Create order via API
       final success = await _syrveController.createOrder(
         items: orderItems,
         orderTypeId: apiOrderType?.id,
@@ -103,7 +98,6 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       );
 
       if (success) {
-        // Start animation after successful order creation
         _animationController.forward();
         _animationController.addStatusListener((status) {
           if (status == AnimationStatus.completed) {
@@ -132,7 +126,6 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       final modifiersMap =
           cartItem['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
 
-      // Build modifiers list
       List<OrderItemModifier>? modifiers;
       if (modifiersMap != null && modifiersMap.isNotEmpty) {
         modifiers = [];
@@ -167,7 +160,6 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Show error screen if order creation failed
     if (_errorMessage != null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF6F6F6),

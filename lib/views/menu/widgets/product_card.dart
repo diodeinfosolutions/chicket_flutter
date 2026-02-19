@@ -221,7 +221,6 @@ class ProductCard extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  // Always show RepeatOrCustomizeSheet for items with modifiers
                   if (hasModifiers) {
                     showRepeatOrCustomizeSheet(context, product);
                   } else {

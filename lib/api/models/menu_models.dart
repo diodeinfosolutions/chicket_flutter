@@ -184,7 +184,6 @@ class MenuResponse {
       _$MenuResponseFromJson(json);
   Map<String, dynamic> toJson() => _$MenuResponseToJson(this);
 
-  /// Content hash for strict equality checking
   String get contentHash {
     final catCount = itemCategories?.length ?? 0;
     final itemCount =
@@ -201,7 +200,7 @@ class MenuResponse {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! MenuResponse) return false;
-    // Strict equality: same revision and same content hash
+
     return revision == other.revision && contentHash == other.contentHash;
   }
 
@@ -318,9 +317,7 @@ class MenuItem {
   @JsonKey(name: 'labels')
   final List<String>? labels;
 
-  // Add a getter for productCategoryId by looking up the field in the JSON structure if present
   String? get productCategoryId {
-    // Try to find productCategoryId in the MenuItem fields (if present in JSON)
     final map = toJson();
     if (map.containsKey('productCategoryId')) {
       return map['productCategoryId'] as String?;

@@ -5,8 +5,11 @@ import 'package:chicket/api/models/models.dart';
 import 'package:chicket/services/kiosk_config_service.dart';
 import 'package:chicket/services/menu_cache_service.dart';
 
+import 'banner_controller.dart';
+
 class SyrveController extends GetxController {
   final SyrveRepository _repository = SyrveRepository();
+  final BannerController _bannerController = Get.find<BannerController>();
   late final KioskConfigService _configService;
   late final MenuCacheService _cacheService;
 
@@ -109,8 +112,14 @@ class SyrveController extends GetxController {
         debugPrint('Payment Types: ${paymentTypes.length}');
       }
 
-      await loadMenu();
-      await loadStopLists();
+      await Future.wait([loadMenu(), loadStopLists()]);
+
+      if (organizationId != null) {
+        await _bannerController.fetchBanners(
+          organizationId: organizationId ?? '',
+          terminalGroupId: terminalGroupId ?? '',
+        );
+      }
 
       _isDataLoaded.value = true;
     } catch (e) {

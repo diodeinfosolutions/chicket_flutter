@@ -68,7 +68,7 @@ class SyrveRepository {
 
     try {
       final response = await _apiService.getAccessToken(
-        AccessTokenRequest(apiLogin: ApiConstants.apiKey),
+        AccessTokenRequest(apiLogin: AppConstants.apiKey),
       );
       _accessToken = response.token;
 
@@ -370,7 +370,6 @@ class SyrveRepository {
       String errorMessage = 'Failed to create order';
 
       if (responseData is Map<String, dynamic>) {
-        // Extract error details from Syrve API response
         final errorDescription =
             responseData['errorDescription'] ??
             responseData['message'] ??

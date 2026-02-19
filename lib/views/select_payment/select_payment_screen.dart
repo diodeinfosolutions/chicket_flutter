@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart' as svg;
 import 'package:get/get.dart';
-// TODO: Re-enable when payment QR is available
-// import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../controllers/order_controller.dart';
 import '../../controllers/syrve_controller.dart';
@@ -46,34 +44,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                       color: AppColors.BLACK,
                     ),
                   ),
-                  // TODO: Re-enable when payment QR is available
-                  // SizedBox(height: 24.h),
-                  // Text(
-                  //   'scan_qr_to_pay'.tr,
-                  //   style: TextStyle(
-                  //     fontFamily: 'Oswald',
-                  //     fontSize: 24.sp,
-                  //     fontWeight: FontWeight.w500,
-                  //     color: AppColors.GREY,
-                  //   ),
-                  // ),
-                  // SizedBox(height: 48.h),
-                  // QrImageView(
-                  //   data: 'https://chicket.com/pay/order123',
-                  //   version: QrVersions.auto,
-                  //   size: 280.w,
-                  //   backgroundColor: AppColors.WHITE,
-                  // ),
-                  // SizedBox(height: 80.h),
-                  // Text(
-                  //   'others'.tr,
-                  //   style: TextStyle(
-                  //     fontFamily: 'Oswald',
-                  //     fontSize: 28.sp,
-                  //     fontWeight: FontWeight.w500,
-                  //     color: AppColors.GREY,
-                  //   ),
-                  // ),
+
                   SizedBox(height: 48.h),
                   _buildPaymentOptionsGrid(),
                 ],
@@ -81,10 +52,10 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
             ),
             CartBottomBar(
               hideButtons: true,
+              showMenuButton: true,
               customActionButton: GestureDetector(
                 onTap: _selectedPaymentType != null
                     ? () {
-                        // Store selected payment type
                         _orderController.setPaymentType(_selectedPaymentType!);
                         Get.toNamed(Routes.orderProcessing);
                       }
@@ -125,8 +96,7 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
         .where((p) => p.isDeleted != true)
         .where((p) {
           final name = p.name.toLowerCase();
-          // Stricter filter: only debit card, credit card, benefit
-          // Handle API typo 'benifit' as well
+
           return name.contains('debit card') ||
               name.contains('credit card') ||
               name.contains('benefit') ||
@@ -148,7 +118,6 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
       );
     }
 
-    // Create rows of 2 items each (2x2 grid)
     final List<Widget> rows = [];
     for (int i = 0; i < paymentTypes.length; i += 2) {
       final rowItems = <Widget>[];
@@ -219,8 +188,6 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
     final kind = paymentType.paymentTypeKind?.toLowerCase();
     final name = paymentType.name.toLowerCase();
 
-    // Specific mapping based on name first
-    // Handle API typo 'benifit'
     if (name.contains('benefit') || name.contains('benifit')) {
       return svg.SvgPicture.asset(
         'assets/svg/benefit.svg',

@@ -19,7 +19,6 @@ class AddonBottomSheet extends StatelessWidget {
     final description = product.description ?? '';
     final productName = product.name ?? '';
 
-    // Collect all modifier groups: product-level and all itemSizes' itemModifierGroups
     final List<MenuModifierGroup> allModifierGroups = [
       ...?product.modifierGroups,
       ...?product.itemSizes?.expand((size) => size.itemModifierGroups ?? []),
@@ -188,7 +187,7 @@ class AddonBottomSheet extends StatelessWidget {
   ) {
     final groupName = modGroup.name ?? 'Options';
     final isRequired = modGroup.required ?? false;
-    // Use a unique groupId for each group, fallback to name+hash if id is missing
+
     final groupId = (modGroup.id != null && modGroup.id!.isNotEmpty)
         ? modGroup.id!
         : '${modGroup.name}_${modGroup.hashCode}';
@@ -227,7 +226,6 @@ class AddonBottomSheet extends StatelessWidget {
           Obx(() {
             final maxQuantity = modGroup.maxQuantity ?? 1;
             if (maxQuantity == 1) {
-              // Radio button logic: only one selectable
               return Wrap(
                 spacing: 12.w,
                 runSpacing: 8.h,
@@ -295,7 +293,6 @@ class AddonBottomSheet extends StatelessWidget {
                     [],
               );
             } else {
-              // Checkbox logic: multiple selectable
               return Wrap(
                 spacing: 12.w,
                 runSpacing: 8.h,

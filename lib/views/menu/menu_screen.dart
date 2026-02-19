@@ -5,7 +5,10 @@ import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../controllers/language_controller.dart';
 import '../../controllers/syrve_controller.dart';
+import '../../controllers/banner_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../gen/assets.gen.dart';
+import '../../utils/cache_config.dart';
 import '../../api/models/menu_models.dart';
 import 'widgets/cart_bottom_bar.dart';
 import 'widgets/category_widget.dart';
@@ -23,6 +26,7 @@ class _MenuScreenState extends State<MenuScreen> {
   String selectedCategoryId = 'all';
   final SyrveController _syrveController = Get.find<SyrveController>();
   final LanguageController _languageController = Get.find<LanguageController>();
+  final BannerController _bannerController = Get.find<BannerController>();
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,7 @@ class _MenuScreenState extends State<MenuScreen> {
       body: Obx(() {
         final allCategories = _syrveController.menuCategories;
         final allItems = _syrveController.menuItems;
-        // Access .value to make Obx reactive to language changes
+
         final isRtl =
             _languageController.currentLanguage.value ==
             LanguageController.arabic;
@@ -60,12 +64,51 @@ class _MenuScreenState extends State<MenuScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  Assets.banner.ad1.image(
-                    height: 0.38.sh,
-                    width: 1.sw,
-                    fit: BoxFit.cover,
-                  ),
-                  // Products grid - left in LTR, right in RTL
+                  Obx(() {
+                    final banners = _bannerController.banners;
+
+                    if (_bannerController.isLoading.value) {
+                      return Container(
+                        height: 0.38.sh,
+                        width: 1.sw,
+                        color: Colors.grey[200],
+                      );
+                    }
+
+                    if (banners.isNotEmpty) {
+                      return SizedBox(
+                        height: 0.38.sh,
+                        width: 1.sw,
+                        child: PageView.builder(
+                          itemCount: banners.length,
+                          itemBuilder: (context, index) {
+                            final bannerUrl = banners[index].banner;
+
+                            if (bannerUrl == null || bannerUrl.isEmpty) {
+                              return Container(color: Colors.grey[200]);
+                            }
+
+                            return CachedNetworkImage(
+                              imageUrl: bannerUrl,
+                              fit: BoxFit.cover,
+                              cacheManager: CacheConfig.optimizedCacheManager,
+                              placeholder: (_, _) =>
+                                  Container(color: Colors.grey[200]),
+                              errorWidget: (_, _, _) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.broken_image),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+
+                    return Assets.banner.ad1.image(
+                      height: 0.38.sh,
+                      width: 1.sw,
+                    );
+                  }),
                   Positioned(
                     top: 0.36.sh - 100.h,
                     left: isRtl ? null : 0.04.sh,
@@ -81,7 +124,8 @@ class _MenuScreenState extends State<MenuScreen> {
                               padding: EdgeInsets.all(16.w),
                               mainAxisSpacing: 20.h,
                               crossAxisSpacing: 20.w,
-                              staggeredTileBuilder: (_) => StaggeredTile.fit(1),
+                              staggeredTileBuilder: (_) =>
+                                  const StaggeredTile.fit(1),
                               itemBuilder: (context, index) {
                                 return ProductCard(
                                   product: filteredItems[index],
@@ -90,7 +134,6 @@ class _MenuScreenState extends State<MenuScreen> {
                             ),
                     ),
                   ),
-                  // Categories - right in LTR, left in RTL
                   Positioned(
                     top: 0.36.sh - 100.h,
                     left: isRtl ? 0.04.sh : null,
@@ -123,6 +166,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 ],
               ),
             ),
+
             const CartBottomBar(showHomeButton: true),
           ],
         );

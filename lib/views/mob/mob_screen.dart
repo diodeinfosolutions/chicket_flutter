@@ -168,7 +168,6 @@ class _MobScreenState extends State<MobScreen> {
                     child: ElevatedButton(
                       onPressed: _phoneNumber.length == 8
                           ? () {
-                              // Store phone number with country code
                               _orderController.setCustomerPhone(
                                 '+973$_phoneNumber',
                               );
@@ -232,7 +231,7 @@ class _MobScreenState extends State<MobScreen> {
                 ],
               ),
             ),
-            const CartBottomBar(hideButtons: true),
+            const CartBottomBar(hideButtons: true, showMenuButton: true),
           ],
         ),
       ),

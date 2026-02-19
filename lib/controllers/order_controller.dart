@@ -20,7 +20,6 @@ class OrderController extends GetxController {
   final RxInt addonQuantity = 1.obs;
   double _basePrice = 0.0;
 
-  // Order flow data
   final RxString customerPhone = ''.obs;
   final Rx<PaymentType?> selectedPaymentType = Rx<PaymentType?>(null);
   final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
@@ -41,30 +40,24 @@ class OrderController extends GetxController {
     resetAddonSelection();
   }
 
-  // Set customer phone number (from MOB screen)
   void setCustomerPhone(String phone) {
     customerPhone.value = phone;
   }
 
-  // Set selected payment type (from Select Payment screen)
   void setPaymentType(PaymentType paymentType) {
     selectedPaymentType.value = paymentType;
   }
 
-  // Set API order type based on local order type selection
   void setApiOrderType(api.OrderType orderType) {
     selectedApiOrderType.value = orderType;
   }
 
-  // Get the orderServiceType for API based on local selection
-  // Valid Syrve API values: DeliveryByClient, DeliveryByCourier, DeliveryPickUp
-  // For dine-in (restaurant orders), orderServiceType should be null
   String? get orderServiceType {
     switch (selectedType.value) {
       case OrderType.dineIn:
-        return null; // Restaurant/dine-in orders don't use orderServiceType
+        return null;
       case OrderType.takeaway:
-        return 'DeliveryByClient'; // Self-pickup/takeaway
+        return 'DeliveryByClient';
       default:
         return null;
     }
@@ -121,13 +114,11 @@ class OrderController extends GetxController {
       modifierInfo.remove('$groupId:$modifierId');
     } else {
       if (maxAmount == 1) {
-        // Only one selectable in this group, clear others in this group only
         for (final existingId in current.toList()) {
           modifierInfo.remove('$groupId:$existingId');
         }
         current.clear();
       } else if (current.length >= maxAmount) {
-        // Do not allow more than maxAmount in this group
         return;
       }
       current.add(modifierId);
@@ -138,7 +129,6 @@ class OrderController extends GetxController {
       };
     }
 
-    // Only update this group, not others
     selectedModifiers[groupId] = current;
     selectedModifiers.refresh();
     modifierInfo.refresh();
@@ -175,7 +165,6 @@ class OrderController extends GetxController {
 
     if (product == null && menuItem == null) return false;
 
-    // Collect all relevant modifier groups for menuItem (including all itemSizes)
     final List<MenuModifierGroup> allModifierGroups = [];
     if (menuItem != null) {
       if (menuItem.modifierGroups != null) {
@@ -190,7 +179,6 @@ class OrderController extends GetxController {
       }
     }
 
-    // If there are modifier groups, enforce minQuantity/required logic
     if (allModifierGroups.isNotEmpty) {
       for (final modGroup in allModifierGroups) {
         final groupId = modGroup.id ?? '';
@@ -201,7 +189,6 @@ class OrderController extends GetxController {
             ? (minQuantity > 0 ? minQuantity : 1)
             : minQuantity;
 
-        // If group is required or minQuantity > 0, must select at least minQuantity
         if (requiredMin > 0 && selected.length < requiredMin) {
           return false;
         }
@@ -211,7 +198,6 @@ class OrderController extends GetxController {
       }
     }
 
-    // For product-level groupModifiers (legacy or other use)
     if (product != null) {
       for (final groupMod in product.groupModifiers ?? []) {
         final selected = selectedModifiers[groupMod.id] ?? <String>{};

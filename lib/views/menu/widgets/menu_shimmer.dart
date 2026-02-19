@@ -40,7 +40,6 @@ class _ProductCardShimmer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Image placeholder
           Container(
             height: 160.h,
             decoration: BoxDecoration(
@@ -53,7 +52,6 @@ class _ProductCardShimmer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Title placeholder
                 Container(
                   height: 18.h,
                   width: 140.w,
@@ -63,7 +61,7 @@ class _ProductCardShimmer extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                // Description placeholder
+
                 Container(
                   height: 14.h,
                   width: 180.w,
@@ -82,7 +80,7 @@ class _ProductCardShimmer extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 12.h),
-                // Price placeholder
+
                 Container(
                   height: 20.h,
                   width: 80.w,
@@ -92,7 +90,7 @@ class _ProductCardShimmer extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 12.h),
-                // Button placeholder
+
                 Container(
                   height: 40.h,
                   width: double.infinity,

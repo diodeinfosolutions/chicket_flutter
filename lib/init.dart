@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import 'controllers/banner_controller.dart';
 import 'controllers/idle_controller.dart';
 import 'controllers/language_controller.dart';
 import 'controllers/order_controller.dart';
@@ -15,6 +16,7 @@ Future<void> initControllers() async {
   Get.put(cacheService);
 
   Get.put(LanguageController(), permanent: true);
+  Get.put(BannerController(), permanent: true);
   Get.put(SyrveController(), permanent: true);
 
   Get.put(IdleController(), permanent: true);

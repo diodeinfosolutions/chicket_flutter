@@ -12,10 +12,12 @@ class CartBottomBar extends StatelessWidget {
     this.hideButtons = false,
     this.customActionButton,
     this.showHomeButton = false,
+    this.showMenuButton = false,
   });
   final bool hideButtons;
   final Widget? customActionButton;
   final bool showHomeButton;
+  final bool showMenuButton;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +59,33 @@ class CartBottomBar extends StatelessWidget {
                   ),
                   child: Text(
                     'home'.tr,
+                    style: TextStyle(
+                      fontFamily: 'Oswald',
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFF7BE26),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 16.w),
+            ],
+            if (showMenuButton) ...[
+              GestureDetector(
+                onTap: () {
+                  Get.offAllNamed(Routes.menu);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 32.w,
+                    vertical: 16.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF642F21),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    'menu'.tr,
                     style: TextStyle(
                       fontFamily: 'Oswald',
                       fontSize: 20.sp,

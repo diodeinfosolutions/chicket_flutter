@@ -16,10 +16,10 @@ class DioClient {
   static Dio _createDio() {
     final dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
-        connectTimeout: ApiConstants.connectTimeout,
-        receiveTimeout: ApiConstants.receiveTimeout,
-        sendTimeout: ApiConstants.sendTimeout,
+        baseUrl: AppConstants.baseUrl,
+        connectTimeout: AppConstants.connectTimeout,
+        receiveTimeout: AppConstants.receiveTimeout,
+        sendTimeout: AppConstants.sendTimeout,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
