@@ -406,7 +406,7 @@ packages:
       path: "."
       ref: HEAD
       resolved-ref: "573c32c2de48ae81e3138c970a0214a2140bb638"
-      url: "https://github.com/p-Osteen/gif_view.git"
+      url: "https://github.com/diodeinfosolutions/gif_view.git"
     source: git
     version: "1.0.4"
   glob:
