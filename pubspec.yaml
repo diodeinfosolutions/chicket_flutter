@@ -20,7 +20,7 @@ dependencies:
   get: ^4.7.3
   gif_view:
     git:
-      url: https://github.com/p-Osteen/gif_view.git
+      url: https://github.com/diodeinfosolutions/gif_view.git
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   json_annotation: ^4.10.0
