@@ -81,7 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const Spacer(flex: 2),
-                      FooterSection(isTabletPortrait: isTabletPortrait),
+                      EnLocale(
+                        child: FooterSection(
+                          isTabletPortrait: isTabletPortrait,
+                        ),
+                      ),
                     ],
                   ),
                 ),

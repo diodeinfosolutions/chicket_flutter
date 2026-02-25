@@ -10,6 +10,7 @@ import 'package:chicket/services/menu_cache_service.dart';
 import 'package:chicket/theme/colors.dart';
 import 'package:chicket/routes.dart';
 import 'package:chicket/gen/assets.gen.dart';
+import 'package:chicket/controllers/syrve_controller.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -172,6 +173,15 @@ class _SetupScreenState extends State<SetupScreen> {
 
       final success = await _configService.saveConfig(config);
       if (success) {
+        // Trigger background refresh instantly after config bounds
+        try {
+          if (Get.isRegistered<SyrveController>()) {
+            Get.find<SyrveController>().refreshMenuInBackground(
+              forceBypassCacheWait: true,
+            );
+          }
+        } catch (_) {}
+
         Get.offAllNamed(Routes.splash);
       } else {
         _showError('failed_to_save_configuration'.tr);

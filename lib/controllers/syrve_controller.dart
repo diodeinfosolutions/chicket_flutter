@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chicket/api/repositories/syrve_repository.dart';
@@ -32,6 +33,8 @@ class SyrveController extends GetxController {
 
   final RxBool _isDataLoaded = false.obs;
   bool get isDataLoaded => _isDataLoaded.value;
+
+  Timer? _refreshTimer;
 
   String? get organizationId => _repository.organizationId;
   String? get terminalGroupId => _repository.terminalGroupId;
@@ -117,6 +120,12 @@ class SyrveController extends GetxController {
       }
 
       _isDataLoaded.value = true;
+
+      // Initial background refresh immediately
+      refreshMenuInBackground(forceBypassCacheWait: true);
+
+      // Start the 15-minute periodic refresh timer
+      _startPeriodicRefreshTimer();
     } catch (e) {
       initError.value = 'Initialization error: $e';
       if (kDebugMode) debugPrint('Syrve initialization error: $e');
@@ -162,7 +171,7 @@ class SyrveController extends GetxController {
       if (kDebugMode) {
         debugPrint('Menu already in memory, refreshing in background only');
       }
-      _refreshMenuInBackground();
+      refreshMenuInBackground();
       return;
     }
 
@@ -178,7 +187,7 @@ class SyrveController extends GetxController {
             );
           }
 
-          _refreshMenuInBackground();
+          refreshMenuInBackground();
           return;
         }
       }
@@ -245,9 +254,20 @@ class SyrveController extends GetxController {
     }
   }
 
-  Future<void> _refreshMenuInBackground() async {
-    if (!_cacheService.shouldRefresh) {
-      if (kDebugMode) debugPrint('Background refresh: Not needed yet');
+  void _startPeriodicRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+      refreshMenuInBackground(forceBypassCacheWait: true);
+    });
+  }
+
+  Future<void> refreshMenuInBackground({
+    bool forceBypassCacheWait = false,
+  }) async {
+    if (!forceBypassCacheWait && !_cacheService.shouldRefresh) {
+      if (kDebugMode) {
+        debugPrint('Background refresh: Not needed yet (cache valid)');
+      }
       return;
     }
     if (organizationId == null) return;
@@ -257,15 +277,14 @@ class SyrveController extends GetxController {
         debugPrint('Background refresh: Fetching menu from API...');
       }
 
-      // Call the store-or-update-menu api concurrently with viewMenu
-      final results = await Future.wait([
-        Get.find<ApiRepository>().storeOrUpdateMenu(),
-        Get.find<ApiRepository>().viewMenu(
-          menuId: _configService.currentConfig.externalMenuId,
-        ),
-      ]);
+      await Get.find<ApiRepository>().storeOrUpdateMenu(
+        externalMenuId: _configService.currentConfig.externalMenuId,
+        organizationId: _configService.currentConfig.organizationId,
+      );
 
-      final result = results[1] as ViewMenuResponse;
+      final result = await Get.find<ApiRepository>().viewMenu(
+        menuId: _configService.currentConfig.externalMenuId,
+      );
       if (result.status == true && result.data != null) {
         final newMenu = result.data!;
         final filteredMenu = _filterDeliveryFee(newMenu);
@@ -480,5 +499,11 @@ class SyrveController extends GetxController {
   void clearLastOrder() {
     lastOrderResponse.value = null;
     orderError.value = null;
+  }
+
+  @override
+  void onClose() {
+    _refreshTimer?.cancel();
+    super.onClose();
   }
 }

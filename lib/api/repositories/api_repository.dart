@@ -14,7 +14,7 @@ class ApiRepository {
           dio ??
           Dio(
             BaseOptions(
-              baseUrl: 'http://192.168.29.121:1001',
+              baseUrl: 'http://chicket.diodeinfosolutions.com',
               connectTimeout: AppConstants.connectTimeout,
               receiveTimeout: AppConstants.receiveTimeout,
               sendTimeout: AppConstants.sendTimeout,
@@ -59,13 +59,16 @@ class ApiRepository {
     return ViewMenuResponse.fromJson(response.data);
   }
 
-  Future<void> storeOrUpdateMenu() async {
-    try {
-      await _dio.get('http://192.168.29.121:1001/api/store-or-update-menu');
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Error calling store-or-update-menu: $e');
-      }
-    }
+  Future<void> storeOrUpdateMenu({
+    required int externalMenuId,
+    required String organizationId,
+  }) async {
+    await _dio.post(
+      '/api/store-or-update-menu',
+      data: {
+        'externalMenuId': externalMenuId,
+        'organizationId': organizationId,
+      },
+    );
   }
 }

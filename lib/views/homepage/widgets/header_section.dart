@@ -26,23 +26,25 @@ class HeaderSection extends StatefulWidget {
 
 class _HeaderSectionState extends State<HeaderSection> {
   int _tapCount = 0;
-  DateTime? _lastTapTime;
+  DateTime? _firstTapTime;
+
   static const int _requiredTaps = 5;
-  static const Duration _tapTimeout = Duration(seconds: 2);
+  static const Duration _tapWindow = Duration(seconds: 2);
 
   void _handleLogoTap() {
     final now = DateTime.now();
 
-    if (_lastTapTime != null && now.difference(_lastTapTime!) > _tapTimeout) {
-      _tapCount = 0;
+    if (_firstTapTime == null || now.difference(_firstTapTime!) > _tapWindow) {
+      _firstTapTime = now;
+      _tapCount = 1;
+      return;
     }
 
     _tapCount++;
-    _lastTapTime = now;
 
     if (_tapCount >= _requiredTaps) {
       _tapCount = 0;
-      _lastTapTime = null;
+      _firstTapTime = null;
       Get.toNamed(Routes.setup);
     }
   }

@@ -9,6 +9,7 @@ import '../../controllers/syrve_controller.dart';
 import '../../gen/assets.gen.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
+import '../../utils/en_locale.dart';
 import '../homepage/widgets/footer_section.dart';
 
 class ConfirmedScreen extends StatelessWidget {
@@ -238,7 +239,7 @@ class ConfirmedScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const FooterSection(),
+              EnLocale(child: const FooterSection()),
             ],
           ),
         ),

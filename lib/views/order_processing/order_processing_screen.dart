@@ -11,6 +11,8 @@ import '../../api/models/delivery_models.dart';
 import '../../gen/assets.gen.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
+import '../../controllers/apex_ecr_controller.dart';
+import '../../utils/en_locale.dart';
 
 class OrderProcessingScreen extends StatefulWidget {
   const OrderProcessingScreen({super.key});
@@ -58,7 +60,41 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       ),
     ]).animate(_animationController);
 
-    _createOrder();
+    _processOrder();
+  }
+
+  Future<void> _processOrder() async {
+    final paymentType = _orderController.selectedPaymentType.value;
+    final isCard =
+        paymentType?.paymentTypeKind == 'Card' ||
+        paymentType?.paymentTypeKind == 'External';
+
+    if (isCard) {
+      final ecrController = Get.find<ApexEcrController>();
+      final amount = _orderController.cartTotal;
+      // Generate a 6-digit invoice number based on time
+      final invoiceNumber = (DateTime.now().millisecondsSinceEpoch % 1000000)
+          .toString()
+          .padLeft(6, '0');
+
+      final response = await ecrController.processSale(amount, invoiceNumber);
+
+      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
+        // Payment success, create order
+        await _createOrder();
+      } else {
+        // Payment failed
+        if (mounted) {
+          setState(() {
+            _errorMessage =
+                '${'payment_failed'.tr}\n${response.posRespText ?? response.webResponseErrorDesc ?? "Unknown error"}';
+          });
+        }
+      }
+    } else {
+      // Cash payment
+      await _createOrder();
+    }
   }
 
   Future<void> _createOrder() async {
@@ -294,7 +330,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                           textAlign: TextAlign.center,
                         ),
                         const Spacer(),
-                        FooterSection(isTabletPortrait: isTabletPortrait),
+                        EnLocale(child: FooterSection(isTabletPortrait: isTabletPortrait)),
                       ],
                     ),
                   ),
