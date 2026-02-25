@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/language_controller.dart';
 import '../../controllers/order_controller.dart';
 import '../../controllers/syrve_controller.dart';
 import '../../gen/assets.gen.dart';
-import '../../api/models/menu_models.dart';
+import '../../api/models/view_menu_models.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
 import '../../utils/cache_config.dart';
@@ -126,23 +127,34 @@ class CartScreen extends StatelessWidget {
     SyrveController syrveController,
     BuildContext context,
   ) {
+    final isArabic = Get.find<LanguageController>().isArabic;
     final productId = item['productId'] as String;
     final menuItem = syrveController.getMenuItemById(productId);
-    final legacyProduct = menuItem == null
-        ? syrveController.getProductById(productId)
-        : null;
 
-    final productName = menuItem?.name ?? legacyProduct?.name ?? 'Unknown';
-    final productImageUrl = menuItem?.imageUrl ?? legacyProduct?.imageUrl;
+    final productName =
+        (isArabic &&
+            menuItem?.nameAr != null &&
+            menuItem!.nameAr!.trim().isNotEmpty)
+        ? menuItem.nameAr!
+        : (menuItem?.name ?? 'Unknown');
     final productDescription =
-        menuItem?.description ?? legacyProduct?.description ?? '';
+        (isArabic &&
+            menuItem?.descriptionAr != null &&
+            menuItem!.descriptionAr!.trim().isNotEmpty)
+        ? menuItem.descriptionAr!
+        : (menuItem?.description ?? '');
+
+    final defaultSize =
+        menuItem?.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        menuItem?.itemSizes?.firstOrNull;
+    final productImageUrl = defaultSize?.buttonImageUrl;
 
     final qty = item['qty'] as int;
     final modifiers =
         item['modifiers'] as Map<String, List<Map<String, dynamic>>>?;
 
-    double itemPrice =
-        (menuItem?.currentPrice ?? legacyProduct?.currentPrice ?? 0).toDouble();
+    final priceString = defaultSize?.prices?.firstOrNull?.price ?? '0';
+    double itemPrice = double.tryParse(priceString) ?? 0.0;
     if (modifiers != null) {
       for (final group in modifiers.values) {
         for (final mod in group) {
@@ -296,7 +308,7 @@ class CartScreen extends StatelessWidget {
     int qty,
     OrderController orderController,
     Map<String, List<Map<String, dynamic>>>? modifiers,
-    MenuItem? product,
+    ViewMenuItem? product,
     BuildContext context,
   ) {
     return Row(
@@ -392,7 +404,7 @@ class CartScreen extends StatelessWidget {
         .map((e) => e['productId'] as String)
         .toSet();
     final filtered = allProducts
-        .where((p) => !cartProductIds.contains(p.id))
+        .where((p) => !cartProductIds.contains(p.itemId ?? p.sku ?? ''))
         .toList();
     filtered.shuffle();
     final recommended = filtered.take(4).toList();
@@ -411,13 +423,30 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildRecommendedCard(
-    MenuItem product,
+    ViewMenuItem product,
     OrderController orderController,
     BuildContext context,
   ) {
-    final price = (product.currentPrice ?? 0).toDouble();
-    final description = product.description ?? '';
-    final productName = product.name ?? '';
+    final isArabic = Get.find<LanguageController>().isArabic;
+    final productName =
+        (isArabic &&
+            product.nameAr != null &&
+            product.nameAr!.trim().isNotEmpty)
+        ? product.nameAr!
+        : (product.name ?? '');
+    final description =
+        (isArabic &&
+            product.descriptionAr != null &&
+            product.descriptionAr!.trim().isNotEmpty)
+        ? product.descriptionAr!
+        : (product.description ?? '');
+
+    final defaultSize =
+        product.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        product.itemSizes?.firstOrNull;
+    final priceString = defaultSize?.prices?.firstOrNull?.price ?? '0';
+    final price = double.tryParse(priceString) ?? 0.0;
+    final productImageUrl = defaultSize?.buttonImageUrl;
 
     return Container(
       width: 280.w,
@@ -436,9 +465,9 @@ class CartScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8.r),
             child: AspectRatio(
               aspectRatio: 1,
-              child: product.imageUrl != null
+              child: productImageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: product.imageUrl!,
+                      imageUrl: productImageUrl,
                       fit: BoxFit.cover,
                       cacheManager: CacheConfig.optimizedCacheManager,
                       placeholder: (context, url) => Container(
@@ -507,20 +536,20 @@ class CartScreen extends StatelessWidget {
     BuildContext context,
     OrderController orderController,
     double price,
-    MenuItem product,
+    ViewMenuItem product,
   ) {
     final hasModifiers =
         (product.itemSizes?.any(
-              (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
-            ) ??
-            false) ||
-        (product.modifierGroups?.isNotEmpty ?? false);
+          (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
+        ) ??
+        false);
     return Obx(() {
-      final totalQty = orderController.getProductQuantity(product.id);
+      final productId = product.itemId ?? product.sku ?? '';
+      final totalQty = orderController.getProductQuantity(productId);
 
       final cartIndexNoAddons = orderController.cart.indexWhere(
         (e) =>
-            e['productId'] == product.id &&
+            e['productId'] == productId &&
             ((e['modifiers'] as Map?)?.isEmpty ?? true),
       );
 
@@ -532,7 +561,7 @@ class CartScreen extends StatelessWidget {
                 onTap: () {
                   if (hasModifiers) {
                     final lastIndex = orderController.cart.lastIndexWhere(
-                      (e) => e['productId'] == product.id,
+                      (e) => e['productId'] == productId,
                     );
                     if (lastIndex != -1) {
                       orderController.decreaseQty(lastIndex);
@@ -630,7 +659,7 @@ class CartScreen extends StatelessWidget {
               showAddonBottomSheet(context, product);
             } else {
               orderController.addToCart(
-                productId: product.id,
+                productId: productId,
                 name: product.name ?? '',
                 price: price,
               );

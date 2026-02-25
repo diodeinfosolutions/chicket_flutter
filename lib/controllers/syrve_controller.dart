@@ -2,9 +2,11 @@ import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'package:chicket/api/repositories/syrve_repository.dart';
 import 'package:chicket/api/models/models.dart';
+// import 'package:chicket/api/models/view_menu_models.dart';
 import 'package:chicket/services/kiosk_config_service.dart';
 import 'package:chicket/services/menu_cache_service.dart';
 
+import 'package:chicket/api/repositories/api_repository.dart';
 import 'banner_controller.dart';
 
 class SyrveController extends GetxController {
@@ -21,7 +23,7 @@ class SyrveController extends GetxController {
   final RxnString menuError = RxnString();
   final RxnString orderError = RxnString();
 
-  final Rx<MenuResponse?> menu = Rx<MenuResponse?>(null);
+  final Rx<ViewMenuData?> menu = Rx<ViewMenuData?>(null);
   final RxList<String> outOfStockProductIds = <String>[].obs;
   final RxList<OrderType> orderTypes = <OrderType>[].obs;
   final RxList<PaymentType> paymentTypes = <PaymentType>[].obs;
@@ -34,25 +36,19 @@ class SyrveController extends GetxController {
   String? get organizationId => _repository.organizationId;
   String? get terminalGroupId => _repository.terminalGroupId;
 
-  List<MenuItemCategory> get menuCategories => menu.value?.itemCategories ?? [];
+  List<ViewItemCategory> get menuCategories => menu.value?.itemCategories ?? [];
 
-  List<MenuItem> get menuItems {
-    final items = <MenuItem>[];
+  List<ViewMenuItem> get menuItems {
+    final items = <ViewMenuItem>[];
     for (final category in menuCategories) {
       if (category.items != null) {
-        items.addAll(
-          category.items!
-              .where((item) => item.isHidden != true)
-              .map((item) => getEnrichedMenuItem(item)),
-        );
+        items.addAll(category.items!.where((item) => item.isHidden != true));
       }
     }
     return items;
   }
 
-  List<MenuGroup> get menuGroups => menu.value?.groups ?? [];
-  List<MenuProduct> get menuProducts => menu.value?.products ?? [];
-  List<ProductCategory> get productCategories =>
+  List<ViewProductCategory> get productCategories =>
       menu.value?.productCategories ?? [];
 
   @override
@@ -68,7 +64,6 @@ class SyrveController extends GetxController {
       final config = _configService.currentConfig;
       _repository.setOrganizationId(config.organizationId);
       _repository.setTerminalGroupId(config.terminalGroupId);
-      _repository.setExternalMenuId(config.externalMenuId);
       if (kDebugMode) {
         debugPrint('Applied kiosk config: ${config.organizationName}');
       }
@@ -130,27 +125,27 @@ class SyrveController extends GetxController {
     }
   }
 
-  MenuResponse _filterDeliveryFee(MenuResponse menu) {
+  ViewMenuData _filterDeliveryFee(ViewMenuData menu) {
     final filteredCategories = menu.itemCategories?.where((category) {
       if (category.name?.toLowerCase() == 'delivery fee') return false;
 
-      category.items?.removeWhere(
-        (item) => item.name?.toLowerCase() == 'delivery fee',
-      );
-      return true;
+      // Keep items that are NOT delivery fee
+      final validItems = category.items
+          ?.where((item) => item.name?.toLowerCase() != 'delivery fee')
+          .toList();
+
+      return validItems != null && validItems.isNotEmpty;
     }).toList();
 
-    return MenuResponse(
-      correlationId: menu.correlationId,
+    return ViewMenuData(
       id: menu.id,
       name: menu.name,
+      nameAr: menu.nameAr,
       description: menu.description,
-      itemCategories: filteredCategories,
-      groups: menu.groups,
-      productCategories: menu.productCategories,
-      products: menu.products,
-      sizes: menu.sizes,
+      descriptionAr: menu.descriptionAr,
       revision: menu.revision,
+      productCategories: menu.productCategories,
+      itemCategories: filteredCategories,
     );
   }
 
@@ -193,9 +188,11 @@ class SyrveController extends GetxController {
 
     try {
       if (kDebugMode) debugPrint('Fetching menu from API...');
-      final result = await _repository.getMenu(organizationId: organizationId!);
+      final result = await Get.find<ApiRepository>().viewMenu(
+        menuId: _configService.currentConfig.externalMenuId,
+      );
 
-      if (result.isSuccess && result.data != null) {
+      if (result.status == true && result.data != null) {
         final newMenu = result.data!;
         if (kDebugMode) debugPrint('API returned menu successfully');
 
@@ -224,21 +221,14 @@ class SyrveController extends GetxController {
           );
         }
         if (kDebugMode) debugPrint('About to set isLoadingMenu to false');
-        if (menuProducts.isNotEmpty || menuGroups.isNotEmpty) {
-          if (kDebugMode) {
-            debugPrint(
-              'Legacy format: ${menuProducts.length} products, ${menuGroups.length} groups',
-            );
-          }
-        }
       } else {
         final cachedMenu = _cacheService.getCachedMenu();
         if (cachedMenu != null) {
           menu.value = _filterDeliveryFee(cachedMenu);
           if (kDebugMode) debugPrint('API failed, using cached menu');
         } else {
-          menuError.value = result.error;
-          if (kDebugMode) debugPrint('Failed to load menu: ${result.error}');
+          menuError.value = result.message;
+          if (kDebugMode) debugPrint('Failed to load menu: ${result.message}');
         }
       }
     } catch (e) {
@@ -266,15 +256,24 @@ class SyrveController extends GetxController {
       if (kDebugMode) {
         debugPrint('Background refresh: Fetching menu from API...');
       }
-      final result = await _repository.getMenu(organizationId: organizationId!);
-      if (result.isSuccess && result.data != null) {
+
+      // Call the store-or-update-menu api concurrently with viewMenu
+      final results = await Future.wait([
+        Get.find<ApiRepository>().storeOrUpdateMenu(),
+        Get.find<ApiRepository>().viewMenu(
+          menuId: _configService.currentConfig.externalMenuId,
+        ),
+      ]);
+
+      final result = results[1] as ViewMenuResponse;
+      if (result.status == true && result.data != null) {
         final newMenu = result.data!;
         final filteredMenu = _filterDeliveryFee(newMenu);
 
         if (menu.value != filteredMenu) {
           if (kDebugMode) {
             debugPrint(
-              'Background refresh: Menu changed (hash: ${filteredMenu.contentHash}), updating',
+              'Background refresh: Menu changed (revision: ${filteredMenu.revision}), updating',
             );
           }
           await _cacheService.cacheMenu(filteredMenu);
@@ -322,35 +321,15 @@ class SyrveController extends GetxController {
     return outOfStockProductIds.contains(productId);
   }
 
-  List<MenuProduct> getProductsByGroup(String groupId) {
-    return menuProducts.where((p) => p.groupId == groupId).toList();
-  }
-
-  MenuProduct? getProductById(String productId) {
-    try {
-      return menuProducts.firstWhere((p) => p.id == productId);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  MenuItem? getMenuItemById(String itemId) {
+  ViewMenuItem? getMenuItemById(String itemId) {
     for (final category in menuCategories) {
       for (final item in category.items ?? []) {
-        if (item.id == itemId) {
+        if (item.itemId == itemId || item.sku == itemId) {
           return item;
         }
       }
     }
     return null;
-  }
-
-  MenuGroup? getGroupById(String groupId) {
-    try {
-      return menuGroups.firstWhere((g) => g.id == groupId);
-    } catch (_) {
-      return null;
-    }
   }
 
   OrderType? getOrderTypeByServiceType(String serviceType) {
@@ -501,110 +480,5 @@ class SyrveController extends GetxController {
   void clearLastOrder() {
     lastOrderResponse.value = null;
     orderError.value = null;
-  }
-
-  MenuItem getEnrichedMenuItem(MenuItem item) {
-    if (item.modifierGroups?.isNotEmpty == true) {
-      return item;
-    }
-
-    final product = getProductById(item.id);
-    if (product == null || product.groupModifiers?.isEmpty == true) {
-      return item;
-    }
-
-    final newModifierGroups = <MenuModifierGroup>[];
-
-    for (final groupMod in product.groupModifiers!) {
-      final childItems = <MenuModifierItem>[];
-
-      if (groupMod.childModifiers != null) {
-        for (final child in groupMod.childModifiers!) {
-          final childProduct = getProductById(child.id);
-
-          String? name;
-          List<MenuItemPrice>? prices;
-          String? description;
-          String? buttonImageUrl;
-
-          if (childProduct != null) {
-            name = childProduct.name;
-            description = childProduct.description;
-
-            if (childProduct.sizePrices?.isNotEmpty == true) {
-              final price = childProduct.sizePrices!.first.price?.currentPrice;
-              if (price != null) {
-                prices = [MenuItemPrice(price: price)];
-              }
-            }
-          } else {
-            final childMenuItem = getMenuItemById(child.id);
-            if (childMenuItem != null) {
-              name = childMenuItem.name;
-              description = childMenuItem.description;
-              buttonImageUrl = childMenuItem.buttonImageUrl;
-
-              final price = childMenuItem.currentPrice;
-              if (price != null) {
-                prices = [MenuItemPrice(price: price)];
-              }
-            }
-          }
-
-          if (name != null) {
-            childItems.add(
-              MenuModifierItem(
-                itemId: child.id,
-                name: name,
-                description: description,
-                buttonImageUrl: buttonImageUrl,
-                prices: prices,
-                defaultAmount: child.defaultAmount,
-                minAmount: child.minAmount,
-                maxAmount: child.maxAmount,
-                freeOfChargeAmount: child.freeOfChargeAmount,
-                hideIfDefaultAmount: child.hideIfDefaultAmount,
-              ),
-            );
-          }
-        }
-      }
-
-      if (childItems.isNotEmpty) {
-        final group = getGroupById(groupMod.id);
-
-        newModifierGroups.add(
-          MenuModifierGroup(
-            id: groupMod.id,
-            name: group?.name ?? 'Modifiers',
-            minQuantity: groupMod.minAmount,
-            maxQuantity: groupMod.maxAmount,
-            required: groupMod.required,
-            items: childItems,
-            splittable: groupMod.splittable,
-            childModifiersHaveMinMaxRestrictions:
-                groupMod.childModifiersHaveMinMaxRestrictions,
-          ),
-        );
-      }
-    }
-
-    if (newModifierGroups.isEmpty) {
-      return item;
-    }
-
-    return MenuItem(
-      sku: item.sku,
-      itemId: item.itemId,
-      name: item.name,
-      description: item.description,
-      buttonImageUrl: item.buttonImageUrl,
-      itemSizes: item.itemSizes,
-      modifierGroups: newModifierGroups,
-      order: item.order,
-      taxCategory: item.taxCategory,
-      type: item.type,
-      isHidden: item.isHidden,
-    );
   }
 }

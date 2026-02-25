@@ -2,11 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../api/models/menu_models.dart';
+import '../../../api/models/view_menu_models.dart';
+import '../../../controllers/language_controller.dart';
 import '../../../utils/cache_config.dart';
+import 'package:get/get.dart';
 
 class CategoryWidget extends StatelessWidget {
-  final MenuItemCategory category;
+  final ViewItemCategory category;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -19,9 +21,13 @@ class CategoryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = Get.find<LanguageController>().isArabic;
     final hasImage =
         category.buttonImageUrl != null && category.buttonImageUrl!.isNotEmpty;
-    final categoryName = category.name ?? '';
+    final categoryName =
+        (isArabic && category.nameAr != null && category.nameAr!.isNotEmpty)
+        ? category.nameAr!
+        : (category.name ?? '');
 
     return GestureDetector(
       onTap: onTap,

@@ -22,10 +22,7 @@ void main() async {
   CacheConfig.configure();
 
   await Hive.initFlutter();
-  await Future.wait([
-    KioskService.initKioskMode(),
-    initControllers(),
-  ]);
+  await Future.wait([KioskService.initKioskMode(), initControllers()]);
 
   runApp(const MyApp());
 }

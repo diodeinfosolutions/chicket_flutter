@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:gif_view/gif_view.dart';
 
 import '../../controllers/syrve_controller.dart';
+import '../../utils/en_locale.dart';
 import 'widgets/footer_section.dart';
 import 'widgets/header_section.dart';
 import 'widgets/language_selector_row.dart';
@@ -68,9 +69,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Spacer(flex: 2),
                       OrderTextSection(isTabletPortrait: isTabletPortrait),
                       const Spacer(flex: 2),
-                      OrderOptionsRow(isTabletPortrait: isTabletPortrait),
+                      EnLocale(
+                        child: OrderOptionsRow(
+                          isTabletPortrait: isTabletPortrait,
+                        ),
+                      ),
                       const Spacer(),
-                      LanguageSelectorRow(isTabletPortrait: isTabletPortrait),
+                      EnLocale(
+                        child: LanguageSelectorRow(
+                          isTabletPortrait: isTabletPortrait,
+                        ),
+                      ),
                       const Spacer(flex: 2),
                       FooterSection(isTabletPortrait: isTabletPortrait),
                     ],

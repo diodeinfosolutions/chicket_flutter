@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:chicket/api/models/menu_models.dart';
+import 'package:chicket/api/models/view_menu_models.dart';
 
 import '../utils/cache_config.dart';
 
@@ -50,7 +50,7 @@ class MenuCacheService extends GetxService {
     return shouldRefreshResult;
   }
 
-  MenuResponse? getCachedMenu() {
+  ViewMenuData? getCachedMenu() {
     try {
       final jsonString = _box.get(_menuKey) as String?;
       if (jsonString == null) {
@@ -59,7 +59,7 @@ class MenuCacheService extends GetxService {
       }
 
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      final menu = MenuResponse.fromJson(json);
+      final menu = ViewMenuData.fromJson(json);
       if (kDebugMode) {
         debugPrint(
           'getCachedMenu: loaded ${menu.itemCategories?.length ?? 0} categories from cache',
@@ -72,7 +72,7 @@ class MenuCacheService extends GetxService {
     }
   }
 
-  Future<void> cacheMenu(MenuResponse menu) async {
+  Future<void> cacheMenu(ViewMenuData menu) async {
     try {
       final jsonString = jsonEncode(menu.toJson());
       final hash = _generateHash(menu);
@@ -89,7 +89,7 @@ class MenuCacheService extends GetxService {
     }
   }
 
-  String _generateHash(MenuResponse menu) {
+  String _generateHash(ViewMenuData menu) {
     final categories = menu.itemCategories ?? [];
     final itemCount = categories.fold<int>(
       0,
@@ -101,7 +101,7 @@ class MenuCacheService extends GetxService {
     return '${revision}_${categories.length}_${itemCount}_${categoryIds.hashCode}';
   }
 
-  bool hasMenuChanged(MenuResponse newMenu) {
+  bool hasMenuChanged(ViewMenuData newMenu) {
     try {
       final newHash = _generateHash(newMenu);
       final oldHash = _box.get(_menuHashKey) as String?;

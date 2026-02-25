@@ -23,7 +23,6 @@ class SyrveRepository {
 
   String? _organizationId;
   String? _terminalGroupId;
-  int? _externalMenuId;
   List<OrderType>? _orderTypes;
   List<PaymentType>? _paymentTypes;
 
@@ -37,10 +36,6 @@ class SyrveRepository {
 
   void setTerminalGroupId(String terminalId) {
     _terminalGroupId = terminalId;
-  }
-
-  void setExternalMenuId(int menuId) {
-    _externalMenuId = menuId;
   }
 
   void clearCachedOrderTypes() {
@@ -251,6 +246,7 @@ class SyrveRepository {
     }
   }
 
+  /*
   Future<ApiResult<MenuResponse>> getMenu({
     required String organizationId,
     int? externalMenuId,
@@ -302,6 +298,7 @@ class SyrveRepository {
       return ApiResult.failure('Failed to get menu: $e');
     }
   }
+  */
 
   Future<ApiResult<List<String>>> getStopListProductIds({
     required List<String> organizationIds,

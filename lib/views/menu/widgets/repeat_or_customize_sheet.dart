@@ -4,12 +4,13 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
-import '../../../api/models/menu_models.dart';
+import '../../../api/models/view_menu_models.dart';
+import '../../../controllers/language_controller.dart';
 import '../../../theme/colors.dart';
 import 'addon_bottom_sheet.dart';
 
 class RepeatOrCustomizeSheet extends StatelessWidget {
-  final MenuItem product;
+  final ViewMenuItem product;
   final Map<String, List<Map<String, dynamic>>>? modifiers;
 
   const RepeatOrCustomizeSheet({
@@ -21,8 +22,19 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
-    final price = (product.currentPrice ?? 0).toDouble();
-    final productName = product.name ?? '';
+    final isArabic = Get.find<LanguageController>().isArabic;
+
+    final productName =
+        (isArabic && product.nameAr != null && product.nameAr!.isNotEmpty)
+        ? product.nameAr!
+        : (product.name ?? '');
+
+    final defaultSize =
+        product.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        product.itemSizes?.firstOrNull;
+    final priceString = defaultSize?.prices?.firstOrNull?.price ?? '0';
+    final price = double.tryParse(priceString) ?? 0.0;
+    final productId = product.itemId ?? product.sku ?? '';
 
     return Container(
       width: double.infinity,
@@ -73,7 +85,7 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
                         modifiers ??
                         (() {
                           final lastIndex = orderController.cart.lastIndexWhere(
-                            (e) => e['productId'] == product.id,
+                            (e) => e['productId'] == productId,
                           );
                           if (lastIndex != -1) {
                             final lastItem = orderController.cart[lastIndex];
@@ -84,7 +96,7 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
                         })();
 
                     orderController.addToCart(
-                      productId: product.id,
+                      productId: productId,
                       name: productName,
                       price: price,
                       modifiers: modsToUse != null
@@ -159,7 +171,7 @@ class RepeatOrCustomizeSheet extends StatelessWidget {
 
 void showRepeatOrCustomizeSheet(
   BuildContext context,
-  MenuItem product, {
+  ViewMenuItem product, {
   Map<String, List<Map<String, dynamic>>>? modifiers,
 }) {
   showModalBottomSheet(

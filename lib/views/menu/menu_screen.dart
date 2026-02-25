@@ -9,7 +9,7 @@ import '../../controllers/banner_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../gen/assets.gen.dart';
 import '../../utils/cache_config.dart';
-import '../../api/models/menu_models.dart';
+import '../../api/models/view_menu_models.dart';
 import 'widgets/cart_bottom_bar.dart';
 import 'widgets/category_widget.dart';
 import 'widgets/menu_shimmer.dart';
@@ -40,7 +40,7 @@ class _MenuScreenState extends State<MenuScreen> {
             _languageController.currentLanguage.value ==
             LanguageController.arabic;
 
-        List<MenuItem> filteredItems;
+        List<ViewMenuItem> filteredItems;
         if (selectedCategoryId == 'all') {
           filteredItems = allItems;
         } else {
@@ -55,7 +55,7 @@ class _MenuScreenState extends State<MenuScreen> {
         }
 
         final categories = [
-          MenuItemCategory(id: 'all', name: 'all'.tr),
+          ViewItemCategory(id: 'all', name: 'all'.tr),
           ...allCategories.where((c) => c.isHidden != true),
         ];
 

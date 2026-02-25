@@ -5,22 +5,39 @@ import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
 import '../../../gen/assets.gen.dart';
-import '../../../api/models/menu_models.dart';
+import '../../../api/models/view_menu_models.dart';
+import '../../../controllers/language_controller.dart';
 import '../../../utils/cache_config.dart';
 
 class AddonBottomSheet extends StatelessWidget {
-  final MenuItem product;
+  final ViewMenuItem product;
 
   const AddonBottomSheet({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
-    final description = product.description ?? '';
-    final productName = product.name ?? '';
+    final isArabic = Get.find<LanguageController>().isArabic;
 
-    final List<MenuModifierGroup> allModifierGroups = [
-      ...?product.modifierGroups,
+    final productName =
+        (isArabic &&
+            product.nameAr != null &&
+            product.nameAr!.trim().isNotEmpty)
+        ? product.nameAr!
+        : (product.name ?? '');
+    final description =
+        (isArabic &&
+            product.descriptionAr != null &&
+            product.descriptionAr!.trim().isNotEmpty)
+        ? product.descriptionAr!
+        : (product.description ?? '');
+
+    final defaultSize =
+        product.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        product.itemSizes?.firstOrNull;
+    final imageUrl = defaultSize?.buttonImageUrl;
+
+    final List<ViewItemModifierGroup> allModifierGroups = [
       ...?product.itemSizes?.expand((size) => size.itemModifierGroups ?? []),
     ];
 
@@ -48,9 +65,9 @@ class AddonBottomSheet extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12.r),
-                  child: product.imageUrl != null
+                  child: imageUrl != null
                       ? CachedNetworkImage(
-                          imageUrl: product.imageUrl!,
+                          imageUrl: imageUrl,
                           width: 220.w,
                           height: 200.h,
                           fit: BoxFit.cover,
@@ -182,14 +199,21 @@ class AddonBottomSheet extends StatelessWidget {
   }
 
   Widget _buildModifierGroup(
-    MenuModifierGroup modGroup,
+    ViewItemModifierGroup modGroup,
     OrderController orderController,
   ) {
-    final groupName = modGroup.name ?? 'Options';
-    final isRequired = modGroup.required ?? false;
+    final isArabic = Get.find<LanguageController>().isArabic;
+    final groupName =
+        (isArabic &&
+            modGroup.nameAr != null &&
+            modGroup.nameAr!.trim().isNotEmpty)
+        ? modGroup.nameAr!
+        : (modGroup.name ?? 'Options');
+    final isRequired = (modGroup.restrictions?.minQuantity ?? 0) > 0;
 
-    final groupId = (modGroup.id != null && modGroup.id!.isNotEmpty)
-        ? modGroup.id!
+    final groupId =
+        (modGroup.itemGroupId != null && modGroup.itemGroupId!.isNotEmpty)
+        ? modGroup.itemGroupId!
         : '${modGroup.name}_${modGroup.hashCode}';
 
     return Padding(
@@ -224,16 +248,23 @@ class AddonBottomSheet extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           Obx(() {
-            final maxQuantity = modGroup.maxQuantity ?? 1;
+            final maxQuantity = modGroup.restrictions?.maxQuantity ?? 1;
             if (maxQuantity == 1) {
               return Wrap(
                 spacing: 12.w,
                 runSpacing: 8.h,
                 children:
                     modGroup.items?.map((modItem) {
-                      final modName = modItem.name ?? 'Option';
-                      final modPrice = (modItem.price ?? 0).toDouble();
-                      final modId = modItem.id;
+                      final modName =
+                          (isArabic &&
+                              modItem.nameAr != null &&
+                              modItem.nameAr!.trim().isNotEmpty)
+                          ? modItem.nameAr!
+                          : (modItem.name ?? 'Option');
+                      final modPriceString =
+                          modItem.prices?.firstOrNull?.price ?? '0';
+                      final modPrice = double.tryParse(modPriceString) ?? 0.0;
+                      final modId = modItem.itemId ?? '';
                       final isSelected = orderController.isModifierSelected(
                         groupId,
                         modId,
@@ -298,9 +329,16 @@ class AddonBottomSheet extends StatelessWidget {
                 runSpacing: 8.h,
                 children:
                     modGroup.items?.map((modItem) {
-                      final modName = modItem.name ?? 'Option';
-                      final modPrice = (modItem.price ?? 0).toDouble();
-                      final modId = modItem.id;
+                      final modName =
+                          (isArabic &&
+                              modItem.nameAr != null &&
+                              modItem.nameAr!.trim().isNotEmpty)
+                          ? modItem.nameAr!
+                          : (modItem.name ?? 'Option');
+                      final modPriceString =
+                          modItem.prices?.firstOrNull?.price ?? '0';
+                      final modPrice = double.tryParse(modPriceString) ?? 0.0;
+                      final modId = modItem.itemId ?? '';
                       final isSelected = orderController.isModifierSelected(
                         groupId,
                         modId,
@@ -446,7 +484,7 @@ class AddonBottomSheet extends StatelessWidget {
   }
 }
 
-void showAddonBottomSheet(BuildContext context, MenuItem product) {
+void showAddonBottomSheet(BuildContext context, ViewMenuItem product) {
   final orderController = Get.find<OrderController>();
   orderController.initModifierSelectionForMenuItem(product);
 

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../controllers/order_controller.dart';
 import '../../gen/assets.gen.dart';
 import '../../theme/colors.dart';
+import '../../utils/en_locale.dart';
 import '../menu/widgets/cart_bottom_bar.dart';
 
 class MobScreen extends StatefulWidget {
@@ -122,43 +123,49 @@ class _MobScreenState extends State<MobScreen> {
                     ],
                   ),
                   SizedBox(height: 32.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '+973',
-                        style: TextStyle(
-                          fontFamily: 'Oswald',
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.BLACK,
+                  EnLocale(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '+973',
+                          style: TextStyle(
+                            fontFamily: 'Oswald',
+                            fontSize: 32.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.BLACK,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 13.w),
-                      Container(
-                        width: 288.w,
-                        height: 74.h,
-                        decoration: BoxDecoration(
-                          color: const Color(0x4DF7BE26),
-                          borderRadius: BorderRadius.circular(6.r),
-                          border: Border.all(color: AppColors.YELLOW, width: 1),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _maskedNumber.isEmpty
-                                ? ''
-                                : _maskedNumber.split('').join(' '),
-                            style: TextStyle(
-                              fontFamily: 'Oswald',
-                              fontSize: 32.sp,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.BLACK,
-                              letterSpacing: 1.w,
+                        SizedBox(width: 13.w),
+                        Container(
+                          width: 288.w,
+                          height: 74.h,
+                          decoration: BoxDecoration(
+                            color: const Color(0x4DF7BE26),
+                            borderRadius: BorderRadius.circular(6.r),
+                            border: Border.all(
+                              color: AppColors.YELLOW,
+                              width: 1,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _maskedNumber.isEmpty
+                                  ? ''
+                                  : _maskedNumber.split('').join(' '),
+                              textDirection: TextDirection.ltr,
+                              style: TextStyle(
+                                fontFamily: 'Oswald',
+                                fontSize: 32.sp,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.BLACK,
+                                letterSpacing: 1.w,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   SizedBox(height: 32.h),
                   _buildNumpad(),
@@ -239,55 +246,57 @@ class _MobScreenState extends State<MobScreen> {
   }
 
   Widget _buildNumpad() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumpadKey('1'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('2'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('3'),
-          ],
-        ),
-        SizedBox(height: 13.h),
+    return EnLocale(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildNumpadKey('1'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('2'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('3'),
+            ],
+          ),
+          SizedBox(height: 13.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumpadKey('4'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('5'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('6'),
-          ],
-        ),
-        SizedBox(height: 13.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildNumpadKey('4'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('5'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('6'),
+            ],
+          ),
+          SizedBox(height: 13.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildNumpadKey('7'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('8'),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('9'),
-          ],
-        ),
-        SizedBox(height: 13.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildNumpadKey('7'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('8'),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('9'),
+            ],
+          ),
+          SizedBox(height: 13.h),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(width: _keyWidth),
-            SizedBox(width: _keySpacing),
-            _buildNumpadKey('0'),
-            SizedBox(width: _keySpacing),
-            _buildBackspaceKey(),
-          ],
-        ),
-      ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: _keyWidth),
+              SizedBox(width: _keySpacing),
+              _buildNumpadKey('0'),
+              SizedBox(width: _keySpacing),
+              _buildBackspaceKey(),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

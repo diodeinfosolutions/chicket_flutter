@@ -8,7 +8,11 @@ import 'controllers/syrve_controller.dart';
 import 'services/kiosk_config_service.dart';
 import 'services/menu_cache_service.dart';
 
+import 'api/repositories/api_repository.dart';
+
 Future<void> initControllers() async {
+  Get.put(ApiRepository(), permanent: true);
+
   final configService = await KioskConfigService().init();
   Get.put(configService);
 

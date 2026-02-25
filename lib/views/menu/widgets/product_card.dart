@@ -4,22 +4,41 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
-import '../../../api/models/menu_models.dart';
+import '../../../api/models/view_menu_models.dart';
+import '../../../controllers/language_controller.dart';
 import '../../../utils/cache_config.dart';
 import 'addon_bottom_sheet.dart';
 import 'repeat_or_customize_sheet.dart';
 
 class ProductCard extends StatelessWidget {
-  final MenuItem product;
+  final ViewMenuItem product;
 
   const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
-    final price = (product.currentPrice ?? 0).toDouble();
-    final description = product.description ?? '';
-    final productName = product.name ?? '';
+    final isArabic = Get.find<LanguageController>().isArabic;
+
+    final productName =
+        (isArabic &&
+            product.nameAr != null &&
+            product.nameAr!.trim().isNotEmpty)
+        ? product.nameAr!
+        : (product.name ?? '');
+    final description =
+        (isArabic &&
+            product.descriptionAr != null &&
+            product.descriptionAr!.trim().isNotEmpty)
+        ? product.descriptionAr!
+        : (product.description ?? '');
+
+    final defaultSize =
+        product.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        product.itemSizes?.firstOrNull;
+    final priceString = defaultSize?.prices?.firstOrNull?.price ?? '0';
+    final price = double.tryParse(priceString) ?? 0.0;
+    final imageUrl = defaultSize?.buttonImageUrl;
 
     return Container(
       decoration: BoxDecoration(
@@ -41,9 +60,9 @@ class ProductCard extends StatelessWidget {
             borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
             child: AspectRatio(
               aspectRatio: 1.2,
-              child: product.imageUrl != null
+              child: imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: product.imageUrl!,
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
                       cacheManager: CacheConfig.optimizedCacheManager,
                       placeholder: (_, _) => Container(
@@ -141,16 +160,16 @@ class ProductCard extends StatelessWidget {
   ) {
     final hasModifiers =
         (product.itemSizes?.any(
-              (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
-            ) ??
-            false) ||
-        (product.modifierGroups?.isNotEmpty ?? false);
+          (s) => (s.itemModifierGroups?.isNotEmpty ?? false),
+        ) ??
+        false);
     return Obx(() {
-      final totalQty = orderController.getProductQuantity(product.id);
+      final productId = product.itemId ?? product.sku ?? '';
+      final totalQty = orderController.getProductQuantity(productId);
 
       final cartIndexNoAddons = orderController.cart.indexWhere(
         (e) =>
-            e['productId'] == product.id &&
+            e['productId'] == productId &&
             ((e['modifiers'] as Map?)?.isEmpty ?? true),
       );
 
@@ -162,7 +181,7 @@ class ProductCard extends StatelessWidget {
                 onTap: () {
                   if (hasModifiers) {
                     final lastIndex = orderController.cart.lastIndexWhere(
-                      (e) => e['productId'] == product.id,
+                      (e) => e['productId'] == productId,
                     );
                     if (lastIndex != -1) {
                       orderController.decreaseQty(lastIndex);
@@ -260,7 +279,7 @@ class ProductCard extends StatelessWidget {
               showAddonBottomSheet(context, product);
             } else {
               orderController.addToCart(
-                productId: product.id,
+                productId: productId,
                 name: productName,
                 price: price,
               );

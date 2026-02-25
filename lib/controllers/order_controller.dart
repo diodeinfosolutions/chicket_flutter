@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:chicket/routes.dart';
-import 'package:chicket/api/models/menu_models.dart';
+import 'package:chicket/api/models/menu_models.dart' show MenuProduct;
+import 'package:chicket/api/models/view_menu_models.dart';
 import 'package:chicket/api/models/payment_models.dart';
 import 'package:chicket/api/models/order_type_models.dart' as api;
 
@@ -12,7 +13,7 @@ class OrderController extends GetxController {
   final RxList<Map<String, dynamic>> cart = <Map<String, dynamic>>[].obs;
 
   final Rx<MenuProduct?> currentProduct = Rx<MenuProduct?>(null);
-  final Rx<MenuItem?> currentMenuItem = Rx<MenuItem?>(null);
+  final Rx<ViewMenuItem?> currentMenuItem = Rx<ViewMenuItem?>(null);
   final RxMap<String, Set<String>> selectedModifiers =
       <String, Set<String>>{}.obs;
   final RxMap<String, Map<String, dynamic>> modifierInfo =
@@ -76,18 +77,29 @@ class OrderController extends GetxController {
     }
   }
 
-  void initModifierSelectionForMenuItem(MenuItem item) {
+  void initModifierSelectionForMenuItem(ViewMenuItem item) {
     currentProduct.value = null;
     currentMenuItem.value = item;
     addonQuantity.value = 1;
     selectedModifiers.clear();
     modifierInfo.clear();
-    _basePrice = (item.currentPrice ?? 0).toDouble();
 
-    for (final modGroup in item.modifierGroups ?? []) {
-      if (modGroup.id != null) {
-        selectedModifiers[modGroup.id!] = <String>{};
-      }
+    final defaultSize =
+        item.itemSizes?.firstWhereOrNull((s) => s.isDefault == true) ??
+        item.itemSizes?.firstOrNull;
+    final priceString = defaultSize?.prices?.firstOrNull?.price ?? '0';
+    _basePrice = double.tryParse(priceString) ?? 0.0;
+
+    final List<ViewItemModifierGroup> allModifierGroups = [
+      ...?item.itemSizes?.expand((size) => size.itemModifierGroups ?? []),
+    ];
+
+    for (final modGroup in allModifierGroups) {
+      final groupId =
+          (modGroup.itemGroupId != null && modGroup.itemGroupId!.isNotEmpty)
+          ? modGroup.itemGroupId!
+          : '${modGroup.name}_${modGroup.hashCode}';
+      selectedModifiers[groupId] = <String>{};
     }
   }
 
@@ -165,11 +177,8 @@ class OrderController extends GetxController {
 
     if (product == null && menuItem == null) return false;
 
-    final List<MenuModifierGroup> allModifierGroups = [];
+    final List<ViewItemModifierGroup> allModifierGroups = [];
     if (menuItem != null) {
-      if (menuItem.modifierGroups != null) {
-        allModifierGroups.addAll(menuItem.modifierGroups!);
-      }
       if (menuItem.itemSizes != null) {
         for (final size in menuItem.itemSizes!) {
           if (size.itemModifierGroups != null) {
@@ -181,13 +190,16 @@ class OrderController extends GetxController {
 
     if (allModifierGroups.isNotEmpty) {
       for (final modGroup in allModifierGroups) {
-        final groupId = modGroup.id ?? '';
+        final groupId =
+            (modGroup.itemGroupId != null && modGroup.itemGroupId!.isNotEmpty)
+            ? modGroup.itemGroupId!
+            : '${modGroup.name}_${modGroup.hashCode}';
         final selected = selectedModifiers[groupId] ?? <String>{};
-        final minQuantity = modGroup.minQuantity ?? 0;
-        final maxQuantity = modGroup.maxQuantity ?? 9999;
-        final requiredMin = (modGroup.required ?? false)
-            ? (minQuantity > 0 ? minQuantity : 1)
-            : minQuantity;
+        final minQuantity = modGroup.restrictions?.minQuantity ?? 0;
+        final maxQuantity = modGroup.restrictions?.maxQuantity ?? 9999;
+        final requiredMin = minQuantity > 0
+            ? minQuantity
+            : 0; // if required, min is >0
 
         if (requiredMin > 0 && selected.length < requiredMin) {
           return false;
@@ -245,7 +257,7 @@ class OrderController extends GetxController {
       }
     }
 
-    final productId = product?.id ?? menuItem?.id ?? '';
+    final productId = product?.id ?? menuItem?.itemId ?? menuItem?.sku ?? '';
     final productName = product?.name ?? menuItem?.name ?? '';
 
     addToCart(
