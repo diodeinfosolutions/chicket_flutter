@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+
 import '../../api/models/apex_ecr_models.dart';
 import '../../api/repositories/apex_ecr_repository.dart';
 import '../../constants.dart';
@@ -38,7 +39,9 @@ class ApexEcrController extends GetxController {
     try {
       final response = await _repository.performFinancialTransaction(request);
 
-      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
+      if ((response.webResponseStatus == '0' ||
+              response.webResponseStatus == 'Success') &&
+          response.posRespStatus == 1) {
         statusMessage.value = 'Payment Approved!';
       } else {
         statusMessage.value =
@@ -83,7 +86,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performEnquiry(request);
-      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
+      if ((response.webResponseStatus == '0' ||
+              response.webResponseStatus == 'Success') &&
+          response.posRespStatus == 1) {
         statusMessage.value = 'Enquiry Successful!';
       } else {
         statusMessage.value =
@@ -93,52 +98,6 @@ class ApexEcrController extends GetxController {
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Enquiry Error: $e');
       statusMessage.value = 'Enquiry Error: $e';
-      return FinancialTxnResponse(
-        webResponseStatus: '99',
-        webResponseErrorDesc: e.toString(),
-      );
-    } finally {
-      isProcessing.value = false;
-    }
-  }
-
-  Future<FinancialTxnResponse> processEnquiryByRef({
-    required String origReferenceNumber,
-    String? origInvoiceNumber,
-    String? origRrn,
-    String? origAuthCode,
-  }) async {
-    isProcessing.value = true;
-    statusMessage.value = 'Initiating Enquiry By Ref on EFTPOS...';
-
-    final request = EnquiryByRefRequest(
-      config: EcrConfig(
-        tid: AppConstants.apexEcrTid,
-        mid: AppConstants.apexEcrMid,
-        merchantSecureKey: AppConstants.apexEcrSecureKey,
-        ecrCurrencyCode: AppConstants.apexEcrCurrencyCode,
-        ecrTillerUserName: 'Kiosk',
-        ecrTillerFullName: 'Chicket Kiosk',
-      ),
-      printer: EcrPrinter(enablePrintPosReceipt: 3),
-      origReferenceNumber: origReferenceNumber,
-      origInvoiceNumber: origInvoiceNumber,
-      origRrn: origRrn,
-      origAuthCode: origAuthCode,
-    );
-
-    try {
-      final response = await _repository.performEnquiryByRef(request);
-      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
-        statusMessage.value = 'Enquiry By Ref Successful!';
-      } else {
-        statusMessage.value =
-            'Enquiry By Ref Failed: ${response.posRespText ?? response.webResponseErrorDesc ?? 'Unknown Error'}';
-      }
-      return response;
-    } catch (e) {
-      if (kDebugMode) debugPrint('ApexECR Enquiry By Ref Error: $e');
-      statusMessage.value = 'Enquiry By Ref Error: $e';
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: e.toString(),
@@ -165,7 +124,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performSettlement(request);
-      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
+      if ((response.webResponseStatus == '0' ||
+              response.webResponseStatus == 'Success') &&
+          response.posRespStatus == 1) {
         statusMessage.value = 'Settlement Successful!';
       } else {
         statusMessage.value =

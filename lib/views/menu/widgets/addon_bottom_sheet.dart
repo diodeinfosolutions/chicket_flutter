@@ -8,6 +8,7 @@ import '../../../gen/assets.gen.dart';
 import '../../../api/models/view_menu_models.dart';
 import '../../../controllers/language_controller.dart';
 import '../../../utils/cache_config.dart';
+import '../../../utils/en_locale.dart';
 
 class AddonBottomSheet extends StatelessWidget {
   final ViewMenuItem product;
@@ -405,81 +406,83 @@ class AddonBottomSheet extends StatelessWidget {
   }
 
   Widget _buildQuantitySelector(OrderController orderController) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: orderController.decrementAddonQuantity,
-          child: Container(
-            width: 72.w,
-            height: 72.h,
-            decoration: BoxDecoration(
-              color: const Color(0xFF642F21),
-              borderRadius: BorderRadius.circular(6.r),
-            ),
-            child: Center(
-              child: Text(
-                '−',
-                style: TextStyle(
-                  fontFamily: 'Oswald',
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFFF7BE26),
+    return EnLocale(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: orderController.decrementAddonQuantity,
+            child: Container(
+              width: 72.w,
+              height: 72.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFF642F21),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Center(
+                child: Text(
+                  '−',
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFFF7BE26),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        SizedBox(width: 8.w),
-        Obx(
-          () => Container(
-            width: 80.w,
-            height: 72.h,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(6.r),
-              border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.3),
-                width: 1,
+          SizedBox(width: 8.w),
+          Obx(
+            () => Container(
+              width: 80.w,
+              height: 72.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(6.r),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Center(
-              child: Text(
-                '${orderController.addonQuantity.value}',
-                style: TextStyle(
-                  fontFamily: 'Oswald',
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF283034),
+              child: Center(
+                child: Text(
+                  '${orderController.addonQuantity.value}',
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF283034),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        SizedBox(width: 8.w),
-        GestureDetector(
-          onTap: orderController.incrementAddonQuantity,
-          child: Container(
-            width: 72.w,
-            height: 72.h,
-            decoration: BoxDecoration(
-              color: const Color(0xFF642F21),
-              borderRadius: BorderRadius.circular(6.r),
-            ),
-            child: Center(
-              child: Text(
-                '+',
-                style: TextStyle(
-                  fontFamily: 'Oswald',
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFFF7BE26),
+          SizedBox(width: 8.w),
+          GestureDetector(
+            onTap: orderController.incrementAddonQuantity,
+            child: Container(
+              width: 72.w,
+              height: 72.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFF642F21),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Center(
+                child: Text(
+                  '+',
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFFF7BE26),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

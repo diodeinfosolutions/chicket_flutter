@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project id="58431595-a4d8-48c5-a130-52e08b3d4e6e" activeEnvironment="Default" name="Ecr.Bh.Afs" resourceRoot="${projectDir}" soapui-version="5.7.2" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings/><con:interface xsi:type="con:WsdlInterface" id="3f2c90bd-35fb-4ea2-9f16-bb38fcb04352" wsaVersion="NONE" name="BasicHttpsBinding_IEcrComInterface" type="wsdl" bindingName="{http://tempuri.org/}BasicHttpsBinding_IEcrComInterface" soapVersion="1_1" anonymous="optional" definition="file:/C:/Users/Mohammad/Desktop/AFS3_EcrWebInterface.xml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="file:/C:/Users/Mohammad/Desktop/AFS3_EcrWebInterface.xml"><con:part><con:url>file:/C:/Users/Mohammad/Desktop/AFS3_EcrWebInterface.xml</con:url><con:content><![CDATA[<wsdl:definitions name="EcrComInterface" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://tempuri.org/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/">
+  <wsp:Policy wsu:Id="BasicHttpsBinding_IEcrComInterface_policy">
+    <wsp:ExactlyOne>
+      <wsp:All>
+        <sp:TransportBinding xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy">
+          <wsp:Policy>
+            <sp:TransportToken>
+              <wsp:Policy>
+                <sp:HttpsToken RequireClientCertificate="false"/>
+              </wsp:Policy>
+            </sp:TransportToken>
+            <sp:AlgorithmSuite>
+              <wsp:Policy>
+                <sp:Basic256/>
+              </wsp:Policy>
+            </sp:AlgorithmSuite>
+            <sp:Layout>
+              <wsp:Policy>
+                <sp:Strict/>
+              </wsp:Policy>
+            </sp:Layout>
+          </wsp:Policy>
+        </sp:TransportBinding>
+      </wsp:All>
+    </wsp:ExactlyOne>
+  </wsp:Policy>
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd0" namespace="http://tempuri.org/"/>
+      <xsd:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/"/>
+      <xsd:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/"/>
+      <xsd:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IEcrComInterface_Sale_InputMessage">
+    <wsdl:part name="parameters" element="tns:Sale"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Sale_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SaleResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Void_InputMessage">
+    <wsdl:part name="parameters" element="tns:Void"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Void_OutputMessage">
+    <wsdl:part name="parameters" element="tns:VoidResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_PreAuthCompletion_InputMessage">
+    <wsdl:part name="parameters" element="tns:PreAuthCompletion"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_PreAuthCompletion_OutputMessage">
+    <wsdl:part name="parameters" element="tns:PreAuthCompletionResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Settlement_InputMessage">
+    <wsdl:part name="parameters" element="tns:Settlement"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Settlement_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SettlementResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_RequestCancellation_InputMessage">
+    <wsdl:part name="parameters" element="tns:RequestCancellation"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_RequestCancellation_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RequestCancellationResponse"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Enquiry_InputMessage">
+    <wsdl:part name="parameters" element="tns:Enquiry"/>
+  </wsdl:message>
+  <wsdl:message name="IEcrComInterface_Enquiry_OutputMessage">
+    <wsdl:part name="parameters" element="tns:EnquiryResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="IEcrComInterface">
+    <wsdl:operation name="Sale">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/Sale" message="tns:IEcrComInterface_Sale_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/SaleResponse" message="tns:IEcrComInterface_Sale_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Void">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/Void" message="tns:IEcrComInterface_Void_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/VoidResponse" message="tns:IEcrComInterface_Void_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="PreAuthCompletion">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/PreAuthCompletion" message="tns:IEcrComInterface_PreAuthCompletion_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/PreAuthCompletionResponse" message="tns:IEcrComInterface_PreAuthCompletion_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Settlement">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/Settlement" message="tns:IEcrComInterface_Settlement_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/SettlementResponse" message="tns:IEcrComInterface_Settlement_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="RequestCancellation">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/RequestCancellation" message="tns:IEcrComInterface_RequestCancellation_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/RequestCancellationResponse" message="tns:IEcrComInterface_RequestCancellation_OutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="Enquiry">
+      <wsdl:input wsaw:Action="http://tempuri.org/IEcrComInterface/Enquiry" message="tns:IEcrComInterface_Enquiry_InputMessage"/>
+      <wsdl:output wsaw:Action="http://tempuri.org/IEcrComInterface/EnquiryResponse" message="tns:IEcrComInterface_Enquiry_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpsBinding_IEcrComInterface" type="tns:IEcrComInterface">
+    <wsp:PolicyReference URI="#BasicHttpsBinding_IEcrComInterface_policy"/>
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="Sale">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/Sale" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Void">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/Void" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="PreAuthCompletion">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/PreAuthCompletion" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Settlement">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/Settlement" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RequestCancellation">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/RequestCancellation" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Enquiry">
+      <soap:operation soapAction="http://tempuri.org/IEcrComInterface/Enquiry" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="EcrComInterface">
+    <wsdl:port name="BasicHttpsBinding_IEcrComInterface" binding="tns:BasicHttpsBinding_IEcrComInterface">
+      <soap:address location="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd0</con:url><con:content><![CDATA[<xs:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://tempuri.org/">
+  <xs:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/"/>
+  <xs:element name="Sale">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q1:SaleRequest" xmlns:q1="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SaleResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="SaleResult" nillable="true" type="q2:SaleResponse" xmlns:q2="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Void">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q3:VoidRequest" xmlns:q3="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="VoidResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="VoidResult" nillable="true" type="q4:VoidResponse" xmlns:q4="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PreAuthCompletion">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q5:PreAuthCompletionRequest" xmlns:q5="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PreAuthCompletionResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="PreAuthCompletionResult" nillable="true" type="q6:PreAuthCompletionResponse" xmlns:q6="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Settlement">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q7:SettlementRequest" xmlns:q7="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SettlementResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="SettlementResult" nillable="true" type="q8:SettlementResponse" xmlns:q8="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequestCancellation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q9:CancelRequest" xmlns:q9="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequestCancellationResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="RequestCancellationResult" nillable="true" type="q10:CancelResponse" xmlns:q10="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Enquiry">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="webReq" nillable="true" type="q11:EnquiryRequest" xmlns:q11="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EnquiryResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="EnquiryResult" nillable="true" type="q12:EnquiryResponse" xmlns:q12="http://schemas.datacontract.org/2004/07/"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd2</con:url><con:content><![CDATA[<xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.datacontract.org/2004/07/">
+  <xs:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+  <xs:complexType name="SaleRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Config" nillable="true" type="tns:EcrConfig"/>
+      <xs:element minOccurs="0" name="EcrAmount" type="xs:decimal"/>
+      <xs:element minOccurs="0" name="Printer" nillable="true" type="tns:EcrPrinter"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SaleRequest" nillable="true" type="tns:SaleRequest"/>
+  <xs:complexType name="EcrConfig">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="EcrCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="EcrTillerFullName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="EcrTillerUserName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="IntegratorName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="MerchantSecureKey" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="Mid" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="Tenant" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="Tid" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EcrConfig" nillable="true" type="tns:EcrConfig"/>
+  <xs:complexType name="EcrPrinter">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="EnablePrintPosReceipt" type="xs:int"/>
+      <xs:element minOccurs="0" name="EnablePrintReceiptNote" type="xs:int"/>
+      <xs:element minOccurs="0" name="InvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PrinterWidth" type="xs:int"/>
+      <xs:element minOccurs="0" name="ReceiptNote" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="ReferenceNumber" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EcrPrinter" nillable="true" type="tns:EcrPrinter"/>
+  <xs:complexType name="SaleResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PosAmount" type="xs:decimal"/>
+      <xs:element minOccurs="0" name="PosAuthCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosBatchNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosCVMId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCardEntryModeId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccAmount" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCommission" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencySymbol" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccIndicatorId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosDccMarkup" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccRate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAid" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAppName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvCryptogram" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvTVR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosInvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosIssuerName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosPan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRRN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceipt" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespStatus" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosRespText" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosStan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTime" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTxnName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseErrorDesc" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseStatus" type="q1:Enums.WebCallStatus" xmlns:q1="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SaleResponse" nillable="true" type="tns:SaleResponse"/>
+  <xs:complexType name="VoidRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Config" nillable="true" type="tns:EcrConfig"/>
+      <xs:element minOccurs="0" name="OrigAuthCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="OrigInvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="OrigRrn" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="Printer" nillable="true" type="tns:EcrPrinter"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="VoidRequest" nillable="true" type="tns:VoidRequest"/>
+  <xs:complexType name="VoidResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PosAmount" type="xs:decimal"/>
+      <xs:element minOccurs="0" name="PosAuthCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosBatchNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosCVMId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCardEntryModeId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccAmount" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCommission" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencySymbol" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccIndicatorId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosDccMarkup" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccRate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAid" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAppName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvCryptogram" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvTVR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosInvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosIssuerName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosPan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRRN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceipt" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespStatus" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosRespText" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosStan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTime" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTxnName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseErrorDesc" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseStatus" type="q2:Enums.WebCallStatus" xmlns:q2="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="VoidResponse" nillable="true" type="tns:VoidResponse"/>
+  <xs:complexType name="PreAuthCompletionRequest">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:element name="PreAuthCompletionRequest" nillable="true" type="tns:PreAuthCompletionRequest"/>
+  <xs:complexType name="PreAuthCompletionResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="PreAuthCompletionResponse" nillable="true" type="tns:PreAuthCompletionResponse"/>
+  <xs:complexType name="SettlementRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Config" nillable="true" type="tns:EcrConfig"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SettlementRequest" nillable="true" type="tns:SettlementRequest"/>
+  <xs:complexType name="SettlementResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PosBatchNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespStatus" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosRespText" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTxnName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseErrorDesc" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseStatus" type="q3:Enums.WebCallStatus" xmlns:q3="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SettlementResponse" nillable="true" type="tns:SettlementResponse"/>
+  <xs:complexType name="CancelRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Config" nillable="true" type="tns:EcrConfig"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CancelRequest" nillable="true" type="tns:CancelRequest"/>
+  <xs:complexType name="CancelResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="WebResponseErrorDesc" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseStatus" type="q4:Enums.WebCallStatus" xmlns:q4="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CancelResponse" nillable="true" type="tns:CancelResponse"/>
+  <xs:complexType name="EnquiryRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Config" nillable="true" type="tns:EcrConfig"/>
+      <xs:element minOccurs="0" name="OrigAuthCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="OrigInvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="OrigRrn" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="Printer" nillable="true" type="tns:EcrPrinter"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EnquiryRequest" nillable="true" type="tns:EnquiryRequest"/>
+  <xs:complexType name="EnquiryResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="PosAmount" type="xs:decimal"/>
+      <xs:element minOccurs="0" name="PosAuthCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosBatchNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosCVMId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCardEntryModeId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccAmount" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCommission" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencyCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccCurrencySymbol" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccIndicatorId" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosDccMarkup" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosDccRate" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAid" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvAppName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvCryptogram" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosEmvTVR" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosInvoiceNumber" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosIssuerName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosPan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRRN" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceipt" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptFooter4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader1" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader2" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader3" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosReceiptHeader4" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespCode" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosRespStatus" type="xs:int"/>
+      <xs:element minOccurs="0" name="PosRespText" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosStan" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTime" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="PosTxnName" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseErrorDesc" nillable="true" type="xs:string"/>
+      <xs:element minOccurs="0" name="WebResponseStatus" type="q5:Enums.WebCallStatus" xmlns:q5="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="EnquiryResponse" nillable="true" type="tns:EnquiryResponse"/>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd3</con:url><con:content><![CDATA[<xs:schema elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.datacontract.org/2004/07/Apex.Ecr.Entities">
+  <xs:import schemaLocation="https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/"/>
+  <xs:simpleType name="Enums.WebCallStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Success"/>
+      <xs:enumeration value="Faild">
+        <xs:annotation>
+          <xs:appinfo>
+            <EnumerationValue xmlns="http://schemas.microsoft.com/2003/10/Serialization/">99</EnumerationValue>
+          </xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="Enums.WebCallStatus" nillable="true" type="tns:Enums.WebCallStatus"/>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc?xsd=xsd1</con:url><con:content><![CDATA[<xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://schemas.microsoft.com/2003/10/Serialization/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/">
+  <xs:element name="anyType" nillable="true" type="xs:anyType"/>
+  <xs:element name="anyURI" nillable="true" type="xs:anyURI"/>
+  <xs:element name="base64Binary" nillable="true" type="xs:base64Binary"/>
+  <xs:element name="boolean" nillable="true" type="xs:boolean"/>
+  <xs:element name="byte" nillable="true" type="xs:byte"/>
+  <xs:element name="dateTime" nillable="true" type="xs:dateTime"/>
+  <xs:element name="decimal" nillable="true" type="xs:decimal"/>
+  <xs:element name="double" nillable="true" type="xs:double"/>
+  <xs:element name="float" nillable="true" type="xs:float"/>
+  <xs:element name="int" nillable="true" type="xs:int"/>
+  <xs:element name="long" nillable="true" type="xs:long"/>
+  <xs:element name="QName" nillable="true" type="xs:QName"/>
+  <xs:element name="short" nillable="true" type="xs:short"/>
+  <xs:element name="string" nillable="true" type="xs:string"/>
+  <xs:element name="unsignedByte" nillable="true" type="xs:unsignedByte"/>
+  <xs:element name="unsignedInt" nillable="true" type="xs:unsignedInt"/>
+  <xs:element name="unsignedLong" nillable="true" type="xs:unsignedLong"/>
+  <xs:element name="unsignedShort" nillable="true" type="xs:unsignedShort"/>
+  <xs:element name="char" nillable="true" type="tns:char"/>
+  <xs:simpleType name="char">
+    <xs:restriction base="xs:int"/>
+  </xs:simpleType>
+  <xs:element name="duration" nillable="true" type="tns:duration"/>
+  <xs:simpleType name="duration">
+    <xs:restriction base="xs:duration">
+      <xs:pattern value="\-?P(\d*D)?(T(\d*H)?(\d*M)?(\d*(\.\d*)?S)?)?"/>
+      <xs:minInclusive value="-P10675199DT2H48M5.4775808S"/>
+      <xs:maxInclusive value="P10675199DT2H48M5.4775807S"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="guid" nillable="true" type="tns:guid"/>
+  <xs:simpleType name="guid">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:attribute name="FactoryType" type="xs:QName"/>
+  <xs:attribute name="Id" type="xs:ID"/>
+  <xs:attribute name="Ref" type="xs:IDREF"/>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc</con:endpoint></con:endpoints><con:operation id="0f460847-a1ae-48d7-8b14-73bcaca78ecf" isOneWay="false" action="http://tempuri.org/IEcrComInterface/Enquiry" name="Enquiry" bindingOperationName="Enquiry" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="2a572a67-e099-432a-ad84-c644bac93391" name="Enquiry"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc </con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Enquiry>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:EcrTillerFullName>Flan</ns:EcrTillerFullName>
+               <!--Optional:-->
+               <ns:EcrTillerUserName>Flany</ns:EcrTillerUserName>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>7F3AC17247824B27BC8DFA2888DADF9B</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000005322</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>01708734</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:OrigAuthCode></ns:OrigAuthCode>
+            <!--Optional:-->
+            <ns:OrigInvoiceNumber>000017</ns:OrigInvoiceNumber>
+            <!--Optional:-->
+            <ns:OrigRrn>601309000017</ns:OrigRrn>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber>1</ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>12344</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Enquiry>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Enquiry"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="9edd5ac4-2f2e-4d7d-ac25-3f29910f098c" isOneWay="false" action="http://tempuri.org/IEcrComInterface/PreAuthCompletion" name="PreAuthCompletion" bindingOperationName="PreAuthCompletion" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="ab83f24f-d05c-4f4c-89ac-898c122b864e" name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">\r
+   <soapenv:Header/>\r
+   <soapenv:Body>\r
+      <tem:PreAuthCompletion>\r
+         <!--Optional:-->\r
+         <tem:webReq/>\r
+      </tem:PreAuthCompletion>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/PreAuthCompletion"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="90f1f4e1-4c37-411a-9d40-6d05a4fcea53" isOneWay="false" action="http://tempuri.org/IEcrComInterface/RequestCancellation" name="RequestCancellation" bindingOperationName="RequestCancellation" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="0c5cbabb-6a85-4d87-8881-b3a71a52a42d" name="Cancel"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">\r
+   <soapenv:Header/>\r
+   <soapenv:Body>\r
+      <tem:RequestCancellation>\r
+         <!--Optional:-->\r
+         <tem:webReq>\r
+            <!--Optional:-->\r
+            <ns:Config>\r
+               <!--Optional:-->\r
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>\r
+               <!--Optional:-->\r
+               <ns:EcrTillerFullName>?</ns:EcrTillerFullName>\r
+               <!--Optional:-->\r
+               <ns:EcrTillerUserName>?</ns:EcrTillerUserName>\r
+               <!--Optional:-->\r
+               <ns:IntegratorName>?</ns:IntegratorName>\r
+               <!--Optional:-->\r
+               <ns:MerchantSecureKey>A174240D693F4F3792146C7FA858787C</ns:MerchantSecureKey>\r
+               <!--Optional:-->\r
+               <ns:Mid>000000000002220</ns:Mid>\r
+               <!--Optional:-->\r
+               <ns:Tenant>?</ns:Tenant>\r
+               <!--Optional:-->\r
+               <ns:Tid>00000014</ns:Tid>\r
+            </ns:Config>\r
+         </tem:webReq>\r
+      </tem:RequestCancellation>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/RequestCancellation"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="70d7b2ff-cb8c-4536-b138-d865b4bb5875" isOneWay="false" action="http://tempuri.org/IEcrComInterface/Sale" name="Sale" bindingOperationName="Sale" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="06bb7eea-c75a-40ab-9a02-f7532993e312" name="Sale"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc </con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Sale>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>7F3AC17247824B27BC8DFA2888DADF9B</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000005322</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>01708734</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:EcrAmount>0.010</ns:EcrAmount>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber>1</ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>12344</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Sale>
+   </soapenv:Body>
+</soapenv:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Sale"/><con:wsrmConfig version="1.2"/></con:call><con:call id="405d10bf-7d03-4759-916b-71326819fcd9" name="Oman Sale"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://eReceiptOM.afs.com.bh/Ecr.Om.Abo/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Sale>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>512</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>718BF53ACE124F2B9A2630A9148E5E4C</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000000011</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>00000111</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:EcrAmount>0.010</ns:EcrAmount>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber>1</ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>1</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Sale>
+   </soapenv:Body>
+</soapenv:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Sale"/><con:wsrmConfig version="1.2"/></con:call><con:call id="c8e1c6af-c8f3-4a40-8980-b3e328a9f559" name="Lifeline burjeel"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceiptom.afs.com.bh/Ecr.Om.soh/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Sale>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>512</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>C79E5F5DEE1A472BA40080A44BC69776</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000010454</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>01094598</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:EcrAmount>0.010</ns:EcrAmount>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber>1</ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>1</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Sale>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Sale"/><con:wsrmConfig version="1.2"/></con:call><con:call id="a12060a0-6c71-457a-89a6-d52bf9236819" name="Sharaf DG"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc </con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Sale>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>8022A5930BB24DCBBAE6E97B3818C95E</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000497560</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>04429205</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:EcrAmount>0.010</ns:EcrAmount>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber>1</ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>12344</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Sale>
+   </soapenv:Body>
+</soapenv:Envelope>
+]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Sale"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="35c57444-af4c-4ede-aa97-efc47c493640" isOneWay="false" action="http://tempuri.org/IEcrComInterface/Settlement" name="Settlement" bindingOperationName="Settlement" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="3498ef24-ae86-49e4-b0a3-24bf29e8a34e" name="Settlement"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">\r
+   <soapenv:Header/>\r
+   <soapenv:Body>\r
+      <tem:Settlement>\r
+         <!--Optional:-->\r
+         <tem:webReq>\r
+            <!--Optional:-->\r
+            <ns:Config>\r
+               <!--Optional:-->\r
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>\r
+               <!--Optional:-->\r
+               <ns:EcrTillerFullName>Flan</ns:EcrTillerFullName>\r
+               <!--Optional:-->\r
+               <ns:EcrTillerUserName>Flany</ns:EcrTillerUserName>\r
+               <!--Optional:-->\r
+               <ns:IntegratorName>?</ns:IntegratorName>\r
+               <!--Optional:-->\r
+               <ns:MerchantSecureKey>7F3AC17247824B27BC8DFA2888DADF9B</ns:MerchantSecureKey>\r
+               <!--Optional:-->\r
+               <ns:Mid>000000000005322</ns:Mid>\r
+               <!--Optional:-->\r
+               <ns:Tenant>?</ns:Tenant>\r
+               <!--Optional:-->\r
+               <ns:Tid>01708734</ns:Tid>\r
+            </ns:Config>\r
+         </tem:webReq>\r
+      </tem:Settlement>\r
+   </soapenv:Body>\r
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Settlement"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation id="f54b8c58-b40c-4b13-b982-52f394f6e9a9" isOneWay="false" action="http://tempuri.org/IEcrComInterface/Void" name="Void" bindingOperationName="Void" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call id="030a1299-52d4-4b4c-bf38-62f074a5a4e3" name="Void"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>https://ereceipt.afs.com.bh/Ecr.Bh.Afs/EcrComInterface.svc</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <tem:Void>
+         <!--Optional:-->
+         <tem:webReq>
+            <!--Optional:-->
+            <ns:Config>
+               <!--Optional:-->
+               <ns:EcrCurrencyCode>048</ns:EcrCurrencyCode>
+               <!--Optional:-->
+               <ns:EcrTillerFullName>Flan</ns:EcrTillerFullName>
+               <!--Optional:-->
+               <ns:EcrTillerUserName>Flany</ns:EcrTillerUserName>
+               <!--Optional:-->
+               <ns:MerchantSecureKey>7F3AC17247824B27BC8DFA2888DADF9B</ns:MerchantSecureKey>
+               <!--Optional:-->
+               <ns:Mid>000000000005322</ns:Mid>
+               <!--Optional:-->
+               <ns:Tid>01708734</ns:Tid>
+            </ns:Config>
+            <!--Optional:-->
+            <ns:OrigAuthCode>?</ns:OrigAuthCode>
+            <!--Optional:-->
+            <ns:OrigInvoiceNumber>000016</ns:OrigInvoiceNumber>
+            <!--Optional:-->
+            <ns:OrigRrn>?</ns:OrigRrn>
+            <!--Optional:-->
+            <ns:Printer>
+               <!--Optional:-->
+               <ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+               <!--Optional:-->
+               <ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+               <!--Optional:-->
+               <ns:InvoiceNumber></ns:InvoiceNumber>
+               <!--Optional:-->
+               <ns:PrinterWidth>1</ns:PrinterWidth>
+               <!--Optional:-->
+               <ns:ReceiptNote>1</ns:ReceiptNote>
+               <!--Optional:-->
+               <ns:ReferenceNumber>121111133</ns:ReferenceNumber>
+            </ns:Printer>
+         </tem:webReq>
+      </tem:Void>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>No Authorization</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://tempuri.org/IEcrComInterface/Void"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:oAuth1ProfileContainer/><con:sensitiveInformation/></con:soapui-project>

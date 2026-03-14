@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
 import '../../api/models/apex_ecr_models.dart';
 import '../../constants.dart';
 
@@ -60,19 +61,23 @@ class ApexEcrRepository {
   ) async {
     try {
       final xmlData = request.toXml();
+      final isVoid = request.transactionType.toUpperCase() == 'VOID';
+      final action = isVoid ? 'Void' : 'Sale';
 
       final response = await _dio.post(
         '/ApexECRService.svc',
         data: xmlData,
         options: Options(
           headers: {
-            'SOAPAction':
-                'http://tempuri.org/IEcrComInterface/Sale', // Defaults to Sale for now
+            'SOAPAction': 'http://tempuri.org/IEcrComInterface/$action',
           },
         ),
       );
 
-      return FinancialTxnResponse.fromXml(response.data.toString());
+      return FinancialTxnResponse.fromXml(
+        response.data.toString(),
+        rootNodeName: '${action}Response',
+      );
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Error: $e');
       return FinancialTxnResponse(
@@ -102,35 +107,6 @@ class ApexEcrRepository {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Enquiry Error: $e');
-      return FinancialTxnResponse(
-        webResponseStatus: '99',
-        webResponseErrorDesc: 'Network Error: $e',
-      );
-    }
-  }
-
-  Future<FinancialTxnResponse> performEnquiryByRef(
-    EnquiryByRefRequest request,
-  ) async {
-    try {
-      final xmlData = request.toXml();
-
-      final response = await _dio.post(
-        '/ApexECRService.svc',
-        data: xmlData,
-        options: Options(
-          headers: {
-            'SOAPAction': 'http://tempuri.org/IEcrComInterface/EnquiryByRef',
-          },
-        ),
-      );
-
-      return FinancialTxnResponse.fromXml(
-        response.data.toString(),
-        rootNodeName: 'EnquiryByRefResponse',
-      );
-    } catch (e) {
-      if (kDebugMode) debugPrint('ApexECR EnquiryByRef Error: $e');
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: 'Network Error: $e',

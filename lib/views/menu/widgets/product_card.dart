@@ -7,6 +7,7 @@ import '../../../controllers/order_controller.dart';
 import '../../../api/models/view_menu_models.dart';
 import '../../../controllers/language_controller.dart';
 import '../../../utils/cache_config.dart';
+import '../../../utils/en_locale.dart';
 import 'addon_bottom_sheet.dart';
 import 'repeat_or_customize_sheet.dart';
 
@@ -174,99 +175,101 @@ class ProductCard extends StatelessWidget {
       );
 
       if (totalQty > 0) {
-        return Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  if (hasModifiers) {
-                    final lastIndex = orderController.cart.lastIndexWhere(
-                      (e) => e['productId'] == productId,
-                    );
-                    if (lastIndex != -1) {
-                      orderController.decreaseQty(lastIndex);
+        return EnLocale(
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    if (hasModifiers) {
+                      final lastIndex = orderController.cart.lastIndexWhere(
+                        (e) => e['productId'] == productId,
+                      );
+                      if (lastIndex != -1) {
+                        orderController.decreaseQty(lastIndex);
+                      }
+                    } else {
+                      orderController.decreaseQty(cartIndexNoAddons);
                     }
-                  } else {
-                    orderController.decreaseQty(cartIndexNoAddons);
-                  }
-                },
-                child: Container(
-                  height: 64.h,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF642F21),
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '−',
-                      style: TextStyle(
-                        fontFamily: 'Oswald',
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFF7BE26),
+                  },
+                  child: Container(
+                    height: 64.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF642F21),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '−',
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFF7BE26),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(width: 8.w),
-            Expanded(
-              flex: 2,
-              child: Container(
-                height: 64.h,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6.r),
-                  border: Border.all(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '$totalQty',
-                    style: TextStyle(
-                      fontFamily: 'Oswald',
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF283034),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 8.w),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  if (hasModifiers) {
-                    showRepeatOrCustomizeSheet(context, product);
-                  } else {
-                    orderController.increaseQty(cartIndexNoAddons);
-                  }
-                },
+              SizedBox(width: 8.w),
+              Expanded(
+                flex: 2,
                 child: Container(
                   height: 64.h,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF642F21),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(6.r),
+                    border: Border.all(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Center(
                     child: Text(
-                      '+',
+                      '$totalQty',
                       style: TextStyle(
                         fontFamily: 'Oswald',
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFF7BE26),
+                        fontSize: 20.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF283034),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(width: 8.w),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    if (hasModifiers) {
+                      showRepeatOrCustomizeSheet(context, product);
+                    } else {
+                      orderController.increaseQty(cartIndexNoAddons);
+                    }
+                  },
+                  child: Container(
+                    height: 64.h,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF642F21),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '+',
+                        style: TextStyle(
+                          fontFamily: 'Oswald',
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFF7BE26),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       }
 

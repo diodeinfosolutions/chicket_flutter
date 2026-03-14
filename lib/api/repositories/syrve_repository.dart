@@ -66,6 +66,9 @@ class SyrveRepository {
         AccessTokenRequest(apiLogin: AppConstants.apiKey),
       );
       _accessToken = response.token;
+      if (kDebugMode) {
+        print('Access Token: $_accessToken');
+      }
 
       _tokenExpiry = DateTime.now().add(const Duration(minutes: 15));
       return ApiResult.success(response.token);

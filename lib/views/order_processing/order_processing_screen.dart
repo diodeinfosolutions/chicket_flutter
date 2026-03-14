@@ -330,7 +330,11 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                           textAlign: TextAlign.center,
                         ),
                         const Spacer(),
-                        EnLocale(child: FooterSection(isTabletPortrait: isTabletPortrait)),
+                        EnLocale(
+                          child: FooterSection(
+                            isTabletPortrait: isTabletPortrait,
+                          ),
+                        ),
                       ],
                     ),
                   ),

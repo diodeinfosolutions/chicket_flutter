@@ -5,8 +5,8 @@ class AppConstants {
 
   // Apex ECR Configuration
   static const String apexEcrBaseUrl = 'http://192.168.1.100:8000';
-  static const String apexEcrTid = '11111111';
-  static const String apexEcrMid = '111111111111111';
-  static const String apexEcrSecureKey = '0123456789ABCDEF0123456789ABCDEF';
-  static const String apexEcrCurrencyCode = '400';
+  static const String apexEcrTid = '01708734';
+  static const String apexEcrMid = '000000000005322';
+  static const String apexEcrSecureKey = '7F3AC17247824B27BC8DFA2888DADF9B';
+  static const String apexEcrCurrencyCode = '048';
 }

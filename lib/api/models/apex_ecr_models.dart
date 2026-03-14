@@ -19,18 +19,18 @@ class EcrConfig {
 
   void buildXml(XmlBuilder builder) {
     builder.element(
-      'Config',
+      'ns:Config',
       nest: () {
-        builder.element('Tid', nest: tid);
-        builder.element('Mid', nest: mid);
-        builder.element('MerchantSecureKey', nest: merchantSecureKey);
-        builder.element('EcrCurrencyCode', nest: ecrCurrencyCode);
-        if (ecrTillerUserName != null) {
-          builder.element('EcrTillerUserName', nest: ecrTillerUserName);
-        }
+        builder.element('ns:EcrCurrencyCode', nest: ecrCurrencyCode);
         if (ecrTillerFullName != null) {
-          builder.element('EcrTillerFullName', nest: ecrTillerFullName);
+          builder.element('ns:EcrTillerFullName', nest: ecrTillerFullName);
         }
+        if (ecrTillerUserName != null) {
+          builder.element('ns:EcrTillerUserName', nest: ecrTillerUserName);
+        }
+        builder.element('ns:MerchantSecureKey', nest: merchantSecureKey);
+        builder.element('ns:Mid', nest: mid);
+        builder.element('ns:Tid', nest: tid);
       },
     );
   }
@@ -55,25 +55,25 @@ class EcrPrinter {
 
   void buildXml(XmlBuilder builder) {
     builder.element(
-      'Printer',
+      'ns:Printer',
       nest: () {
-        builder.element('PrinterWidth', nest: printerWidth.toString());
         builder.element(
-          'EnablePrintPosReceipt',
+          'ns:EnablePrintPosReceipt',
           nest: enablePrintPosReceipt.toString(),
         );
         builder.element(
-          'EnablePrintReceiptNote',
+          'ns:EnablePrintReceiptNote',
           nest: enablePrintReceiptNote.toString(),
         );
-        if (receiptNote != null) {
-          builder.element('ReceiptNote', nest: receiptNote);
-        }
         if (invoiceNumber != null) {
-          builder.element('InvoiceNumber', nest: invoiceNumber);
+          builder.element('ns:InvoiceNumber', nest: invoiceNumber);
+        }
+        builder.element('ns:PrinterWidth', nest: printerWidth.toString());
+        if (receiptNote != null) {
+          builder.element('ns:ReceiptNote', nest: receiptNote);
         }
         if (referenceNumber != null) {
-          builder.element('ReferenceNumber', nest: referenceNumber);
+          builder.element('ns:ReferenceNumber', nest: referenceNumber);
         }
       },
     );
@@ -101,24 +101,51 @@ class FinancialTxnRequest {
     final builder = XmlBuilder();
     builder.processing('xml', 'version="1.0" encoding="utf-8"');
     builder.element(
-      'FinancialTxnRequest',
+      'soapenv:Envelope',
       namespaces: {
-        'http://www.w3.org/2001/XMLSchema-instance': 'xsi',
-        'http://www.w3.org/2001/XMLSchema': 'xsd',
+        'http://schemas.xmlsoap.org/soap/envelope/': 'soapenv',
+        'http://tempuri.org/': 'tem',
+        'http://schemas.datacontract.org/2004/07/': 'ns',
       },
       nest: () {
-        config.buildXml(builder);
-        printer.buildXml(builder);
-        builder.element('TransactionType', nest: transactionType);
-        if (ecrAmount != null) {
-          builder.element('EcrAmount', nest: ecrAmount!.toStringAsFixed(3));
-        }
-        if (invoiceNumber != null) {
-          builder.element('InvoiceNumber', nest: invoiceNumber);
-        }
-        if (authCode != null) {
-          builder.element('AuthCode', nest: authCode);
-        }
+        builder.element('soapenv:Header');
+        builder.element(
+          'soapenv:Body',
+          nest: () {
+            final isVoid = transactionType.toUpperCase() == 'VOID';
+            final actionName = isVoid ? 'tem:Void' : 'tem:Sale';
+            builder.element(
+              actionName,
+              nest: () {
+                builder.element(
+                  'tem:webReq',
+                  nest: () {
+                    config.buildXml(builder);
+                    if (isVoid) {
+                      if (authCode != null) {
+                        builder.element('ns:OrigAuthCode', nest: authCode);
+                      }
+                      if (invoiceNumber != null) {
+                        builder.element(
+                          'ns:OrigInvoiceNumber',
+                          nest: invoiceNumber,
+                        );
+                      }
+                    } else {
+                      if (ecrAmount != null) {
+                        builder.element(
+                          'ns:EcrAmount',
+                          nest: ecrAmount!.toStringAsFixed(3),
+                        );
+                      }
+                    }
+                    printer.buildXml(builder);
+                  },
+                );
+              },
+            );
+          },
+        );
       },
     );
     return builder.buildDocument().toXmlString();
@@ -189,18 +216,15 @@ class FinancialTxnResponse {
             ?.innerText;
       }
 
-      // DE wrapper
-      final deNodeName = '${rootNodeName}DE';
-      final enquiryResultName = 'EnquiryResult';
-      final enquiryByRefResultName = 'EnquiryByRefResult';
+      // DE wrapper or direct Result wrappers
+      final resultNodeName = rootNodeName.replaceAll('Response', 'Result');
 
       final deNode = responseNode.descendants
           .whereType<XmlElement>()
           .where(
             (e) =>
-                e.name.local == deNodeName ||
-                e.name.local == enquiryResultName ||
-                e.name.local == enquiryByRefResultName,
+                e.name.local == '${rootNodeName}DE' ||
+                e.name.local == resultNodeName,
           )
           .firstOrNull;
 
@@ -267,109 +291,6 @@ class EnquiryRequest {
     final builder = XmlBuilder();
     builder.processing('xml', 'version="1.0" encoding="utf-8"');
     builder.element(
-      'tem:Enquiry',
-      namespaces: {
-        'http://schemas.xmlsoap.org/soap/envelope/': 'soapenv',
-        'http://tempuri.org/': 'tem',
-        'http://schemas.datacontract.org/2004/07/': 'ns',
-      },
-      nest: () {
-        builder.element(
-          'tem:webReq',
-          nest: () {
-            builder.element(
-              'ns:Config',
-              nest: () {
-                builder.element('ns:Tid', nest: config.tid);
-                builder.element('ns:Mid', nest: config.mid);
-                builder.element(
-                  'ns:MerchantSecureKey',
-                  nest: config.merchantSecureKey,
-                );
-                builder.element(
-                  'ns:EcrCurrencyCode',
-                  nest: config.ecrCurrencyCode,
-                );
-                if (config.ecrTillerUserName != null) {
-                  builder.element(
-                    'ns:EcrTillerUserName',
-                    nest: config.ecrTillerUserName,
-                  );
-                }
-                if (config.ecrTillerFullName != null) {
-                  builder.element(
-                    'ns:EcrTillerFullName',
-                    nest: config.ecrTillerFullName,
-                  );
-                }
-              },
-            );
-            if (origAuthCode != null) {
-              builder.element('ns:OrigAuthCode', nest: origAuthCode);
-            }
-            builder.element('ns:OrigInvoiceNumber', nest: origInvoiceNumber);
-            builder.element('ns:OrigRrn', nest: origRrn);
-            builder.element(
-              'ns:Printer',
-              nest: () {
-                builder.element(
-                  'ns:PrinterWidth',
-                  nest: printer.printerWidth.toString(),
-                );
-                builder.element(
-                  'ns:EnablePrintPosReceipt',
-                  nest: printer.enablePrintPosReceipt.toString(),
-                );
-                builder.element(
-                  'ns:EnablePrintReceiptNote',
-                  nest: printer.enablePrintReceiptNote.toString(),
-                );
-                if (printer.receiptNote != null) {
-                  builder.element('ns:ReceiptNote', nest: printer.receiptNote);
-                }
-                if (printer.invoiceNumber != null) {
-                  builder.element(
-                    'ns:InvoiceNumber',
-                    nest: printer.invoiceNumber,
-                  );
-                }
-                if (printer.referenceNumber != null) {
-                  builder.element(
-                    'ns:ReferenceNumber',
-                    nest: printer.referenceNumber,
-                  );
-                }
-              },
-            );
-          },
-        );
-      },
-    );
-    return builder.buildDocument().toXmlString();
-  }
-}
-
-class EnquiryByRefRequest {
-  final EcrConfig config;
-  final EcrPrinter printer;
-  final String? origAuthCode;
-  final String? origInvoiceNumber;
-  final String? origRrn;
-  final String origReferenceNumber;
-
-  EnquiryByRefRequest({
-    required this.config,
-    required this.printer,
-    this.origAuthCode,
-    this.origInvoiceNumber,
-    this.origRrn,
-    required this.origReferenceNumber,
-  });
-
-  String toXml() {
-    final builder = XmlBuilder();
-    builder.processing('xml', 'version="1.0" encoding="utf-8"');
-    builder.element(
       'soapenv:Envelope',
       namespaces: {
         'http://schemas.xmlsoap.org/soap/envelope/': 'soapenv',
@@ -377,87 +298,26 @@ class EnquiryByRefRequest {
         'http://schemas.datacontract.org/2004/07/': 'ns',
       },
       nest: () {
+        builder.element('soapenv:Header');
         builder.element(
           'soapenv:Body',
           nest: () {
             builder.element(
-              'tem:EnquiryByRef',
+              'tem:Enquiry',
               nest: () {
                 builder.element(
                   'tem:webReq',
                   nest: () {
-                    builder.element(
-                      'ns:Config',
-                      nest: () {
-                        builder.element('ns:Tid', nest: config.tid);
-                        builder.element('ns:Mid', nest: config.mid);
-                        builder.element(
-                          'ns:MerchantSecureKey',
-                          nest: config.merchantSecureKey,
-                        );
-                        builder.element(
-                          'ns:EcrCurrencyCode',
-                          nest: config.ecrCurrencyCode,
-                        );
-                        if (config.ecrTillerUserName != null) {
-                          builder.element(
-                            'ns:EcrTillerUserName',
-                            nest: config.ecrTillerUserName,
-                          );
-                        }
-                        if (config.ecrTillerFullName != null) {
-                          builder.element(
-                            'ns:EcrTillerFullName',
-                            nest: config.ecrTillerFullName,
-                          );
-                        }
-                      },
-                    );
+                    config.buildXml(builder);
                     if (origAuthCode != null) {
                       builder.element('ns:OrigAuthCode', nest: origAuthCode);
                     }
-                    if (origInvoiceNumber != null) {
-                      builder.element(
-                        'ns:OrigInvoiceNumber',
-                        nest: origInvoiceNumber,
-                      );
-                    }
-                    if (origRrn != null) {
-                      builder.element('ns:OrigRrn', nest: origRrn);
-                    }
                     builder.element(
-                      'ns:Printer',
-                      nest: () {
-                        builder.element(
-                          'ns:PrinterWidth',
-                          nest: printer.printerWidth.toString(),
-                        );
-                        builder.element(
-                          'ns:EnablePrintPosReceipt',
-                          nest: printer.enablePrintPosReceipt.toString(),
-                        );
-                        builder.element(
-                          'ns:EnablePrintReceiptNote',
-                          nest: printer.enablePrintReceiptNote.toString(),
-                        );
-                        if (printer.receiptNote != null) {
-                          builder.element(
-                            'ns:ReceiptNote',
-                            nest: printer.receiptNote,
-                          );
-                        }
-                        if (printer.invoiceNumber != null) {
-                          builder.element(
-                            'ns:InvoiceNumber',
-                            nest: printer.invoiceNumber,
-                          );
-                        }
-                        builder.element(
-                          'ns:ReferenceNumber',
-                          nest: origReferenceNumber,
-                        );
-                      },
+                      'ns:OrigInvoiceNumber',
+                      nest: origInvoiceNumber,
                     );
+                    builder.element('ns:OrigRrn', nest: origRrn);
+                    printer.buildXml(builder);
                   },
                 );
               },
@@ -479,13 +339,30 @@ class SettlementRequest {
     final builder = XmlBuilder();
     builder.processing('xml', 'version="1.0" encoding="utf-8"');
     builder.element(
-      'SettlementRequest',
+      'soapenv:Envelope',
       namespaces: {
-        'http://www.w3.org/2001/XMLSchema-instance': 'xsi',
-        'http://www.w3.org/2001/XMLSchema': 'xsd',
+        'http://schemas.xmlsoap.org/soap/envelope/': 'soapenv',
+        'http://tempuri.org/': 'tem',
+        'http://schemas.datacontract.org/2004/07/': 'ns',
       },
       nest: () {
-        config.buildXml(builder);
+        builder.element('soapenv:Header');
+        builder.element(
+          'soapenv:Body',
+          nest: () {
+            builder.element(
+              'tem:Settlement',
+              nest: () {
+                builder.element(
+                  'tem:webReq',
+                  nest: () {
+                    config.buildXml(builder);
+                  },
+                );
+              },
+            );
+          },
+        );
       },
     );
     return builder.buildDocument().toXmlString();
