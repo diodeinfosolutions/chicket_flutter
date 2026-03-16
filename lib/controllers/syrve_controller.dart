@@ -9,38 +9,68 @@ import 'package:chicket/services/menu_cache_service.dart';
 
 import 'package:chicket/api/repositories/api_repository.dart';
 import 'banner_controller.dart';
+import '../utils/log_local.dart';
 
+/// Main controller for interacting with the Syrve (iiko) API.
+/// Handles menu loading, stop lists, order types, payment methods, 
+/// and order creation/status tracking.
 class SyrveController extends GetxController {
   final SyrveRepository _repository = SyrveRepository();
   final BannerController _bannerController = Get.find<BannerController>();
   late final KioskConfigService _configService;
   late final MenuCacheService _cacheService;
 
+  /// Loading status for initial setup (order types, payment types).
   final RxBool isInitializing = false.obs;
+  
+  /// Loading status for the menu data.
   final RxBool isLoadingMenu = false.obs;
+  
+  /// Status of an active order creation request.
   final RxBool isCreatingOrder = false.obs;
 
+  /// Error message from the initialization phase.
   final RxnString initError = RxnString();
+  
+  /// Error message from the menu loading phase.
   final RxnString menuError = RxnString();
+  
+  /// Error message from the order creation phase.
   final RxnString orderError = RxnString();
 
+  /// The currently loaded menu data.
   final Rx<ViewMenuData?> menu = Rx<ViewMenuData?>(null);
+  
+  /// List of product IDs that are currently out of stock.
   final RxList<String> outOfStockProductIds = <String>[].obs;
+  
+  /// Available order types (Delivery, Pickup, etc.) from Syrve.
   final RxList<OrderType> orderTypes = <OrderType>[].obs;
+  
+  /// Available payment methods configured in Syrve.
   final RxList<PaymentType> paymentTypes = <PaymentType>[].obs;
+  
+  /// Result of the most recently created order.
   final Rx<CreateDeliveryResponse?> lastOrderResponse =
       Rx<CreateDeliveryResponse?>(null);
 
   final RxBool _isDataLoaded = false.obs;
+  
+  /// Returns [true] if the initial data (menu, types) has been loaded.
   bool get isDataLoaded => _isDataLoaded.value;
 
   Timer? _refreshTimer;
 
+  /// Returns the current organization ID configured in the repository.
   String? get organizationId => _repository.organizationId;
+  
+  /// Returns the current terminal group ID configured in the repository.
   String? get terminalGroupId => _repository.terminalGroupId;
 
+  /// Returns the flattened list of menu categories.
   List<ViewItemCategory> get menuCategories => menu.value?.itemCategories ?? [];
 
+  /// Returns all menu items filtered to exclude hidden items.
   List<ViewMenuItem> get menuItems {
     final items = <ViewMenuItem>[];
     for (final category in menuCategories) {
@@ -51,6 +81,7 @@ class SyrveController extends GetxController {
     return items;
   }
 
+  /// Returns categories used for product grouping (e.g., sizes, flavors).
   List<ViewProductCategory> get productCategories =>
       menu.value?.productCategories ?? [];
 
@@ -62,6 +93,7 @@ class SyrveController extends GetxController {
     _applyConfigIfAvailable();
   }
 
+  /// Configures the repository with organization and terminal details from local storage.
   void _applyConfigIfAvailable() {
     if (_configService.isConfigured) {
       final config = _configService.currentConfig;
@@ -73,6 +105,9 @@ class SyrveController extends GetxController {
     }
   }
 
+  /// Powers on the controller by loading initial static data and starting background refreshes.
+  /// 
+  /// [forceReload] bypasses the internal "is loaded" check.
   Future<void> initialize({bool forceReload = false}) async {
     if (_isDataLoaded.value && !forceReload) {
       if (kDebugMode) {
@@ -104,10 +139,6 @@ class SyrveController extends GetxController {
 
       if (kDebugMode) {
         debugPrint('Syrve API initialized successfully');
-        debugPrint('Organization ID: $organizationId');
-        debugPrint('Terminal Group ID: $terminalGroupId');
-        debugPrint('Order Types: ${orderTypes.length}');
-        debugPrint('Payment Types: ${paymentTypes.length}');
       }
 
       await Future.wait([loadMenu(), loadStopLists()]);
@@ -120,25 +151,22 @@ class SyrveController extends GetxController {
       }
 
       _isDataLoaded.value = true;
-
-      // Initial background refresh immediately
       refreshMenuInBackground(forceBypassCacheWait: true);
-
-      // Start the 15-minute periodic refresh timer
       _startPeriodicRefreshTimer();
     } catch (e) {
       initError.value = 'Initialization error: $e';
       if (kDebugMode) debugPrint('Syrve initialization error: $e');
+      logLocal('Syrve initialize error: $e');
     } finally {
       isInitializing.value = false;
     }
   }
 
+  /// Filters out "Delivery Fee" items from the menu categories.
   ViewMenuData _filterDeliveryFee(ViewMenuData menu) {
     final filteredCategories = menu.itemCategories?.where((category) {
       if (category.name?.toLowerCase() == 'delivery fee') return false;
 
-      // Keep items that are NOT delivery fee
       final validItems = category.items
           ?.where((item) => item.name?.toLowerCase() != 'delivery fee')
           .toList();
@@ -158,6 +186,10 @@ class SyrveController extends GetxController {
     );
   }
 
+  /// Loads the menu from cache or API.
+  /// 
+  /// Uses a "Cache-First" approach: displays cached data immediately if available, 
+  /// then triggers a background refresh from the API.
   Future<void> loadMenu({bool forceRefresh = false}) async {
     if (organizationId == null) {
       menuError.value = 'Organization ID not available';
@@ -168,9 +200,6 @@ class SyrveController extends GetxController {
     menuError.value = null;
 
     if (menu.value != null && menu.value!.itemCategories?.isNotEmpty == true) {
-      if (kDebugMode) {
-        debugPrint('Menu already in memory, refreshing in background only');
-      }
       refreshMenuInBackground();
       return;
     }
@@ -181,12 +210,6 @@ class SyrveController extends GetxController {
         final filteredMenu = _filterDeliveryFee(cachedMenu);
         if (filteredMenu.itemCategories?.isNotEmpty == true) {
           menu.value = filteredMenu;
-          if (kDebugMode) {
-            debugPrint(
-              'Menu loaded from cache immediately - no loading state needed',
-            );
-          }
-
           refreshMenuInBackground();
           return;
         }
@@ -196,64 +219,41 @@ class SyrveController extends GetxController {
     isLoadingMenu.value = true;
 
     try {
-      if (kDebugMode) debugPrint('Fetching menu from API...');
       final result = await Get.find<ApiRepository>().viewMenu(
         menuId: _configService.currentConfig.externalMenuId,
       );
 
       if (result.status == true && result.data != null) {
         final newMenu = result.data!;
-        if (kDebugMode) debugPrint('API returned menu successfully');
-
         final filteredMenu = _filterDeliveryFee(newMenu);
 
         if (_cacheService.hasMenuChanged(filteredMenu)) {
-          if (kDebugMode) debugPrint('Menu data changed, updating cache');
           await _cacheService.cacheMenu(filteredMenu);
         }
 
         menu.value = filteredMenu;
-        final categories = filteredMenu.itemCategories ?? [];
-        int totalItems = 0;
-        int itemsWithImages = 0;
-        for (final cat in categories) {
-          for (final item in cat.items ?? []) {
-            totalItems++;
-            if (item.imageUrl != null) {
-              itemsWithImages++;
-            }
-          }
-        }
-        if (kDebugMode) {
-          debugPrint(
-            'Menu loaded: $totalItems items in ${categories.length} categories ($itemsWithImages with images)',
-          );
-        }
-        if (kDebugMode) debugPrint('About to set isLoadingMenu to false');
       } else {
         final cachedMenu = _cacheService.getCachedMenu();
         if (cachedMenu != null) {
           menu.value = _filterDeliveryFee(cachedMenu);
-          if (kDebugMode) debugPrint('API failed, using cached menu');
         } else {
           menuError.value = result.message;
-          if (kDebugMode) debugPrint('Failed to load menu: ${result.message}');
         }
       }
     } catch (e) {
       final cachedMenu = _cacheService.getCachedMenu();
       if (cachedMenu != null) {
         menu.value = _filterDeliveryFee(cachedMenu);
-        if (kDebugMode) debugPrint('Error occurred, using cached menu: $e');
       } else {
         menuError.value = 'Error loading menu: $e';
-        if (kDebugMode) debugPrint('Menu loading error: $e');
+        logLocal('loadMenu error: $e');
       }
     } finally {
       isLoadingMenu.value = false;
     }
   }
 
+  /// Sets up an automated timer to refresh the menu every 15 minutes.
   void _startPeriodicRefreshTimer() {
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(minutes: 15), (_) {
@@ -261,22 +261,16 @@ class SyrveController extends GetxController {
     });
   }
 
+  /// Performs a silent background refresh of the menu data.
+  /// 
+  /// Checks if the menu revision has changed before updating the UI and cache.
   Future<void> refreshMenuInBackground({
     bool forceBypassCacheWait = false,
   }) async {
-    if (!forceBypassCacheWait && !_cacheService.shouldRefresh) {
-      if (kDebugMode) {
-        debugPrint('Background refresh: Not needed yet (cache valid)');
-      }
-      return;
-    }
+    if (!forceBypassCacheWait && !_cacheService.shouldRefresh) return;
     if (organizationId == null) return;
 
     try {
-      if (kDebugMode) {
-        debugPrint('Background refresh: Fetching menu from API...');
-      }
-
       await Get.find<ApiRepository>().storeOrUpdateMenu(
         externalMenuId: _configService.currentConfig.externalMenuId,
         organizationId: _configService.currentConfig.organizationId,
@@ -290,31 +284,25 @@ class SyrveController extends GetxController {
         final filteredMenu = _filterDeliveryFee(newMenu);
 
         if (menu.value != filteredMenu) {
-          if (kDebugMode) {
-            debugPrint(
-              'Background refresh: Menu changed (revision: ${filteredMenu.revision}), updating',
-            );
-          }
           await _cacheService.cacheMenu(filteredMenu);
           menu.value = filteredMenu;
         } else {
-          if (kDebugMode) {
-            debugPrint('Background refresh: Menu unchanged, skipping update');
-          }
-
           await _cacheService.cacheMenu(filteredMenu);
         }
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Background menu refresh error: $e');
+      logLocal('refreshMenuInBackground error: $e');
     }
   }
 
+  /// Clears the local menu cache and resets initialization state.
   Future<void> clearMenuCache() async {
     await _cacheService.clearCache();
     _isDataLoaded.value = false;
   }
 
+  /// Fetches the list of products that are currently unavailable in the POS.
   Future<void> loadStopLists() async {
     if (organizationId == null) return;
 
@@ -325,21 +313,19 @@ class SyrveController extends GetxController {
 
       if (result.isSuccess && result.data != null) {
         outOfStockProductIds.value = result.data!;
-        if (kDebugMode) {
-          debugPrint(
-            'Stop list loaded: ${outOfStockProductIds.length} items out of stock',
-          );
-        }
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading stop lists: $e');
+      logLocal('loadStopLists error: $e');
     }
   }
 
+  /// Checks if a product is in the stop list.
   bool isProductOutOfStock(String productId) {
     return outOfStockProductIds.contains(productId);
   }
 
+  /// Finds a menu item by its unique ID or SKU.
   ViewMenuItem? getMenuItemById(String itemId) {
     for (final category in menuCategories) {
       for (final item in category.items ?? []) {
@@ -351,6 +337,7 @@ class SyrveController extends GetxController {
     return null;
   }
 
+  /// Resolves a Syrve [OrderType] by its service type string (e.g., 'Common', 'DeliveryByClient').
   OrderType? getOrderTypeByServiceType(String serviceType) {
     try {
       return orderTypes.firstWhere((t) => t.orderServiceType == serviceType);
@@ -359,6 +346,7 @@ class SyrveController extends GetxController {
     }
   }
 
+  /// Resolves a Syrve [PaymentType] by its category/kind.
   PaymentType? getPaymentTypeByKind(String kind) {
     try {
       return paymentTypes.firstWhere((t) => t.paymentTypeKind == kind);
@@ -367,6 +355,9 @@ class SyrveController extends GetxController {
     }
   }
 
+  /// Creates a final delivery order in the Syrve system.
+  /// 
+  /// Resolves order type mapping and handles order creation status.
   Future<bool> createOrder({
     required List<OrderItem> items,
     String? orderTypeId,
@@ -402,7 +393,6 @@ class SyrveController extends GetxController {
           );
           if (commonOrderType != null) {
             finalOrderTypeId = commonOrderType.id;
-
             finalOrderServiceType = null;
           }
         } else {
@@ -415,12 +405,6 @@ class SyrveController extends GetxController {
 
       if (finalOrderServiceType == 'Common') {
         finalOrderServiceType = null;
-      }
-
-      if (kDebugMode) {
-        debugPrint(
-          'Creating order: orderTypeId=$finalOrderTypeId, orderServiceType=$finalOrderServiceType',
-        );
       }
 
       final order = DeliveryOrder(
@@ -445,34 +429,28 @@ class SyrveController extends GetxController {
 
         final creationStatus = result.data!.orderInfo?.creationStatus;
         if (creationStatus == 'Success' || creationStatus == 'InProgress') {
-          if (kDebugMode) {
-            debugPrint(
-              'Order created successfully: ${result.data!.orderInfo?.id}',
-            );
-          }
           return true;
         } else {
           final errorMessage =
               result.data!.orderInfo?.errorInfo?.message ??
               'Unknown error creating order';
           orderError.value = errorMessage;
-          if (kDebugMode) debugPrint('Order creation failed: $errorMessage');
           return false;
         }
       } else {
         orderError.value = result.error;
-        if (kDebugMode) debugPrint('Failed to create order: ${result.error}');
         return false;
       }
     } catch (e) {
       orderError.value = 'Error creating order: $e';
-      if (kDebugMode) debugPrint('Order creation error: $e');
+      logLocal('createOrder error: $e');
       return false;
     } finally {
       isCreatingOrder.value = false;
     }
   }
 
+  /// Retrieves the current status of an order from Syrve by Its ID.
   Future<OrderInfo?> getOrderStatus(String orderId) async {
     if (organizationId == null) return null;
 
@@ -487,15 +465,18 @@ class SyrveController extends GetxController {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error getting order status: $e');
+      logLocal('getOrderStatus error: $e');
     }
     return null;
   }
 
+  /// Clears repository cache and re-initializes all data.
   Future<void> refreshAll() async {
     _repository.clearCache();
     await initialize();
   }
 
+  /// Clears the results of the last successful order.
   void clearLastOrder() {
     lastOrderResponse.value = null;
     orderError.value = null;

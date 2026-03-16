@@ -3,7 +3,10 @@ import 'package:flutter/foundation.dart';
 
 import '../../api/models/apex_ecr_models.dart';
 import '../../constants.dart';
+import '../../utils/log_local.dart';
 
+/// Repository for communicating with the Apex ECR (Electronic Cash Register) service.
+/// It uses SOAP over HTTP to perform financial transactions on physical payment terminals.
 class ApexEcrRepository {
   final Dio _dio;
 
@@ -12,12 +15,10 @@ class ApexEcrRepository {
           dio ??
           Dio(
             BaseOptions(
-              // The ECR Service URL. Usually it's strictly configured in the ECR Server.
-              // E.g. 'http://192.168.1.100:8000/ApexECRService.svc'
               baseUrl: AppConstants.apexEcrBaseUrl,
-              connectTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 30),
-              sendTimeout: const Duration(seconds: 30),
+              connectTimeout: const Duration(seconds: 60),
+              receiveTimeout: const Duration(seconds: 60),
+              sendTimeout: const Duration(seconds: 60),
               headers: {
                 'Content-Type': 'text/xml; charset=utf-8',
                 'Accept': 'text/xml',
@@ -28,27 +29,21 @@ class ApexEcrRepository {
       _dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
-            if (kDebugMode) debugPrint('--> ${options.method} ${options.uri}');
-            if (kDebugMode) debugPrint('Headers: ${options.headers}');
-            if (kDebugMode) debugPrint('Body: ${options.data}');
+            final msg = '--> ${options.method} ${options.uri}\nBody: ${options.data}';
+            debugPrint(msg);
+            logLocal(msg);
             return handler.next(options);
           },
           onResponse: (response, handler) {
-            if (kDebugMode) {
-              debugPrint(
-                '<-- ${response.statusCode} ${response.requestOptions.uri}',
-              );
-              debugPrint('Response: ${response.data}');
-            }
+            final msg = '<-- ${response.statusCode} ${response.requestOptions.uri}\nResponse: ${response.data}';
+            debugPrint(msg);
+            logLocal(msg);
             return handler.next(response);
           },
           onError: (DioException e, handler) {
-            if (kDebugMode) {
-              debugPrint(
-                '<-- Error ${e.response?.statusCode} ${e.requestOptions.uri}',
-              );
-              debugPrint('Error Data: ${e.response?.data}');
-            }
+            final msg = '<-- Error ${e.response?.statusCode} ${e.requestOptions.uri}\nError Data: ${e.response?.data}';
+            debugPrint(msg);
+            logLocal(msg);
             return handler.next(e);
           },
         ),
@@ -56,6 +51,7 @@ class ApexEcrRepository {
     }
   }
 
+  /// Executes a financial transaction (Sale or Void) via the ECR terminal.
   Future<FinancialTxnResponse> performFinancialTransaction(
     FinancialTxnRequest request,
   ) async {
@@ -65,7 +61,7 @@ class ApexEcrRepository {
       final action = isVoid ? 'Void' : 'Sale';
 
       final response = await _dio.post(
-        '/ApexECRService.svc',
+        'EcrComInterface.svc',
         data: xmlData,
         options: Options(
           headers: {
@@ -80,6 +76,7 @@ class ApexEcrRepository {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Error: $e');
+      logLocal('performFinancialTransaction error: $e');
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: 'Network Error: $e',
@@ -87,12 +84,13 @@ class ApexEcrRepository {
     }
   }
 
+  /// Queries the status of a previous transaction or the current terminal state.
   Future<FinancialTxnResponse> performEnquiry(EnquiryRequest request) async {
     try {
       final xmlData = request.toXml();
 
       final response = await _dio.post(
-        '/ApexECRService.svc',
+        'EcrComInterface.svc',
         data: xmlData,
         options: Options(
           headers: {
@@ -107,6 +105,7 @@ class ApexEcrRepository {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Enquiry Error: $e');
+      logLocal('performEnquiry error: $e');
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: 'Network Error: $e',
@@ -114,6 +113,7 @@ class ApexEcrRepository {
     }
   }
 
+  /// Triggers a terminal settlement (Daily Close) for the merchant.
   Future<FinancialTxnResponse> performSettlement(
     SettlementRequest request,
   ) async {
@@ -121,7 +121,7 @@ class ApexEcrRepository {
       final xmlData = request.toXml();
 
       final response = await _dio.post(
-        '/ApexECRService.svc',
+        'EcrComInterface.svc',
         data: xmlData,
         options: Options(
           headers: {
@@ -136,6 +136,7 @@ class ApexEcrRepository {
       );
     } catch (e) {
       if (kDebugMode) debugPrint('ApexECR Settlement Error: $e');
+      logLocal('performSettlement error: $e');
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: 'Network Error: $e',

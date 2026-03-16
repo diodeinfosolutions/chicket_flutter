@@ -7,24 +7,46 @@ import 'package:chicket/api/models/order_type_models.dart' as api;
 
 enum OrderType { dineIn, takeaway }
 
+/// Manages the customer's order state, cart, and product selections.
+/// Handles order type selection, cart management (add/remove/qty), 
+/// and product modifier (addon) logic.
 class OrderController extends GetxController {
+  /// The high-level order type selected by the user (Dine In or Takeaway).
   final Rx<OrderType?> selectedType = Rx<OrderType?>(null);
 
+  /// The list of items currently in the customer's cart.
+  /// Each item is a map containing [productId], [name], [price], [qty], and [modifiers].
   final RxList<Map<String, dynamic>> cart = <Map<String, dynamic>>[].obs;
 
+  /// The product currently being customized in a popup.
   final Rx<MenuProduct?> currentProduct = Rx<MenuProduct?>(null);
+  
+  /// The menu item currently being customized in a popup (for view-based menus).
   final Rx<ViewMenuItem?> currentMenuItem = Rx<ViewMenuItem?>(null);
+  
+  /// Currently selected modifier IDs, grouped by their category or group ID.
   final RxMap<String, Set<String>> selectedModifiers =
       <String, Set<String>>{}.obs;
+      
+  /// Detailed information about the selected modifiers (id, name, price).
   final RxMap<String, Map<String, dynamic>> modifierInfo =
       <String, Map<String, dynamic>>{}.obs;
+      
+  /// Quantity for the item currently being customized.
   final RxInt addonQuantity = 1.obs;
+  
   double _basePrice = 0.0;
 
+  /// The customer's phone number, if provided for the order.
   final RxString customerPhone = ''.obs;
+  
+  /// The payment method selected by the user.
   final Rx<PaymentType?> selectedPaymentType = Rx<PaymentType?>(null);
+  
+  /// The specific order type categorization required by the backend API.
   final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
 
+  /// Selects the order type and navigates to the menu.
   void selectOrderType(OrderType type) {
     selectedType.value = type;
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -32,6 +54,7 @@ class OrderController extends GetxController {
     });
   }
 
+  /// Resets the entire order state to default values.
   void resetSelection() {
     selectedType.value = null;
     cart.clear();
@@ -41,18 +64,22 @@ class OrderController extends GetxController {
     resetAddonSelection();
   }
 
+  /// Sets the customer's phone number.
   void setCustomerPhone(String phone) {
     customerPhone.value = phone;
   }
 
+  /// Sets the selected payment method.
   void setPaymentType(PaymentType paymentType) {
     selectedPaymentType.value = paymentType;
   }
 
+  /// Sets the API-specific order type.
   void setApiOrderType(api.OrderType orderType) {
     selectedApiOrderType.value = orderType;
   }
 
+  /// Returns the service type identifier used by the backend based on selection.
   String? get orderServiceType {
     switch (selectedType.value) {
       case OrderType.dineIn:
@@ -64,6 +91,7 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Initializes the modifier selection state for a [MenuProduct].
   void initModifierSelection(MenuProduct product) {
     currentProduct.value = product;
     currentMenuItem.value = null;
@@ -77,6 +105,7 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Initializes the modifier selection state for a [ViewMenuItem].
   void initModifierSelectionForMenuItem(ViewMenuItem item) {
     currentProduct.value = null;
     currentMenuItem.value = item;
@@ -103,6 +132,7 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Resets only the current product customization state.
   void resetAddonSelection() {
     currentProduct.value = null;
     currentMenuItem.value = null;
@@ -112,6 +142,7 @@ class OrderController extends GetxController {
     _basePrice = 0.0;
   }
 
+  /// Toggles a modifier selection, respecting maximum quantity limits for its group.
   void toggleModifier(
     String groupId,
     String modifierId,
@@ -146,20 +177,24 @@ class OrderController extends GetxController {
     modifierInfo.refresh();
   }
 
+  /// Checks if a specific modifier is currently selected in a group.
   bool isModifierSelected(String groupId, String modifierId) {
     return selectedModifiers[groupId]?.contains(modifierId) ?? false;
   }
 
+  /// Increments the quantity of the product being customized.
   void incrementAddonQuantity() {
     addonQuantity.value++;
   }
 
+  /// Decrements the quantity of the product being customized.
   void decrementAddonQuantity() {
     if (addonQuantity.value > 1) {
       addonQuantity.value--;
     }
   }
 
+  /// Returns the total price of the product currently being customized, inclusive of modifiers.
   double get addonTotalPrice {
     double total = _basePrice;
 
@@ -171,6 +206,7 @@ class OrderController extends GetxController {
     return total * addonQuantity.value;
   }
 
+  /// Validates if the current selection meets all mandatory modifier requirements.
   bool get canAddToCart {
     final product = currentProduct.value;
     final menuItem = currentMenuItem.value;
@@ -197,9 +233,7 @@ class OrderController extends GetxController {
         final selected = selectedModifiers[groupId] ?? <String>{};
         final minQuantity = modGroup.restrictions?.minQuantity ?? 0;
         final maxQuantity = modGroup.restrictions?.maxQuantity ?? 9999;
-        final requiredMin = minQuantity > 0
-            ? minQuantity
-            : 0; // if required, min is >0
+        final requiredMin = minQuantity > 0 ? minQuantity : 0;
 
         if (requiredMin > 0 && selected.length < requiredMin) {
           return false;
@@ -230,6 +264,7 @@ class OrderController extends GetxController {
     return true;
   }
 
+  /// Finalizes the customization and adds the product to the cart.
   void addCurrentProductToCart() {
     final product = currentProduct.value;
     final menuItem = currentMenuItem.value;
@@ -272,6 +307,7 @@ class OrderController extends GetxController {
     Get.back();
   }
 
+  /// Adds an item to the cart, merging quantities if an identical item exists.
   void addToCart({
     required String productId,
     required String name,
@@ -299,11 +335,13 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Increases the quantity of a specific cart item by index.
   void increaseQty(int index) {
     cart[index]['qty']++;
     cart.refresh();
   }
 
+  /// Decreases the quantity of a specific cart item, removing it if qty reaches 0.
   void decreaseQty(int index) {
     if (cart[index]['qty'] > 1) {
       cart[index]['qty']--;
@@ -316,6 +354,7 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Removes an item from the cart by index.
   void removeItem(int index) {
     cart.removeAt(index);
     cart.refresh();
@@ -324,10 +363,12 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Clears all items from the cart.
   void clearCart() {
     cart.clear();
   }
 
+  /// Returns the total number of items in the cart.
   int get cartItemCount {
     int count = 0;
     for (final item in cart) {
@@ -336,6 +377,7 @@ class OrderController extends GetxController {
     return count;
   }
 
+  /// Returns the total quantity of a specific product ID in the cart.
   int getProductQuantity(String productId) {
     int qty = 0;
     for (final item in cart) {
@@ -346,6 +388,7 @@ class OrderController extends GetxController {
     return qty;
   }
 
+  /// Returns the total value of the cart, including all item modifiers.
   double get cartTotal {
     double total = 0;
     for (final item in cart) {
@@ -367,6 +410,7 @@ class OrderController extends GetxController {
     return total;
   }
 
+  /// Deep comparison to check if two modifier maps are identical.
   bool _sameModifiers(dynamic aRaw, Map<String, List<Map<String, dynamic>>> b) {
     final a = <String, List<Map<String, dynamic>>>{};
     if (aRaw is Map) {

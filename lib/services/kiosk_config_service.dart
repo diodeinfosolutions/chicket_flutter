@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/log_local.dart';
 
-/// Kiosk configuration model
+/// Model representing the kiosk's configuration and organizational mappings.
 class KioskConfig {
   final String organizationId;
   final String organizationName;
@@ -52,14 +53,19 @@ class KioskConfig {
       'KioskConfig(org: $organizationName, terminal: $terminalGroupName, menu: $externalMenuName)';
 }
 
+/// Service that manages the persistence and retrieval of kiosk-specific settings.
 class KioskConfigService extends GetxService {
   static const String _configKey = 'kiosk_config';
 
   SharedPreferences? _prefs;
+
+  /// The observable current kiosk configuration.
   final Rx<KioskConfig?> config = Rx<KioskConfig?>(null);
 
+  /// Returns [true] if the kiosk has been assigned an identity and menu.
   bool get isConfigured => config.value != null;
 
+  /// Returns the current configuration, throwing a [StateError] if not yet loaded.
   KioskConfig get currentConfig {
     if (config.value == null) {
       throw StateError('Kiosk not configured. Call loadConfig() first.');
@@ -67,54 +73,57 @@ class KioskConfigService extends GetxService {
     return config.value!;
   }
 
+  /// Initializes the service and loads configuration from local storage.
   Future<KioskConfigService> init() async {
     _prefs = await SharedPreferences.getInstance();
     await loadConfig();
     return this;
   }
 
+  /// Loads the configuration from [SharedPreferences].
   Future<void> loadConfig() async {
     try {
       final jsonString = _prefs?.getString(_configKey);
       if (jsonString != null) {
         final json = jsonDecode(jsonString) as Map<String, dynamic>;
         config.value = KioskConfig.fromJson(json);
-        if (kDebugMode) debugPrint('Kiosk config loaded: ${config.value}');
       } else {
-        if (kDebugMode) debugPrint('No kiosk config found');
         config.value = null;
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Error loading kiosk config: $e');
+      logLocal('loadConfig error: $e');
       config.value = null;
     }
   }
 
+  /// Persists a new [KioskConfig] to local storage.
   Future<bool> saveConfig(KioskConfig newConfig) async {
     try {
       final jsonString = jsonEncode(newConfig.toJson());
       final success = await _prefs?.setString(_configKey, jsonString) ?? false;
       if (success) {
         config.value = newConfig;
-        if (kDebugMode) debugPrint('Kiosk config saved: $newConfig');
       }
       return success;
     } catch (e) {
       if (kDebugMode) debugPrint('Error saving kiosk config: $e');
+      logLocal('saveConfig error: $e');
       return false;
     }
   }
 
+  /// Removes the current configuration from local storage.
   Future<bool> clearConfig() async {
     try {
       final success = await _prefs?.remove(_configKey) ?? false;
       if (success) {
         config.value = null;
-        if (kDebugMode) debugPrint('Kiosk config cleared');
       }
       return success;
     } catch (e) {
       if (kDebugMode) debugPrint('Error clearing kiosk config: $e');
+      logLocal('clearConfig error: $e');
       return false;
     }
   }

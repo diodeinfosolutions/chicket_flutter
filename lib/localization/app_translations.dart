@@ -78,6 +78,11 @@ class AppTranslations extends Translations {
     'organization_branch': 'Organization (Branch)',
     'terminal_group': 'Terminal Group',
     'default_order_type_optional': 'Default Order Type (Optional)',
+    'payment_failed': 'Payment Failed',
+    'network_error': 'Network Connection Error',
+    'timeout_error': 'Request Timed Out',
+    'declined_error': 'Transaction Declined',
+    'server_error': 'Internal Server Error',
   };
 
   static const Map<String, String> _arSA = {
@@ -154,5 +159,10 @@ class AppTranslations extends Translations {
     'organization_branch': 'المؤسسة (الفرع)',
     'terminal_group': 'مجموعة الأجهزة',
     'default_order_type_optional': 'نوع الطلب الافتراضي (اختياري)',
+    'payment_failed': 'فشل الدفع',
+    'network_error': 'خطأ في الاتصال بالشبكة',
+    'timeout_error': 'انتهت مهلة الطلب',
+    'declined_error': 'تم رفض العملية',
+    'server_error': 'خطأ داخلي في الخادم',
   };
 }

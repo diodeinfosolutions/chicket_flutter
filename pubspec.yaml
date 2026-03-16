@@ -1,7 +1,7 @@
 name: chicket
 description: "A new Flutter project."
 publish_to: "none"
-version: 1.0.0+8
+version: 1.0.0+13
 
 environment:
   sdk: ^3.10.8
@@ -25,6 +25,7 @@ dependencies:
   hive_flutter: ^1.1.0
   json_annotation: ^4.10.0
   logger: ^2.6.2
+  path_provider: ^2.1.5
   pretty_dio_logger: ^1.4.0
   qr_flutter: ^4.1.0
   retrofit: ^4.9.2

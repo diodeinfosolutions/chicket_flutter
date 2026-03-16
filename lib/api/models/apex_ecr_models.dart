@@ -7,6 +7,8 @@ class EcrConfig {
   final String ecrCurrencyCode;
   final String? ecrTillerUserName;
   final String? ecrTillerFullName;
+  final String? integratorName;
+  final String? tenant;
 
   EcrConfig({
     required this.tid,
@@ -15,6 +17,8 @@ class EcrConfig {
     required this.ecrCurrencyCode,
     this.ecrTillerUserName,
     this.ecrTillerFullName,
+    this.integratorName,
+    this.tenant,
   });
 
   void buildXml(XmlBuilder builder) {
@@ -28,8 +32,14 @@ class EcrConfig {
         if (ecrTillerUserName != null) {
           builder.element('ns:EcrTillerUserName', nest: ecrTillerUserName);
         }
+        if (integratorName != null) {
+          builder.element('ns:IntegratorName', nest: integratorName);
+        }
         builder.element('ns:MerchantSecureKey', nest: merchantSecureKey);
         builder.element('ns:Mid', nest: mid);
+        if (tenant != null) {
+          builder.element('ns:Tenant', nest: tenant);
+        }
         builder.element('ns:Tid', nest: tid);
       },
     );
@@ -87,6 +97,7 @@ class FinancialTxnRequest {
   final double? ecrAmount;
   final String? invoiceNumber;
   final String? authCode;
+  final String? origRrn;
 
   FinancialTxnRequest({
     required this.config,
@@ -95,6 +106,7 @@ class FinancialTxnRequest {
     this.ecrAmount,
     this.invoiceNumber,
     this.authCode,
+    this.origRrn,
   });
 
   String toXml() {
@@ -120,8 +132,9 @@ class FinancialTxnRequest {
                 builder.element(
                   'tem:webReq',
                   nest: () {
-                    config.buildXml(builder);
                     if (isVoid) {
+                      // VoidRequest sequence: Config, OrigAuthCode, OrigInvoiceNumber, OrigRrn, Printer
+                      config.buildXml(builder);
                       if (authCode != null) {
                         builder.element('ns:OrigAuthCode', nest: authCode);
                       }
@@ -131,15 +144,21 @@ class FinancialTxnRequest {
                           nest: invoiceNumber,
                         );
                       }
+                      if (origRrn != null) {
+                        builder.element('ns:OrigRrn', nest: origRrn);
+                      }
+                      printer.buildXml(builder);
                     } else {
+                      // SaleRequest sequence: Config, EcrAmount, Printer
+                      config.buildXml(builder);
                       if (ecrAmount != null) {
                         builder.element(
                           'ns:EcrAmount',
                           nest: ecrAmount!.toStringAsFixed(3),
                         );
                       }
+                      printer.buildXml(builder);
                     }
-                    printer.buildXml(builder);
                   },
                 );
               },
@@ -308,6 +327,7 @@ class EnquiryRequest {
                 builder.element(
                   'tem:webReq',
                   nest: () {
+                    // EnquiryRequest sequence: Config, OrigAuthCode, OrigInvoiceNumber, OrigRrn, Printer
                     config.buildXml(builder);
                     if (origAuthCode != null) {
                       builder.element('ns:OrigAuthCode', nest: origAuthCode);

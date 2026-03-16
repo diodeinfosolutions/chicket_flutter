@@ -10,6 +10,8 @@ import 'widgets/language_selector_row.dart';
 import 'widgets/order_option_row.dart';
 import 'widgets/order_text_section.dart';
 
+/// Main landing screen for the kiosk application.
+/// Provides entry points for Dine-in/Takeaway selection and language switching.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -28,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _preloadData();
   }
 
+  /// Triggers early data synchronization (menu, order types) to ensure a smooth transition.
   void _preloadData() {
     if (!_syrveController.isDataLoaded) {
       _syrveController.initialize();
