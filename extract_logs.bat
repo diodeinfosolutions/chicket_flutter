@@ -2,7 +2,6 @@
 setlocal
 set "PKG=com.diode.chicket"
 
-:: Use a more robust PowerShell invocation to avoid Batch escaping hell
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$files = adb shell 'run-as %PKG% find . -name \"kiosk_log_*.txt\"' 2>$null; " ^
     "if ($files -match 'package not debuggable') { " ^
