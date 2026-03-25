@@ -1,0 +1,2093 @@
+Apex Payment Solutions
+
+ECR Integration
+(Web Interface)
+ApexECR
+
+January 15, 2024
+1.08
+
+ApexECR Web Integration Specification
+
+PROPRIETARY NOTICE AND LIABILITY DISCLAIMER
+The information disclosed in this document, including all designs and related materials are
+confidential and proprietary to Apex Payment Solutions. Apex and the Apex logo are
+registered trademarks of Apex Payment Solutions. Apex Payment Solutions reserve
+copyright and other proprietary rights to this document.
+This Document, or any part of this material, shall not be used, duplicated, reproduced,
+transmitted, published, or otherwise disclosed to anyone other than to whom this document
+is delivered without express written authorization from Apex Payment Solutions. This
+restriction is applicable to all pages of this document.
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 2 of 31
+
+ApexECR Web Integration Specification
+Table of Contents
+1. INTRODUCTION............................................................................................................................................ 5
+1.1 Purpose .......................................................................................................................................... 5
+1.2 Audience ........................................................................................................................................ 5
+1.3 Overview ....................................................................................................................................... 5
+2. SOAP PROTOCOL .......................................................................................................................................... 6
+2.1 SOAP Interface .............................................................................................................................. 6
+2.2 SOAP Implementation .................................................................................................................... 6
+3. ECR TRANSACTIONS .................................................................................................................................... 7
+3.1. Perform Financial Transaction ........................................................................................................ 7
+3.2. Card Verification ............................................................................................................................ 9
+3.3. Ecr Enquiry .................................................................................................................................. 10
+3.4. EnquiryByRef .............................................................................................................................. 12
+3.5. Settlement .................................................................................................................................... 14
+4. DATA ELEMENTS ........................................................................................................................................ 15
+4.1. Configuration Fields <Config> ..................................................................................................... 15
+4.2. Printer Fields <Printer> ................................................................................................................ 15
+4.3. Card Data Fields <CardData> ....................................................................................................... 16
+4.4. EMV Data Fields <EmvData> ...................................................................................................... 16
+4.5. DCC Data Fields <DccData> ........................................................................................................ 16
+4.6. Financial Request Fields <FinancialTxnRequest> ......................................................................... 17
+4.7. Financial Response Fields <FinancialTxnResponse> ..................................................................... 17
+4.8. CardVerification Request Fields <CardVerificationRequest> ........................................................ 18
+4.9. CardVerification Response Fields <CardVerificationResponse> .................................................... 18
+4.10. Ecr Enquiry Request Fields <EnquiryRequest> ............................................................................. 18
+4.11. Ecr Enquiry Response Fields < EnquiryResponse> ....................................................................... 19
+4.12. Settlement Request Fields <SettlementRequest> ........................................................................... 20
+4.13. Settlement Response Fields <SettlementResponse>....................................................................... 20
+5. DLL INTERFACE .......................................................................................................................................... 21
+5.1. DLL Classes................................................................................................................................. 21
+5.1.1. EcrConfig ......................................................................................................................................... 21
+5.1.2. EcrPrinter.......................................................................................................................................... 21
+5.1.3. EcrCardData ..................................................................................................................................... 22
+5.1.4. EcrEmvData...................................................................................................................................... 22
+5.1.5. EcrDccData ....................................................................................................................................... 22
+5.1.6. FinancialTxnRequest ......................................................................................................................... 23
+5.1.7. FinancialTxnResponse....................................................................................................................... 23
+5.1.8. CardVerificationRequest.................................................................................................................... 24
+5.1.9. CardVerificationResponse ................................................................................................................. 24
+5.1.10. SettlementRequest ............................................................................................................................. 24
+5.1.11. SettlementResponse........................................................................................................................... 24
+5.1.12. CancelRequest................................................................................................................................... 25
+5.1.13. CancelResponse ................................................................................................................................ 25
+
+5.2.
+
+DLL Functions ............................................................................................................................. 26
+5.2.1. General Functions ............................................................................................................................. 26
+5.2.2. Configuration Functions .................................................................................................................... 26
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 3 of 31
+
+ApexECR Web Integration Specification
+5.2.3. Printer Functions ............................................................................................................................... 26
+5.2.4. Financial Functions ........................................................................................................................... 27
+
+6. RESPONSE STATUS..................................................................................................................................... 28
+7. APPENDIXES ............................................................................................................................................... 29
+7.1. Appendix C (Sample Code) .......................................................................................................... 29
+7.1.1. SOAP Sample Code (C#)................................................................................................................... 29
+7.1.2. DLL Sample Code (VB6) .................................................................................................................. 30
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 4 of 31
+
+ApexECR Web Integration Specification
+
+1. Introduction
+1.1 Purpose
+The purpose of this document is to provide a technical (message structure and data
+elements) and customization based on SOAP protocol required for ECR-POS machine to
+integrate with ApexECR Server.
+
+1.2 Audience
+This document is primarily for the ECR-POS application developer for implementing SOAP
+protocol to integrate with ApexECR Server.
+
+1.3 Overview
+With the variety of payment methods now days, still, the Electronic Cash Register (ECR) is
+the main tool for the retail payments industry. However, ECRs cannot accept card
+payments! Therefore, ECR-EFTPOS integration is the solution to accept card payments and
+synchronize payment information back to the ECR.
+Different ECR vendors, platforms, OS’s (Windows, Linux …) and different EFTPOS hardware
+capability, software complexity, makes ECR-EFTPOS integration over the serial
+communication (RS232) very hard to achieve.
+ApexECR has been developed, as an alternative for direct RS232 integration, to minimize
+the effort required integrating any ECR system with any EFTPOS terminal; eliminate the
+constraints, reduce the cost and complexity for ECR-POS integration, offering a complete
+solution that reduces manual errors and fraud, while improving seamlessness across
+payment technology at the ECR.
+With ApexECR, the payment details from your ECR are automatically shared with the
+EFTPOS terminal. This means there’s no need to re-key, reducing errors and dramatically
+speeding up the checkout process. The terminal then authorizes the payment as usual and
+communicates the result back to your ECR system.
+All sensitive transactional data (PAN, Expiry Date…) is kept away from the ECR and backend
+gateway, reducing the scope for your Payment Card Industry Data Security Standards (PCI
+DSS) compliance, and keeping the cardholder sensitive data secured.
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 5 of 31
+
+ApexECR Web Integration Specification
+
+2. SOAP Protocol
+2.1 SOAP Interface
+SOAP—Simple Object Access Protocol—is a protocol specification for exchanging structured
+information in the implementation of web services in computer networks. It uses XML
+Information Set for its message format, and relies on application layer protocols, most notably
+HTTP & HTTPS.
+Following describes the implementation of the SOAP option for communicating with ApexECR
+server using XML messages. The client communicates with the SOAP service by sending a SOAP
+request to the ApexECR Service URL. SOAP request adheres to the WSDL specification described
+in “Appendix A, WSDL Specification”.
+
+2.2 SOAP Implementation
+Implementing SOAP interface to ApexECR Service requires the following instructions:
+• Generate the SOAP client stubs using the WSDL and a SOAP implementation tool such as
+JAX‐WS or Axis2.
+• Write the application‐specific code in the same language as the SOAP stubs so that it will
+use the stubs to access the ApexECR Web service.
+• Establish a connection from your system to the ApexECR.
+• Submit the Request (FinancialTxnRequest) in the form of an XML message.
+• Wait for a response from ApexECR.
+• Receive the XML response message from ApexECR.
+• Close the connection.
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 6 of 31
+
+ApexECR Web Integration Specification
+
+3. ECR Transactions
+3.1. Perform Financial Transaction
+The Perform Financial Transaction message is used by the ECR to submit a Financial
+transaction request to the ApexECR Server, to be performed on EFTPOS terminal,
+including (Sale, Refund, PreAuth, Completion, Void)
+Sample Financial Transaction Request
+<?xml version="1.0" encoding="utf-8"?>
+<FinancialTxnRequest
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Config>
+<Tid>11111111</Tid>
+<Mid>111111111111111</Mid>
+<MerchantSecureKey>0123456789ABCDEF0123456789ABCDEF</MerchantSecureKey>
+<EcrCurrencyCode>400</EcrCurrencyCode>
+<EcrTillerUserName>flan</EcrTillerUserName>
+<EcrTillerFullName>Flan Flany</EcrTillerFullName>
+</Config>
+<Printer>
+<PrinterWidth>40</PrinterWidth>
+<EnablePrintPosReceipt>false</EnablePrintPosReceipt>
+<EnablePrintReceiptNote>0</EnablePrintReceiptNote>
+<ReceiptNote></ReceiptNote>
+<InvoiceNumber>20160101</InvoiceNumber>
+<ReferenceNumber>ref_1234567890</ReferenceNumber>
+</Printer>
+<TransactionType>SALE</TransactionType>
+<EcrAmount>13.50</EcrAmount>
+<PanEncrypted>xxxxxxxxxxxxxx</PanEncrypted>
+<InvoiceNumber>000001</InvoiceNumber>
+<AuthCode>060782</AuthCode>
+</FinancialTxnRequest>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 7 of 31
+
+ApexECR Web Integration Specification
+Sample Financial Transaction Response
+<FinancialTxnResponse>
+<WebResponseStatus>Success</WebResponseStatus>
+<WebResponseErrorDesc />
+<FinancialTxnResponseDE>
+<PosAmount>13.50</PosAmount>
+<PosCurrencyCode>400</PosCurrencyCode>
+<PosRRN>713613881010</PosRRN>
+<PosAuthCode>831588</PosAuthCode>
+<PosRespCode>00</PosRespCode>
+<PosRespText>Approved</PosRespText>
+<PosRespStatus>1</PosRespStatus>
+<PosInvoiceNumber>000001</PosInvoiceNumber>
+<PosCVMId>1</PosCVMId>
+<PosTxnName>SALE</PosTxnName>
+<PosBatchNumber>000001</PosBatchNumber>
+<PosStan>000002</PosStan>
+<PosDate>20160120</PosDate>
+<PosTime>215835</PosTime>
+<PosReceiptHeader1>APEX</PosReceiptHeader1>
+<PosReceiptHeader2 />
+<PosReceiptHeader3 />
+<PosReceiptHeader4 />
+<PosReceiptFooter1>Thank you...</PosReceiptFooter1>
+<PosReceiptFooter2 />
+<PosReceiptFooter3 />
+<PosReceiptFooter4 />
+<PosReceipt>
+APEX
+Terminal ID:
+Merchant ID:
+
+11111111
+111111111111111
+
+VISA
+470468******4250
+SALE
+
+**/**
+
+BATCH: 000001
+DATE: 2016-01-20
+RRN: 713613881010
+
+INVOICE: 000001
+TIME: 21:58:35
+AUTH NO: 831588
+
+TOTAL
+
+JOD 13.500
+
+</PosReceipt>
+
+<CardData>
+<PosCardEntryModeId>1</PosCardEntryModeId>
+<PosIssuerName>VISA</PosIssuerName>
+<PosPan>470468******4250</PosPan>
+<PosPanEncrypted>xxxxxxxxxxxxxxxx</PosPanEncrypted>
+<PosExpDateEncrypted>xxxxxxxxxxxxxxxx</PosExpDateEncrypted>
+</CardData>
+<EmvData>
+<PosEmvAid />
+<PosEmvAppName />
+<PosEmvCryptogram />
+<PosEmvTVR />
+</EmvData>
+<DccData>
+<PosDccIndicatorId>N</PosDccIndicatorId>
+<PosDccAmount />
+<PosDccCurrencyCode />
+<PosDccCurrencySymbol />
+<PosDccRate />
+<PosDccMarkup />
+<PosDccCommission />
+</DccData>
+</FinancialTxnDEResponse>
+</FinancialTxnResponse>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 8 of 31
+
+ApexECR Web Integration Specification
+
+3.2. Card Verification
+The Card Verification transaction is typically used in an environment where the merchant
+needs to verify that a card is not stolen, and possibly to obtain an approval code for a
+specific amount, prior to knowing the actual transaction amount. The amount entry step is
+optional, and may be omitted if the amount is not required. The Amount Transaction field
+is always included, but may have a zero value.
+When a zero amount is provided, terminal will prompt for card read and returns cards data
+(PAN, Expiry Date, …) without sending an online authorization message to the financial
+Host.
+Sample Card Verification Request
+<?xml version="1.0" encoding="utf-8"?>
+<CardVerificationRequest
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Config>
+<Tid>11111111</Tid>
+<Mid>111111111111111</Mid>
+<MerchantSecureKey>0123456789ABCDEF0123456789ABCDEF</MerchantSecureKey>
+<EcrCurrencyCode>400</EcrCurrencyCode>
+<EcrTillerUserName>flan</EcrTillerUserName>
+<EcrTillerFullName>Flan Flany</EcrTillerFullName>
+</Config>
+<EcrAmount>0</EcrAmount>
+</CardVerificationRequest>
+
+Sample Card Verification Response
+<?xml version="1.0" encoding="utf-8"?>
+<CardVerificationResponse
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<WebResponseStatus>Success</WebResponseStatus>
+<WebResponseErrorDesc />
+<CardData>
+<PosCardEntryModeId>1</PosCardEntryModeId>
+<PosIssuerName>VISA</PosIssuerName>
+<PosPan>470468******4250</PosPan>
+<PosPanEncrypted>xxxxxxxxxxxxxxxx</PosPanEncrypted>
+<PosExpDateEncrypted>xxxxxxxxxxxxxxxx</PosExpDateEncrypted>
+</CardData>
+</CardVerificationResponse>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 9 of 31
+
+ApexECR Web Integration Specification
+
+3.3. Ecr Enquiry
+The Ecr Enquiry message is used by the ECR to check result and get transaction details of a
+previous transaction based on Original Invoice Number and Original RRN/Or Original Auth
+Code to be sent by ECR in case transaction was failed at ECR level but approved at POS. ECR
+operator will manually input Original Invoice Number and Original RRN/Original Auth Code
+found on transaction receipt. ECR will send ECR Enquiry and ApexECR will send back all
+transaction details. ECR shall get these details and store them committing previous
+transaction as approved.
+Sample Ecr Enquiry Request
+<?xml version="1.0" encoding="utf-8"?>
+<tem:Enquiry>
+xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:tem="http://tempuri.org/"
+xmlns:ns="http://schemas.datacontract.org/2004/07/">
+<tem:Enquiry>
+<ns:EcrCurrencyCode>400</ns:EcrCurrencyCode>
+<ns:EcrTillerFullName>aaa</ns:EcrTillerFullName>
+<ns:EcrTillerUserName>aaa</ns:EcrTillerUserName>
+<ns:MerchantSecureKey>2355D88335B4433DB3D422F865CEB82F</ns:MerchantSecureKey>
+<ns:Mid>0777741998</ns:Mid>
+<ns:Tid>00001645</ns:Tid>
+</ns:Config>
+<ns:OrigAuthCode></ns:OrigAuthCode>
+<ns:OrigInvoiceNumber>000004</ns:OrigInvoiceNumber>
+<ns:OrigRrn>862333491017</ns:OrigRrn>
+<ns:Printer>
+<ns:EnablePrintPosReceipt>0</ns:EnablePrintPosReceipt>
+<ns:EnablePrintReceiptNote>0</ns:EnablePrintReceiptNote>
+<ns:InvoiceNumber></ns:InvoiceNumber>
+<ns:PrinterWidth>0</ns:PrinterWidth>
+<ns:ReceiptNote>0</ns:ReceiptNote>
+<ns:ReferenceNumber></ns:ReferenceNumber>
+</ns:Printer>
+</tem:webReq>
+</tem:Enquiry>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 10 of 31
+
+ApexECR Web Integration Specification
+Sample Ecr Enquiry Response
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<EnquiryResponse xmlns="http://tempuri.org/">
+<EnquiryResult
+xmlns:a="http://schemas.datacontract.org/2004/07/"
+xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+<a:PosAmount>5.0000000000</a:PosAmount>
+<a:PosAuthCode>933427</a:PosAuthCode>
+<a:PosBatchNumber>000001</a:PosBatchNumber>
+<a:PosCVMId>1</a:PosCVMId>
+<a:PosCardEntryModeId>5</a:PosCardEntryModeId>
+<a:PosCurrencyCode>400</a:PosCurrencyCode>
+<a:PosDate>20230222</a:PosDate>
+<a:PosDccAmount/>
+<a:PosDccCommission/>
+<a:PosDccCurrencyCode/>
+<a:PosDccCurrencySymbol/>
+<a:PosDccIndicatorId>1</a:PosDccIndicatorId>
+<a:PosDccMarkup/>
+<a:PosDccRate/>
+<a:PosEmvAid>A0000000031010</a:PosEmvAid>
+<a:PosEmvAppName>VISA DEBIT</a:PosEmvAppName>
+<a:PosEmvCryptogram/>
+<a:PosEmvTVR>0000000000</a:PosEmvTVR>
+<a:PosInvoiceNumber>000004</a:PosInvoiceNumber>
+<a:PosIssuerName>VISA</a:PosIssuerName>
+<a:PosPan>472957******1783</a:PosPan>
+<a:PosRRN>862333491017</a:PosRRN>
+<a:PosReceipt/>
+<a:PosReceiptFooter1>Thank you</a:PosReceiptFooter1>
+<a:PosReceiptFooter2/>
+<a:PosReceiptFooter3/>
+<a:PosReceiptFooter4/>
+<a:PosReceiptHeader1>POS Merchant 1</a:PosReceiptHeader1>
+<a:PosReceiptHeader2/>
+<a:PosReceiptHeader3/>
+<a:PosReceiptHeader4/>
+<a:PosRespCode>00</a:PosRespCode>
+<a:PosRespStatus>1</a:PosRespStatus>
+<a:PosRespText>APPROVAL 933427</a:PosRespText>
+<a:PosStan>000004</a:PosStan>
+<a:PosTime>124217</a:PosTime>
+<a:PosTxnName>Sale</a:PosTxnName>
+<a:WebResponseErrorDesc/>
+<a:WebResponseStatus>Success</a:WebResponseStatus>
+</EnquiryResult>
+</EnquiryResponse>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 11 of 31
+
+ApexECR Web Integration Specification
+
+3.4. EnquiryByRef
+The Enquiry by reference is used by the ECR to check result and get transaction details of a
+previous transaction based on original ECR reference number originated and sent by ECR
+Cash in case transaction was failed at ECR level but approved at POS. ECR Cash register can
+automatically send original ECR reference number of last transaction that was not closed at
+ECR level for any reason in case it was approved at POS. ECR will send EnquiryByRef and
+ApexECR will send back all transaction details. ECR shall get these details and store them
+committing previous transaction as approved.
+Sample EnquiryByRef Request
+<soapenv:Envelopexmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:tem="http://tempuri.org/" xmlns:ns="http://schemas.datacontract.org/2004/07/">
+<soapenv:Header/>
+<soapenv:Body>
+<tem:EnquiryByRef>
+<!--Optional:-->
+<tem:webReq>
+<!--Optional:-->
+<ns:Config>
+<!--Optional:-->
+<ns:EcrCurrencyCode>400</ns:EcrCurrencyCode>
+<!--Optional:-->
+<ns:EcrTillerFullName>?</ns:EcrTillerFullName>
+<!--Optional:-->
+<ns:EcrTillerUserName>?</ns:EcrTillerUserName>
+<!--Optional:-->
+<ns:MerchantSecureKey>0123456789ABCDEF0123456789ABCDEF</ns:MerchantSecureKey>
+<!--Optional:-->
+<ns:Mid>888888880000000</ns:Mid>
+<!--Optional:-->
+<ns:Tid>00001645</ns:Tid>
+</ns:Config>
+<!--Optional:-->
+<ns:OrigAuthCode>?</ns:OrigAuthCode>
+<!--Optional:-->
+<ns:OrigInvoiceNumber>?</ns:OrigInvoiceNumber>
+<!--Optional:-->
+<ns:OrigRrn>?</ns:OrigRrn>
+<!--Optional:-->
+<ns:Printer>
+<!--Optional:-->
+<ns:EnablePrintPosReceipt>1</ns:EnablePrintPosReceipt>
+<!--Optional:-->
+<ns:EnablePrintReceiptNote>1</ns:EnablePrintReceiptNote>
+<!--Optional:-->
+<ns:InvoiceNumber>1</ns:InvoiceNumber>
+<!--Optional:-->
+<ns:PrinterWidth>1</ns:PrinterWidth>
+<!--Optional:-->
+<ns:ReceiptNote>1</ns:ReceiptNote>
+<!--Optional:-->
+<ns:ReferenceNumber>1234566</ns:ReferenceNumber>
+</ns:Printer>
+</tem:webReq>
+</tem:EnquiryByRef>
+</soapenv:Body>
+</soapenv:Envelope>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 12 of 31
+
+ApexECR Web Integration Specification
+Sample EnquiryByRef Response
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<s:Header>
+<ActivityId
+CorrelationId="4be53507-5654-4131-a5a2-7139490ecc64"
+xmlns="http://schemas.microsoft.com/2004/09/ServiceModel/Diagnostics">00000000-0000-0000-0000000000000000</ActivityId>
+</s:Header>
+<s:Body>
+<EnquiryByRefResponse xmlns="http://tempuri.org/">
+<EnquiryByRefResult
+xmlns:a="http://schemas.datacontract.org/2004/07/"
+xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+<a:PosAmount>0.0010000000</a:PosAmount>
+<a:PosAuthCode/>
+<a:PosBatchNumber/>
+<a:PosCVMId>9</a:PosCVMId>
+<a:PosCardEntryModeId>0</a:PosCardEntryModeId>
+<a:PosCurrencyCode>400</a:PosCurrencyCode>
+<a:PosDate>20240109</a:PosDate>
+<a:PosDccAmount/>
+<a:PosDccCommission/>
+<a:PosDccCurrencyCode/>
+<a:PosDccCurrencySymbol/>
+<a:PosDccIndicatorId>1</a:PosDccIndicatorId>
+<a:PosDccMarkup/>
+<a:PosDccRate/>
+<a:PosEmvAid/>
+<a:PosEmvAppName/>
+<a:PosEmvCryptogram/>
+<a:PosEmvTVR/>
+<a:PosInvoiceNumber/>
+<a:PosIssuerName/>
+<a:PosPan/>
+<a:PosRRN/>
+<a:PosReceipt/>
+<a:PosReceiptFooter1>Thank You</a:PosReceiptFooter1>
+<a:PosReceiptFooter2/>
+<a:PosReceiptFooter3/>
+<a:PosReceiptFooter4/>
+<a:PosReceiptHeader1>Test</a:PosReceiptHeader1>
+<a:PosReceiptHeader2>TEST - POS 12</a:PosReceiptHeader2>
+<a:PosReceiptHeader3>AMMAN</a:PosReceiptHeader3>
+<a:PosReceiptHeader4>KHALDA</a:PosReceiptHeader4>
+<a:PosRespCode>uc</a:PosRespCode>
+<a:PosRespStatus>0</a:PosRespStatus>
+<a:PosRespText>Card Read Error</a:PosRespText>
+<a:PosStan/>
+<a:PosTime>162112</a:PosTime>
+<a:PosTxnName/>
+<a:WebResponseErrorDesc/>
+<a:WebResponseStatus>Success</a:WebResponseStatus>
+</EnquiryByRefResult>
+</EnquiryByRefResponse>
+</s:Body>
+</s:Envelope>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 13 of 31
+
+ApexECR Web Integration Specification
+
+3.5. Settlement
+The Settlement message is used by the ECR to submit a Settlement request to the ApexECR
+Server, to be performed on EFTPOS terminal. Upon a successful settlement, all transactions
+stored in EFTPOS batches will be deleted and new batch with new ID will be created to
+accumulate new transactions.
+Sample Settlement Request
+<?xml version="1.0" encoding="utf-8"?>
+<SettlementRequest
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<Config>
+<Tid>11111111</Tid>
+<Mid>111111111111111</Mid>
+<MerchantSecureKey>0123456789ABCDEF0123456789ABCDEF</MerchantSecureKey>
+<EcrCurrencyCode>400</EcrCurrencyCode>
+<EcrTillerUserName>flan</EcrTillerUserName>
+<EcrTillerFullName>Flan Flany</EcrTillerFullName>
+</Config>
+</SettlementRequest>
+
+Sample Settlement Response
+<?xml version="1.0" encoding="utf-8"?>
+<SettlementResponse
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<WebResponseStatus>Success</WebResponseStatus>
+<WebResponseErrorDesc />
+</SettlementResponse>
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 14 of 31
+
+ApexECR Web Integration Specification
+
+4. Data Elements
+4.1. Configuration Fields <Config>
+Messages
+<Tid>
+<Mid>
+<MerchantSecureKey>
+<EcrCurrencyCode>
+<EcrTillerUserName>
+<EcrTillerFullName>
+
+Description
+Terminal ID, provided by Acquirer
+Merchant ID, provided by Acquirer
+Merchant Secure Key.
+ECR Currency Code.
+ECR Tiller ID\Username.
+ECR Tiller Full Name.
+
+Required
+M
+M
+M
+M
+O
+O
+
+4.2. Printer Fields <Printer>
+Messages
+<PrinterWidth>
+<EnablePrintPosReceipt>
+
+<EnablePrintReceiptNote>
+
+<ReceiptNote>
+<InvoiceNumber>
+<ReferenceNumber>
+
+www.apex.jo
+
+Description
+
+Required
+
+Number of characters per line.
+Flag to Enable EFTPOS to print the financial receipt.
+Values:
+- 0: None.
+- 1: Merchant Copy.
+- 2: Customer Copy.
+- 3: Both Copies.
+Flag to print custom ECR notes on the financial
+receipt, Values:
+0: No Printing.
+1: Before Header.
+2: After Header.
+3: Before Footer.
+4: After Footer.
+Custom ECR notes.
+ECR Invoice Number.
+ECR Reference Number.
+
+M
+
+CONFIDENTIAL©2024
+
+O
+
+O
+
+O
+O
+O
+
+Page 15 of 31
+
+ApexECR Web Integration Specification
+
+4.3. Card Data Fields <CardData>
+Messages
+<PosCardEntryModeId>
+
+Description
+Card Entry Mode, values:
+0: Unknown
+1: Manual
+2: Swipe
+3: Chip
+4: Fallback
+
+Required
+
+M
+
+5: Contactless
+6: Mobile
+
+<PosIssuerName>
+<PosPan>
+<PosPanEncrypted>
+<PosExpDateEncrypted>
+
+Card Issuer Name.
+Primary Account Number (PAN)
+Encrypted Primary Account Number (PAN)
+Encrypted Expiry Date
+
+O
+M
+O
+O
+
+4.4. EMV Data Fields <EmvData>
+Messages
+<PosEmvAid>
+<PosEmvAppName>
+<PosEmvCryptogram>
+<PosEmvTVR>
+
+Description
+Selected AID
+Chip Card Application Name
+EMV Cryptogram
+EMV TVR
+
+Required
+O
+O
+O
+O
+
+4.5. DCC Data Fields <DccData>
+Messages
+<PosDccIndicatorId>
+
+Description
+Dynamic Currency Conversion, values:
+0: Unknown
+1: Not DCC Eligible.
+2: DCC Eligible, Offer Not Accepted.
+
+Required
+
+O
+
+3: DCC Eligible, Offer Accepted.
+
+<PosDccAmount>
+<PosDccCurrencyCode>
+<PosDccCurrencySymbol>
+<PosDccRate>
+<PosDccMarkup>
+<PosDccCommission>
+
+www.apex.jo
+
+Cardholder amount.
+Cardholder Currency Code.
+Cardholder Currency Symbol.
+Exchange Rate.
+Exchange Markup percentage.
+Exchange Commission.
+
+CONFIDENTIAL©2024
+
+O
+O
+O
+O
+O
+O
+
+Page 16 of 31
+
+ApexECR Web Integration Specification
+
+COMPLETION
+
+VOID
+
+<EcrAmount>
+<PosPanEncrypted>
+<InvoiceNumber>
+<AuthCode>
+
+PREAUTH
+
+<TransactionType>
+
+Description
+<Config>
+<Printer>
+Transaction type:
+- SALE
+- REFUND
+- PREAUTH
+- COMPLETION
+- VOID
+Amount to be authorized by EFTPOS
+Encrypted Primary Account Number (PAN)
+Transaction Invoice Number
+Authorization Code
+
+REFUND
+
+Messages
+<Config>
+<Printer>
+
+SALE
+
+4.6. Financial Request Fields <FinancialTxnRequest>
+
+M
+M
+M
+
+M
+M
+M
+
+M
+M
+M
+
+M
+M
+M
+
+M
+M
+M
+
+M
+O
+
+M
+
+M
+
+M
+M
+
+M
+
+4.7. Financial Response Fields <FinancialTxnResponse>
+Messages
+<WebResponseStatus>
+
+Description
+Web-Service Processing Status, values:
+0: Success
+
+Required
+M
+
+99: Failed
+
+<WebResponseErrorDesc>
+< PosAmount>
+<PosCurrencyCode>
+<PosRRN>
+<PosAuthCode>
+<PosRespCode>
+<PosRespText>
+<PosRespStatus>
+
+<PosInvoiceNumber>
+<PosCVMId>
+
+Description in case of Failure.
+Authorized Amount by EFTPOS
+EFTPOS Currency Code
+Host RRN Code
+Host Authorization Code
+Host Response Code
+Host Response Text
+Transaction Status, values:
+-1:Unknown.
+0: Declined.
+1: Approved.
+EFTPOS Invoice Number
+Card Verification Method, values:
+0: Unknown
+1: Signature
+2: Online PIN
+
+O
+M
+M
+O
+O
+M
+M
+M
+M
+
+M
+
+3: Offline PIN
+9: No CVM
+
+<PosTxnName>
+www.apex.jo
+
+Transaction Name.
+CONFIDENTIAL©2024
+
+M
+Page 17 of 31
+
+ApexECR Web Integration Specification
+<PosBatchNumber>
+<PosStan>
+<PosDate>
+<PosTime>
+<PosReceiptHeader1>
+<PosReceiptHeader2>
+<PosReceiptHeader3>
+<PosReceiptHeader4>
+<PosReceiptFooter1>
+<PosReceiptFooter2>
+<PosReceiptFooter3>
+<PosReceiptFooter4>
+<PosReceipt>
+
+EFTPOS Current Batch number.
+Transaction STAN number.
+Transaction Date (yyyyMMdd)
+Transaction Time (HHmmss)
+EFTPOS Receipt Header Line1
+EFTPOS Receipt Header Line2
+EFTPOS Receipt Header Line3
+EFTPOS Receipt Header Line3
+EFTPOS Receipt Footer Line1
+EFTPOS Receipt Footer Line2
+EFTPOS Receipt Footer Line3
+EFTPOS Receipt Footer Line4
+EFTPOS formatted receipt.
+
+M
+M
+M
+M
+O
+O
+O
+O
+O
+O
+O
+O
+O
+
+4.8. CardVerification Request Fields
+<CardVerificationRequest>
+Messages
+
+Description
+
+<Config>
+<EcrAmount>
+
+<Config>
+Amount to be authorized by EFTPOS
+
+Required
+M
+O
+
+4.9. CardVerification Response Fields
+<CardVerificationResponse>
+Messages
+
+Description
+
+<WebResponseStatus>
+
+Web-Service Processing Status, values:
+0: Success
+99: Failed
+
+<WebResponseErrorDesc> Description in case of Failure.
+
+Required
+M
+O
+
+4.10. Ecr Enquiry Request Fields <EnquiryRequest>
+Messages
+
+Description
+
+<Config>
+<Printer>
+<OrigAuthCode>
+<OrigInvoiceNumber>
+<OrigRrn>
+
+<Config>
+<Printer>
+Original Authorization Code
+Original Invoice Number
+Original Transaction RRN
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Required
+M
+M
+O
+M
+M
+
+Page 18 of 31
+
+ApexECR Web Integration Specification
+
+4.11. Ecr Enquiry Response Fields < EnquiryResponse>
+Messages
+
+Description
+
+<WebResponseStatus>
+
+Web-Service Processing Status, values:
+0: Success
+
+Required
+M
+
+99: Failed
+
+<WebResponseErrorDesc>
+< PosAmount>
+<PosCurrencyCode>
+<PosRRN>
+<PosAuthCode>
+<PosRespCode>
+<PosRespText>
+<PosRespStatus>
+
+<PosInvoiceNumber>
+<PosCVMId>
+
+Description in case of Failure.
+Authorized Amount by EFTPOS
+EFTPOS Currency Code
+Host RRN Code
+Host Authorization Code
+Host Response Code
+Host Response Text
+Transaction Status, values:
+-1:Unknown.
+0: Declined.
+1: Approved.
+EFTPOS Invoice Number
+Card Verification Method, values:
+0: Unknown
+1: Signature
+2: Online PIN
+
+O
+M
+M
+O
+O
+M
+M
+
+M
+
+M
+
+M
+
+3: Offline PIN
+9: No CVM
+
+<PosTxnName>
+<PosBatchNumber>
+<PosStan>
+<PosDate>
+<PosTime>
+<PosReceiptHeader1>
+<PosReceiptHeader2>
+<PosReceiptHeader3>
+<PosReceiptHeader4>
+<PosReceiptFooter1>
+<PosReceiptFooter2>
+<PosReceiptFooter3>
+<PosReceiptFooter4>
+<PosReceipt>
+
+www.apex.jo
+
+Transaction Name.
+EFTPOS Current Batch number.
+Transaction STAN number.
+Transaction Date (yyyyMMdd)
+Transaction Time (HHmmss)
+EFTPOS Receipt Header Line1
+EFTPOS Receipt Header Line2
+EFTPOS Receipt Header Line3
+EFTPOS Receipt Header Line3
+EFTPOS Receipt Footer Line1
+EFTPOS Receipt Footer Line2
+EFTPOS Receipt Footer Line3
+EFTPOS Receipt Footer Line4
+EFTPOS formatted receipt.
+
+CONFIDENTIAL©2024
+
+M
+M
+M
+M
+M
+O
+O
+O
+O
+O
+O
+O
+O
+O
+
+Page 19 of 31
+
+ApexECR Web Integration Specification
+
+4.12.
+
+Settlement Request Fields <SettlementRequest>
+Messages
+
+Description
+
+<Config>
+
+<Config>
+
+4.13.
+
+Required
+M
+
+Settlement Response Fields <SettlementResponse>
+Messages
+
+Description
+
+<WebResponseStatus>
+
+Web-Service Processing Status, values:
+0: Success
+99: Failed
+
+<WebResponseErrorDesc>
+<PosRespCode>
+<PosRespText>
+<PosRespStatus>
+
+www.apex.jo
+
+Description in case of Failure.
+Host Response Code
+Host Response Text
+Transaction Status, values:
+-1:Unknown.
+0: Declined.
+1: Approved.
+
+CONFIDENTIAL©2024
+
+Required
+M
+M
+M
+M
+M
+
+Page 20 of 31
+
+ApexECR Web Integration Specification
+
+5. DLL Interface
+A Dynamic-Link Library (DLL) is also provided to simplify the integration with ECR POS retail
+system. All functionalities are wrapped into one DLL, accessed through “ApexEcrDLL.dll”.
+
+5.1. DLL Classes
+5.1.1. EcrConfig
+Member
+
+Type
+
+Mid
+
+String
+
+Tid
+
+String
+
+MerchantSecureKey
+
+String
+
+EcrCurrencyCode
+
+String
+
+EcrTillerUserName
+
+String
+
+EcrTillerFullName
+
+String
+
+Max Length
+15
+8
+32
+3
+30
+30
+
+Description
+Merchant ID
+Terminal ID
+Merchant Secure Key
+ECR Currency Code (“400”)
+Tiller Username\ID
+Tiller Full Name
+
+5.1.2. EcrPrinter
+Member
+
+Type
+
+PrinterWidth
+
+int
+
+EnablePrintPosReceipt
+
+int
+
+EnablePrintReceiptNote
+
+int
+
+ReceiptNote
+
+String
+
+InvoiceNumber
+
+String
+
+ReferenceNumber
+
+String
+
+www.apex.jo
+
+Max Length Description
+Number of characters per line
+Print EFTPOS receipt:
+-
+
+-
+
+240
+30
+30
+
+0: None
+1: Merchant Copy
+2: Customer Copy
+3: Both Copies
+Print ECR Custom Notes, values:
+0: None
+1: Before Header
+2: After Header
+3: Before Footer
+4: After Footer
+ECR Custom Notes
+ECR Invoice Number
+ECR Reference Number
+
+CONFIDENTIAL©2024
+
+Page 21 of 31
+
+ApexECR Web Integration Specification
+
+5.1.3. EcrCardData
+Member
+
+Type
+
+PosCardEntryModeId
+
+int
+
+Length
+1
+
+PosIssuerName
+
+string
+
+PosPan
+
+string
+
+PosPanEncrypted
+
+string
+
+First 6 and Last 4 digits of the PAN
+(Field 2).
+(XXXXXX******XXXX)
+Encrypted PAN
+
+PosExpDateEncrypted
+
+string
+
+Encrypted Expiry Date
+
+10
+19
+
+Description
+‘1’: Manual PAN Entry.
+‘2’: Magnetic Card (Swipe).
+‘3’: Chip Card (Card Inserted).
+‘4’: Fallback.
+‘5’: Contactless (Tap).
+‘6’: Mobile.
+Card Issuer Name, “VISA”, “MASTERCARD” …
+
+5.1.4. EcrEmvData
+Member
+
+Type
+
+PosEmvAid
+
+string
+
+PosEmvAppName
+
+string
+
+PosEmvCryptogram
+
+string
+
+PosEmvTVR
+
+string
+
+Length
+32
+20
+16
+10
+
+Description
+EMV Application Identifier (EMV TAG 9F06)
+Selected Application Preferred Name
+(EMV TAG 9F12), or Application Label
+(EMV Tag 5A)
+Application Cryptogram (EMV TAG 9F26)
+Terminal Verification Results (EMV Tag 95)
+
+5.1.5. EcrDccData
+Member
+
+Type
+
+PosDccIndicatorId
+
+int
+
+PosDccAmount
+
+string
+
+PosDccCurrencyCode
+
+string
+
+PosDccCurrencySymbol
+
+string
+
+PosDccRate
+
+string
+
+PosDccMarkup
+
+string
+
+PosDccCommission
+
+string
+
+www.apex.jo
+
+Length
+1
+
+12
+3
+3
+20
+10
+10
+
+Description
+‘0’: Unknown
+‘1’: Not DCC Eligible
+‘2’: DCC Eligible, Offer Not Accepted
+‘3’: DCC Eligible, Offer Accepted
+Cardholder Amount (Foreign Amount)
+Cardholder Currency Code
+Cardholder Currency Symbol
+Exchange Rate (“1.43024”)
+Markup on Exchange Rate (“01.234%”)
+Commission on Exchange Rate (“01.234%”)
+
+CONFIDENTIAL©2024
+
+Page 22 of 31
+
+ApexECR Web Integration Specification
+
+5.1.6. FinancialTxnRequest
+Member
+
+Type
+
+Config
+
+EcrConfig
+
+Printer
+
+EcrPrinter
+
+TransactionType
+
+String
+
+Length Description
+1
+1
+Transaction type:
+20
+-
+
+EcrAmount
+
+Decimal
+
+PanEncrypted
+
+String
+
+MAX
+
+InvoiceNumber
+
+String
+
+AuthCode
+
+String
+
+6
+8
+
+SALE
+REFUND
+PREAUTH
+COMPLETION
+VOID
+
+Sale Amount.
+Encrypted PAN, if provided a manual Sale transaction
+is performed.
+Original transaction invoice number.
+Original transaction Authorization Code.
+
+5.1.7. FinancialTxnResponse
+Member
+
+Type
+
+WebResponseStatus
+
+Enums.WebCallStatus
+
+WebResponseErrorDesc
+
+string
+
+CardData
+
+EcrCardData
+
+Card related data
+
+EmvData
+
+EcrEmvData
+
+EMV related data
+
+DccData
+
+EcrDccData
+
+DCC related data
+
+PosRRN
+
+string
+
+PosAuthCode
+
+string
+
+PosRespCode
+
+string
+
+PosRespText
+
+string
+
+12
+6
+2
+20
+
+PosRespStatus
+
+int
+
+1
+
+PosInvoiceNumber
+
+string
+
+PosCVMId
+
+int
+
+6
+1
+
+PosTxnName
+
+string
+
+10
+
+PosBatchNumber
+
+string
+
+PosStan
+
+string
+
+PosDate
+
+string
+
+PosTime
+
+string
+
+PosReceiptHeader1
+
+string
+
+6
+6
+8
+6
+40
+
+www.apex.jo
+
+Length
+
+Description
+Web Interface Response Status
+
+MAX
+
+CONFIDENTIAL©2024
+
+Failure Description
+
+Retrieval Reference Number
+Authorization response number
+Host response code
+Host response text, translate of
+response code.
+‘0’: Declined.
+‘1’: Approved.
+EFTPOS Invoice number
+‘0’: Unknown
+‘1’: Signature
+‘2’: Online PIN
+‘3’: Offline PIN
+‘9’: No CVM
+Transaction
+Name,
+“REFUND”…
+Current Batch Number
+
+“SALE,
+
+Transaction STAN
+Transaction Date (yyyyMMdd)
+Transaction Time (HHmmss)
+Receipt Header Line #1
+
+Page 23 of 31
+
+ApexECR Web Integration Specification
+PosReceiptHeader2
+
+string
+
+PosReceiptHeader3
+
+string
+
+PosReceiptHeader4
+
+string
+
+PosReceiptFooter1
+
+string
+
+PosReceiptFooter2
+
+string
+
+PosReceiptFooter3
+
+string
+
+PosReceiptFooter4
+
+string
+
+PosReceipt
+
+string
+
+40
+40
+40
+40
+40
+40
+40
+MAX
+
+Receipt Header Line #2
+Receipt Header Line #3
+Receipt Header Line #4
+Receipt Footer Line #1
+Receipt Footer Line #2
+Receipt Footer Line #3
+Receipt Footer Line #4
+Full EFTPOS Receipt
+
+5.1.8. CardVerificationRequest
+Member
+
+Type
+
+Config
+
+EcrConfig
+
+EcrAmount
+
+Decimal
+
+Length Description
+1
+Sale Amount.
+
+5.1.9. CardVerificationResponse
+Member
+
+Type
+
+WebResponseStatus
+
+Enums.WebCallStatus
+
+WebResponseErrorDesc
+
+string
+
+CardData
+
+EcrCardData
+
+5.1.10.
+
+Type
+
+Config
+
+EcrConfig
+
+Web Interface Response Status
+
+MAX
+
+Failure Description
+Card related data
+
+Length
+-
+
+Description
+
+SettlementResponse
+
+Member
+
+Type
+
+WebResponseStatus
+
+Enums.WebCallStatus
+
+WebResponseErrorDesc
+
+string
+
+www.apex.jo
+
+Description
+
+SettlementRequest
+
+Member
+
+5.1.11.
+
+Length
+
+Length
+
+Description
+Web Interface Response Status
+
+MAX
+
+CONFIDENTIAL©2024
+
+Failure Description
+
+Page 24 of 31
+
+ApexECR Web Integration Specification
+
+5.1.12.
+
+CancelRequest
+
+Member
+
+Type
+
+Config
+
+EcrConfig
+
+5.1.13.
+
+Length
+-
+
+CancelResponse
+
+Member
+
+Type
+
+WebResponseStatus
+
+Enums.WebCallStatus
+
+WebResponseErrorDesc
+
+string
+
+www.apex.jo
+
+Description
+
+Length
+
+Description
+Web Interface Response Status
+
+MAX
+
+CONFIDENTIAL©2024
+
+Failure Description
+
+Page 25 of 31
+
+ApexECR Web Integration Specification
+
+5.2. DLL Functions
+5.2.1. General Functions
+string GetVersion();
+
+Returns the current DLL version in a String format (“1.0.0.0”).
+void InitializeConfig();
+
+Specify the “.config” file.
+
+5.2.2. Configuration Functions
+int SetConfiguration(string Mid,string Tid, string MerchantSecureKey);
+
+Set Merchant ID, Terminal ID and Merchant Secure Key.
+int SetCurrencyCode(string EcrCurrencyCode);
+
+Set the Currency Code “400”.
+int SetTillerInfo(string EcrTillerUserName, string EcrTillerFullName);
+Set the Tiller Info (Username & Full Name).
+
+5.2.3. Printer Functions
+int EnablePrintPosReceipt(bool Enable);
+
+Enable\Disable EFTPOS printing receipt
+int EnablePrintReceiptNote(int Flag);
+
+Print ECR Custom Notes, values:
+0: None
+1: Before Header
+2: After Header
+3: Before Footer
+4: After Footer
+int SetEcrNotes(string note);
+
+Set ECR Notes.
+int SetEcrInvoiceNumber(string invoice)s;
+
+Set ECR Invoice Number.
+int SetEcrReferenceNumber(string reference);
+
+Set ECR Reference Number.
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 26 of 31
+
+ApexECR Web Integration Specification
+
+5.2.4. Financial Functions
+FinancialTxnResponse Sale(decimal amount);
+Start SALE Transaction.
+FinancialTxnResponse Refund(decimal amount);
+Start REFUND Transaction.
+FinancialTxnResponse PreAuth(decimal amount);
+Start Pre-Authorization Transaction.
+FinancialTxnResponse Completion(decimal amount, string invoice);
+Start Completion Transaction.
+FinancialTxnResponse VoidByInvoice(string invoiceNumber);
+Void a transaction by Invoice.
+CardVerificationResponse CardVerification(decimal amount);
+Card Verification Transaction.
+CancelResponse CancelLastRequest();
+Cancel last requested transaction.
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 27 of 31
+
+ApexECR Web Integration Specification
+
+6. Response Status
+All received responses, will contain the following fields:
+- WebResponseStatus: Indicates the result of processing the Web Request.
+- PosRespStatus: Indicates the status of the Transaction at the EFTPOS side.
+
+6.1.
+
+Web Response Status
+
+Following are possible values for <WebResponseStatus>:
+Code
+
+Description
+
+0
+99
+
+Success.
+Failed.
+
+In case of failure, <WebResponseErrorDesc> will contain the full description for the failure
+reason.
+
+6.2.
+
+POS Response Status
+
+Following are possible values for <PosRespStatus>:
+
+www.apex.jo
+
+Code
+
+Description
+
+-1
+0
+1
+
+Unknown
+Transaction Declined
+Transaction Approved
+
+CONFIDENTIAL©2024
+
+Page 28 of 31
+
+ApexECR Web Integration Specification
+
+7. Appendixes
+7.1. Appendix C (Sample Code)
+7.1.1. SOAP Sample Code (C#)
+try
+{
+EcrInterface.EcrComInterfaceClient client = new EcrInterface.EcrComInterfaceClient();
+FinancialTxnRequest req = new FinancialTxnRequest();
+req.Config.Mid = “123456789012345”;
+req.Config.Tid = “12345678”;
+req.Config.MerchantSecureKey = “0123456789ABCDEF0123456789ABCDEF”;
+req.Config.EcrCurrencyCode = “400”;
+req.Config.EcrTillerUserName=”flan”;
+req.Config.EcrTillerFullName = “Flan Flany”;
+req.Printer.PrinterWidth = 40;
+req.Printer.InvoiceNumber = “INV_0001”;
+req.Printer.ReferenceNumber = “REF_0001”;
+req.Printer.EnablePrintPosReceipt = true;
+req.Printer.EnablePrintReceiptNote = 0;
+req.Printer.ReceiptNote = “”;
+
+req.TransactionType = Enums.EcrTransactionTypes.SALE;
+req.EcrAmount = 1.234;
+FinancialTxnResponse resp = client.Sale(req);
+client.Close();
+String receiptTxt = resp.PosReceipt;
+if (resp.WebResponseStatus == Enums.WebCallStatus.Faild)
+{
+; //Web call failed
+}
+else
+{
+if (resp.PosRespStatus == -1)
+{
+; //Unknown EFTPOS response
+}
+else if (resp.PosRespStatus == 0)
+{
+; //Transaction Declined
+}
+else
+{
+; //Transaction Approved
+}
+}
+}
+catch (Exception ex)
+{
+;
+}
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 29 of 31
+
+ApexECR Web Integration Specification
+7.1.2. DLL Sample Code (VB6)
+Dim ecr As ApexEcrDLL.Interface
+Set ecr = CreateObject("ApexEcrDLL.Interface")
+
+Private Sub btnSale_Click()
+Dim resp As FinancialTxnResponse
+Dim amount As Double
+Dim posPrintReceipt As Boolean
+Dim receiptTxt As String
+
+' Set the ".config" file for the DLL:
+ecr.InitializeConfig (App.Path + "\" + "ApexEcrDLL.dll.config")
+' Set Merchant ID, Terminal ID & Secure Key:
+retval = ecr.SetConfiguration(“123456789012345”, “12345678”, “0123456789ABCDEF0123456789ABCDEF”)
+' Set Currency Code (JOD:400):
+retval = ecr.SetCurrencyCode(“400”)
+' Set Tiller Info:
+Call ecr.SetTillerInfo(“flan”, “Flan Flany”)
+' Set Enable option for EFTPOS to print receipt
+Call ecr.EnablePrintPosReceipt(True)
+'Set Enable option for EFTPOS to print ECR Notes on receipt:
+Call ecr.EnablePrintReceiptNote(4)
+' Set ECR Notes text
+Call ecr.SetEcrNotes(“”)
+' Set ECR Invoice Number:
+Call ecr.SetEcrInvoiceNumber(“INV_0001”)
+' Set ECR Reference Number:
+Call ecr.SetEcrReferenceNumber(“REF_0001”)
+
+' Request for SALE:
+Set resp = ecr.Sale(1.234)
+' Get Receipt from DLL:
+receiptTxt = resp.PosReceipt
+If (resp.WebResponseStatus = ApexEcrDLL.EnumsWebCallStatus_Faild) Then
+’ Web call failed
+Else
+If (resp.PosRespStatus = -1) Then
+’ Unknown EFTPOS response
+ElseIf (resp.PosRespStatus = 0) Then
+’ Transaction Declined
+Else
+’ Transaction Approved
+End If
+End If
+End Sub
+
+www.apex.jo
+
+CONFIDENTIAL©2024
+
+Page 30 of 31
+
+Apex Payment Solutions
+www.apex.jo
+
+www.apex.jo
+
+CONFIDENTIAL©2023
+
+Page 31 of 31
+
+

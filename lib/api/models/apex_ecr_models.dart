@@ -7,8 +7,6 @@ class EcrConfig {
   final String ecrCurrencyCode;
   final String? ecrTillerUserName;
   final String? ecrTillerFullName;
-  final String? integratorName;
-  final String? tenant;
 
   EcrConfig({
     required this.tid,
@@ -17,14 +15,13 @@ class EcrConfig {
     required this.ecrCurrencyCode,
     this.ecrTillerUserName,
     this.ecrTillerFullName,
-    this.integratorName,
-    this.tenant,
   });
 
   void buildXml(XmlBuilder builder) {
     builder.element(
       'ns:Config',
       nest: () {
+        // WCF DataContractSerializer requires alphabetical order
         builder.element('ns:EcrCurrencyCode', nest: ecrCurrencyCode);
         if (ecrTillerFullName != null) {
           builder.element('ns:EcrTillerFullName', nest: ecrTillerFullName);
@@ -32,14 +29,8 @@ class EcrConfig {
         if (ecrTillerUserName != null) {
           builder.element('ns:EcrTillerUserName', nest: ecrTillerUserName);
         }
-        if (integratorName != null) {
-          builder.element('ns:IntegratorName', nest: integratorName);
-        }
         builder.element('ns:MerchantSecureKey', nest: merchantSecureKey);
         builder.element('ns:Mid', nest: mid);
-        if (tenant != null) {
-          builder.element('ns:Tenant', nest: tenant);
-        }
         builder.element('ns:Tid', nest: tid);
       },
     );
@@ -67,6 +58,7 @@ class EcrPrinter {
     builder.element(
       'ns:Printer',
       nest: () {
+        // WCF DataContractSerializer requires alphabetical order
         builder.element(
           'ns:EnablePrintPosReceipt',
           nest: enablePrintPosReceipt.toString(),
@@ -97,7 +89,7 @@ class FinancialTxnRequest {
   final double? ecrAmount;
   final String? invoiceNumber;
   final String? authCode;
-  final String? origRrn;
+  final String? panEncrypted;
 
   FinancialTxnRequest({
     required this.config,
@@ -106,7 +98,7 @@ class FinancialTxnRequest {
     this.ecrAmount,
     this.invoiceNumber,
     this.authCode,
-    this.origRrn,
+    this.panEncrypted,
   });
 
   String toXml() {
@@ -124,41 +116,26 @@ class FinancialTxnRequest {
         builder.element(
           'soapenv:Body',
           nest: () {
-            final isVoid = transactionType.toUpperCase() == 'VOID';
-            final actionName = isVoid ? 'tem:Void' : 'tem:Sale';
+            final type = transactionType.toUpperCase();
+            final actionName =
+                (type == 'VOID' || type == 'VOIDBYINVOICE')
+                    ? 'tem:Void'
+                    : 'tem:Sale';
+
             builder.element(
               actionName,
               nest: () {
                 builder.element(
                   'tem:webReq',
                   nest: () {
-                    if (isVoid) {
-                      // VoidRequest sequence: Config, OrigAuthCode, OrigInvoiceNumber, OrigRrn, Printer
-                      config.buildXml(builder);
-                      if (authCode != null) {
-                        builder.element('ns:OrigAuthCode', nest: authCode);
-                      }
-                      if (invoiceNumber != null) {
-                        builder.element(
-                          'ns:OrigInvoiceNumber',
-                          nest: invoiceNumber,
-                        );
-                      }
-                      if (origRrn != null) {
-                        builder.element('ns:OrigRrn', nest: origRrn);
-                      }
-                      printer.buildXml(builder);
-                    } else {
-                      // SaleRequest sequence: Config, EcrAmount, Printer
-                      config.buildXml(builder);
-                      if (ecrAmount != null) {
-                        builder.element(
-                          'ns:EcrAmount',
-                          nest: ecrAmount!.toStringAsFixed(3),
-                        );
-                      }
-                      printer.buildXml(builder);
+                    config.buildXml(builder);
+                    if (ecrAmount != null) {
+                      builder.element(
+                        'ns:EcrAmount',
+                        nest: ecrAmount!.toStringAsFixed(3),
+                      );
                     }
+                    printer.buildXml(builder);
                   },
                 );
               },
@@ -189,6 +166,7 @@ class FinancialTxnResponse {
   final String? posDate;
   final String? posTime;
   final String? posReceipt;
+  final String? rawXmlResponse;
 
   FinancialTxnResponse({
     required this.webResponseStatus,
@@ -208,6 +186,7 @@ class FinancialTxnResponse {
     this.posDate,
     this.posTime,
     this.posReceipt,
+    this.rawXmlResponse,
   });
 
   factory FinancialTxnResponse.fromXml(
@@ -224,6 +203,7 @@ class FinancialTxnResponse {
         return FinancialTxnResponse(
           webResponseStatus: '99',
           webResponseErrorDesc: 'Invalid XML: No $rootNodeName node found.',
+          rawXmlResponse: xmlString,
         );
       }
 
@@ -281,11 +261,13 @@ class FinancialTxnResponse {
         posDate: deElementText('PosDate'),
         posTime: deElementText('PosTime'),
         posReceipt: deElementText('PosReceipt'),
+        rawXmlResponse: xmlString,
       );
     } catch (e) {
       return FinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: 'Failed to parse XML: $e',
+        rawXmlResponse: xmlString,
       );
     }
   }

@@ -152,33 +152,46 @@ class _SetupScreenState extends State<SetupScreen> {
   Future<void> _saveConfig() async {
     if (!_canSave) return;
 
+    final oldConfig = _configService.config.value;
+    final isFirstTime = oldConfig == null;
+
+    final newConfig = KioskConfig(
+      organizationId: _selectedOrg!.id,
+      organizationName: _selectedOrg!.name ?? 'unknown'.tr,
+      terminalGroupId: _selectedTerminal!.id,
+      terminalGroupName: _selectedTerminal!.name ?? 'unknown'.tr,
+      externalMenuId: _selectedMenu!.id,
+      externalMenuName: _selectedMenu!.name,
+      defaultOrderTypeId: _selectedOrderType?.id,
+      defaultOrderTypeName: _selectedOrderType?.name,
+    );
+
+    final hasChanged = isFirstTime || oldConfig != newConfig;
+
+    if (!hasChanged) {
+      Get.offAllNamed(Routes.splash);
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
 
     try {
-      final cacheService = Get.find<MenuCacheService>();
-      await cacheService.clearCache();
+      if (hasChanged) {
+        final cacheService = Get.find<MenuCacheService>();
+        await cacheService.clearCache();
+      }
 
-      final config = KioskConfig(
-        organizationId: _selectedOrg!.id,
-        organizationName: _selectedOrg!.name ?? 'unknown'.tr,
-        terminalGroupId: _selectedTerminal!.id,
-        terminalGroupName: _selectedTerminal!.name ?? 'unknown'.tr,
-        externalMenuId: _selectedMenu!.id,
-        externalMenuName: _selectedMenu!.name,
-        defaultOrderTypeId: _selectedOrderType?.id,
-        defaultOrderTypeName: _selectedOrderType?.name,
-      );
-
-      final success = await _configService.saveConfig(config);
+      final success = await _configService.saveConfig(newConfig);
       if (success) {
-        // Trigger background refresh instantly after config bounds
+        // Trigger background refresh and necessary APIs instantly after config bounds
         try {
           if (Get.isRegistered<SyrveController>()) {
-            Get.find<SyrveController>().refreshMenuInBackground(
-              forceBypassCacheWait: true,
-            );
+            final syrveController = Get.find<SyrveController>();
+            // Force re-initialization of all data for the new config
+            await syrveController.clearMenuCache();
+            syrveController.initialize(forceReload: true, forceStore: true);
           }
         } catch (_) {}
 
@@ -189,9 +202,11 @@ class _SetupScreenState extends State<SetupScreen> {
     } catch (e) {
       _showError('${"error_saving_configuration".tr} $e');
     } finally {
-      setState(() {
-        _isSaving = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 

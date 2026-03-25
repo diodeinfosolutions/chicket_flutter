@@ -44,13 +44,15 @@ class ApexEcrController extends GetxController {
       ),
       transactionType: 'SALE',
       ecrAmount: amount,
+      invoiceNumber: orderId,
     );
 
     try {
       final response = await _repository.performFinancialTransaction(request);
+      logLocal('API: ${AppConstants.apexEcrBaseUrl}EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
 
-      if ((response.webResponseStatus == '0' ||
-              response.webResponseStatus == 'Success') &&
+      if ((response.webResponseStatus.toLowerCase() == '0' ||
+              response.webResponseStatus.toLowerCase() == 'success') &&
           response.posRespStatus == 1) {
         statusMessage.value = 'Payment Approved!';
       } else {
@@ -100,8 +102,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performEnquiry(request);
-      if ((response.webResponseStatus == '0' ||
-              response.webResponseStatus == 'Success') &&
+      logLocal('API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
+      if ((response.webResponseStatus.toLowerCase() == '0' ||
+              response.webResponseStatus.toLowerCase() == 'success') &&
           response.posRespStatus == 1) {
         statusMessage.value = 'Enquiry Successful!';
       } else {
@@ -140,9 +143,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performSettlement(request);
-      if ((response.webResponseStatus == '0' ||
-              response.webResponseStatus == 'Success') &&
-          response.posRespStatus == 1) {
+      logLocal('API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
+      if (response.webResponseStatus.toLowerCase() == '0' ||
+          response.webResponseStatus.toLowerCase() == 'success') {
         statusMessage.value = 'Settlement Successful!';
       } else {
         statusMessage.value = getErrorMessage(response);
@@ -164,17 +167,20 @@ class ApexEcrController extends GetxController {
 
   /// Maps technical ECR response codes to user-friendly translatable strings.
   String getErrorMessage(FinancialTxnResponse response) {
-    if (response.posRespStatus == 0) {
-      return 'declined_error'.tr;
-    }
-
-    if (response.webResponseStatus == '99') {
+    if (response.webResponseStatus.toLowerCase() != '0' && response.webResponseStatus.toLowerCase() != 'success') {
       if (response.webResponseErrorDesc?.contains('Timeout') == true) {
         return 'timeout_error'.tr;
       }
       if (response.webResponseErrorDesc?.contains('Network') == true) {
         return 'network_error'.tr;
       }
+      if (response.webResponseErrorDesc != null && response.webResponseErrorDesc!.isNotEmpty) {
+        return response.webResponseErrorDesc!;
+      }
+    }
+
+    if (response.posRespStatus == 0) {
+      return response.posRespText?.isNotEmpty == true ? response.posRespText! : 'declined_error'.tr;
     }
 
     return response.posRespText ?? 'payment_failed'.tr;

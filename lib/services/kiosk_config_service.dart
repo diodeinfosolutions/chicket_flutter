@@ -49,6 +49,23 @@ class KioskConfig {
   );
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is KioskConfig &&
+          runtimeType == other.runtimeType &&
+          organizationId == other.organizationId &&
+          terminalGroupId == other.terminalGroupId &&
+          externalMenuId == other.externalMenuId &&
+          defaultOrderTypeId == other.defaultOrderTypeId;
+
+  @override
+  int get hashCode =>
+      organizationId.hashCode ^
+      terminalGroupId.hashCode ^
+      externalMenuId.hashCode ^
+      defaultOrderTypeId.hashCode;
+
+  @override
   String toString() =>
       'KioskConfig(org: $organizationName, terminal: $terminalGroupName, menu: $externalMenuName)';
 }

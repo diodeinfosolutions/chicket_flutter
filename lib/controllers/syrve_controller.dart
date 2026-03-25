@@ -108,7 +108,10 @@ class SyrveController extends GetxController {
   /// Powers on the controller by loading initial static data and starting background refreshes.
   /// 
   /// [forceReload] bypasses the internal "is loaded" check.
-  Future<void> initialize({bool forceReload = false}) async {
+  Future<void> initialize({
+    bool forceReload = false,
+    bool forceStore = false,
+  }) async {
     if (_isDataLoaded.value && !forceReload) {
       if (kDebugMode) {
         debugPrint('Data already loaded, skipping initialization');
@@ -141,7 +144,10 @@ class SyrveController extends GetxController {
         debugPrint('Syrve API initialized successfully');
       }
 
-      await Future.wait([loadMenu(), loadStopLists()]);
+      await Future.wait([
+        loadMenu(forceRefresh: forceReload, forceStore: forceStore),
+        loadStopLists(),
+      ]);
 
       if (organizationId != null) {
         await _bannerController.fetchBanners(
@@ -190,21 +196,29 @@ class SyrveController extends GetxController {
   /// 
   /// Uses a "Cache-First" approach: displays cached data immediately if available, 
   /// then triggers a background refresh from the API.
-  Future<void> loadMenu({bool forceRefresh = false}) async {
+  Future<void> loadMenu({
+    bool forceRefresh = false,
+    bool forceStore = false,
+  }) async {
     if (organizationId == null) {
       menuError.value = 'Organization ID not available';
       return;
     }
 
-    if (kDebugMode) debugPrint('loadMenu called: forceRefresh=$forceRefresh');
+    if (kDebugMode) {
+      debugPrint('loadMenu called: forceRefresh=$forceRefresh forceStore=$forceStore');
+    }
     menuError.value = null;
 
-    if (menu.value != null && menu.value!.itemCategories?.isNotEmpty == true) {
+    if (!forceStore &&
+        !forceRefresh &&
+        menu.value != null &&
+        menu.value!.itemCategories?.isNotEmpty == true) {
       refreshMenuInBackground();
       return;
     }
 
-    if (!forceRefresh && _cacheService.hasCachedMenu) {
+    if (!forceStore && !forceRefresh && _cacheService.hasCachedMenu) {
       final cachedMenu = _cacheService.getCachedMenu();
       if (cachedMenu != null && cachedMenu.itemCategories?.isNotEmpty == true) {
         final filteredMenu = _filterDeliveryFee(cachedMenu);
@@ -219,6 +233,13 @@ class SyrveController extends GetxController {
     isLoadingMenu.value = true;
 
     try {
+      if (forceStore) {
+        await Get.find<ApiRepository>().storeOrUpdateMenu(
+          externalMenuId: _configService.currentConfig.externalMenuId,
+          organizationId: _configService.currentConfig.organizationId,
+        );
+      }
+
       final result = await Get.find<ApiRepository>().viewMenu(
         menuId: _configService.currentConfig.externalMenuId,
       );

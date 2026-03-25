@@ -10,6 +10,8 @@ import 'package:chicket/utils/kiosk_service.dart';
 import 'package:chicket/utils/cache_config.dart';
 import 'package:chicket/controllers/idle_controller.dart';
 import 'package:chicket/localization/app_translations.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,10 +37,24 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  String _version = '';
+
   @override
   void initState() {
     super.initState();
+    _initPackageInfo();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<void> _initPackageInfo() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _version = '${info.version}+${info.buildNumber}';
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -77,7 +93,26 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               final isArabic = Get.locale?.languageCode == 'ar';
               return Directionality(
                 textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-                child: child ?? const SizedBox.shrink(),
+                child: Stack(
+                  children: [
+                    child ?? const SizedBox.shrink(),
+                    if (_version.isNotEmpty)
+                      Positioned(
+                        right: 4,
+                        bottom: 4,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Text(
+                            _version,
+                            style: const TextStyle(
+                              fontSize: 6,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               );
             },
           );

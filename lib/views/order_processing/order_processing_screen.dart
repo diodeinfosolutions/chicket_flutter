@@ -87,7 +87,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
       final response = await ecrController.processSale(amount, invoiceNumber);
 
-      if (response.webResponseStatus == '0' && response.posRespStatus == 1) {
+      if ((response.webResponseStatus.toLowerCase() == '0' || response.webResponseStatus.toLowerCase() == 'success') && response.posRespStatus == 1) {
         // 2. If payment success, create record in Syrve
         logLocal('Payment success for invoice $invoiceNumber, creating Syrve order.');
         await _createOrder();

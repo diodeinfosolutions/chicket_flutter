@@ -28,7 +28,7 @@ Future<void> logLocal(String msg) async {
 
     // Create a unique file for this entry to ensure no overwrites and facilitate TTL
     final file = File('${logDir.path}/kiosk_log_${dateStr}_$timeStr.txt');
-    await file.writeAsString('[$fullTimeStr] $msg\n');
+    await file.writeAsString('[$fullTimeStr] $msg\n', mode: FileMode.append);
   } catch (e) {
     debugPrint('Failed to log locally: $e');
   }

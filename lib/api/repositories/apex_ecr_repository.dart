@@ -16,9 +16,10 @@ class ApexEcrRepository {
           Dio(
             BaseOptions(
               baseUrl: AppConstants.apexEcrBaseUrl,
-              connectTimeout: const Duration(seconds: 60),
-              receiveTimeout: const Duration(seconds: 60),
-              sendTimeout: const Duration(seconds: 60),
+              connectTimeout: const Duration(seconds: 120),
+              receiveTimeout: const Duration(seconds: 120),
+              sendTimeout: const Duration(seconds: 120),
+              responseType: ResponseType.plain,
               headers: {
                 'Content-Type': 'text/xml; charset=utf-8',
                 'Accept': 'text/xml',
@@ -57,7 +58,8 @@ class ApexEcrRepository {
   ) async {
     try {
       final xmlData = request.toXml();
-      final isVoid = request.transactionType.toUpperCase() == 'VOID';
+      final type = request.transactionType.toUpperCase();
+      final isVoid = type == 'VOID' || type == 'VOIDBYINVOICE';
       final action = isVoid ? 'Void' : 'Sale';
 
       final response = await _dio.post(
