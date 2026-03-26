@@ -92,17 +92,12 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
   }
 
   Widget _buildPaymentOptionsGrid() {
-    final paymentTypes = _syrveController.paymentTypes
-        .where((p) => p.isDeleted != true)
-        .where((p) {
-          final name = p.name.toLowerCase();
+    final List<PaymentType> paymentTypes = [];
+    final kioskOnline = _syrveController.getPaymentTypeByName('KIOSK ONLINE');
+    final cash = _syrveController.getPaymentTypeByName('Cash');
 
-          return name.contains('debit card') ||
-              name.contains('credit card') ||
-              name.contains('benefit') ||
-              name.contains('benifit');
-        })
-        .toList();
+    if (kioskOnline != null) paymentTypes.add(kioskOnline);
+    if (cash != null) paymentTypes.add(cash);
 
     if (paymentTypes.isEmpty) {
       return Padding(
@@ -169,7 +164,9 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
                 )),
             SizedBox(height: 12.h),
             Text(
-              paymentType.name,
+              paymentType.name.toUpperCase() == 'KIOSK ONLINE'
+                  ? 'Online'
+                  : paymentType.name,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Oswald',
@@ -204,7 +201,8 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
 
     if (name.contains('card') ||
         name.contains('visa') ||
-        name.contains('mastercard')) {
+        name.contains('mastercard') ||
+        name.contains('online')) {
       return Assets.png.cc.image(
         width: 64.w,
         height: 48.h,
@@ -229,13 +227,15 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
       case 'creditcard':
       case 'visa':
       case 'mastercard':
+      case 'external':
         return Assets.png.cc.image(
           width: 64.w,
           height: 48.h,
           fit: BoxFit.contain,
-          color: _selectedPaymentType?.id == paymentType.id
-              ? AppColors.GREEN
-              : AppColors.GREY,
+          color:
+              _selectedPaymentType?.id == paymentType.id
+                  ? AppColors.GREEN
+                  : AppColors.GREY,
         );
       case 'voucher':
       case 'coupon':
@@ -247,7 +247,6 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
               ? AppColors.GREEN
               : AppColors.GREY,
         );
-      case 'external':
       case 'iikocard':
       default:
         return null;

@@ -11,6 +11,7 @@ import 'package:chicket/theme/colors.dart';
 import 'package:chicket/routes.dart';
 import 'package:chicket/gen/assets.gen.dart';
 import 'package:chicket/controllers/syrve_controller.dart';
+import 'package:chicket/api/repositories/api_repository.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -21,11 +22,13 @@ class SetupScreen extends StatefulWidget {
 
 class _SetupScreenState extends State<SetupScreen> {
   final SyrveRepository _repository = SyrveRepository();
+  final ApiRepository _apiRepository = ApiRepository();
   final KioskConfigService _configService = Get.find<KioskConfigService>();
   late final GifController _gifController;
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isRefreshingMenu = false;
   String? _error;
 
   List<Organization> _organizations = [];
@@ -210,6 +213,54 @@ class _SetupScreenState extends State<SetupScreen> {
     }
   }
 
+  bool get _isConfigChanged {
+    final currentSaved = _configService.config.value;
+    if (currentSaved == null) return false;
+
+    return _selectedOrg?.id != currentSaved.organizationId ||
+        _selectedTerminal?.id != currentSaved.terminalGroupId ||
+        _selectedMenu?.id != currentSaved.externalMenuId ||
+        _selectedOrderType?.id != currentSaved.defaultOrderTypeId;
+  }
+
+  Future<void> _refreshMenu() async {
+    if (_selectedOrg == null || _selectedMenu == null) {
+      _showError('Please select organization and menu first');
+      return;
+    }
+
+    setState(() {
+      _isRefreshingMenu = true;
+    });
+
+    try {
+      // 1. Store or update menu
+      await _apiRepository.storeOrUpdateMenu(
+        externalMenuId: _selectedMenu!.id,
+        organizationId: _selectedOrg!.id,
+      );
+
+      // 2. View menu (to ensure it's loaded/cached on backend)
+      await _apiRepository.viewMenu(menuId: _selectedMenu!.id);
+
+      _showSuccess('Menu refreshed successfully');
+    } catch (e) {
+      _showError('Failed to refresh menu: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRefreshingMenu = false;
+        });
+      }
+    }
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppColors.GREEN),
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
@@ -383,6 +434,10 @@ class _SetupScreenState extends State<SetupScreen> {
         children: [
           _buildInfoCard(),
           Gap(16.h),
+          if (_configService.isConfigured) ...[
+            _buildRefreshMenuButton(),
+            Gap(12.h),
+          ],
           _buildSaveButton(),
           if (_configService.isConfigured) ...[Gap(12.h), _buildCancelButton()],
         ],
@@ -620,6 +675,57 @@ class _SetupScreenState extends State<SetupScreen> {
                   color: Colors.white,
                 ),
               ),
+            ),
+    );
+  }
+
+  Widget _buildRefreshMenuButton() {
+    final bool isChanged = _isConfigChanged;
+    return OutlinedButton(
+      onPressed: _selectedOrg != null &&
+              _selectedMenu != null &&
+              !_isRefreshingMenu &&
+              !isChanged
+          ? _refreshMenu
+          : null,
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(
+          color: isChanged ? Colors.grey : AppColors.BROWN,
+          width: 2,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 12.w),
+      ),
+      child: _isRefreshingMenu
+          ? SizedBox(
+              width: 24.w,
+              height: 24.w,
+              child: const CircularProgressIndicator(
+                color: AppColors.BROWN,
+                strokeWidth: 2,
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.refresh_rounded,
+                  color: isChanged ? Colors.grey : AppColors.BROWN,
+                  size: 24.sp,
+                ),
+                Gap(8.w),
+                Text(
+                  'REFRESH MENU',
+                  style: TextStyle(
+                    fontFamily: 'Oswald',
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isChanged ? Colors.grey : AppColors.BROWN,
+                  ),
+                ),
+              ],
             ),
     );
   }

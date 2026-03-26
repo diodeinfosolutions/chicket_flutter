@@ -12,7 +12,7 @@ import 'banner_controller.dart';
 import '../utils/log_local.dart';
 
 /// Main controller for interacting with the Syrve (iiko) API.
-/// Handles menu loading, stop lists, order types, payment methods, 
+/// Handles menu loading, stop lists, order types, payment methods,
 /// and order creation/status tracking.
 class SyrveController extends GetxController {
   final SyrveRepository _repository = SyrveRepository();
@@ -22,40 +22,40 @@ class SyrveController extends GetxController {
 
   /// Loading status for initial setup (order types, payment types).
   final RxBool isInitializing = false.obs;
-  
+
   /// Loading status for the menu data.
   final RxBool isLoadingMenu = false.obs;
-  
+
   /// Status of an active order creation request.
   final RxBool isCreatingOrder = false.obs;
 
   /// Error message from the initialization phase.
   final RxnString initError = RxnString();
-  
+
   /// Error message from the menu loading phase.
   final RxnString menuError = RxnString();
-  
+
   /// Error message from the order creation phase.
   final RxnString orderError = RxnString();
 
   /// The currently loaded menu data.
   final Rx<ViewMenuData?> menu = Rx<ViewMenuData?>(null);
-  
+
   /// List of product IDs that are currently out of stock.
   final RxList<String> outOfStockProductIds = <String>[].obs;
-  
+
   /// Available order types (Delivery, Pickup, etc.) from Syrve.
   final RxList<OrderType> orderTypes = <OrderType>[].obs;
-  
+
   /// Available payment methods configured in Syrve.
   final RxList<PaymentType> paymentTypes = <PaymentType>[].obs;
-  
+
   /// Result of the most recently created order.
   final Rx<CreateDeliveryResponse?> lastOrderResponse =
       Rx<CreateDeliveryResponse?>(null);
 
   final RxBool _isDataLoaded = false.obs;
-  
+
   /// Returns [true] if the initial data (menu, types) has been loaded.
   bool get isDataLoaded => _isDataLoaded.value;
 
@@ -63,7 +63,7 @@ class SyrveController extends GetxController {
 
   /// Returns the current organization ID configured in the repository.
   String? get organizationId => _repository.organizationId;
-  
+
   /// Returns the current terminal group ID configured in the repository.
   String? get terminalGroupId => _repository.terminalGroupId;
 
@@ -106,7 +106,7 @@ class SyrveController extends GetxController {
   }
 
   /// Powers on the controller by loading initial static data and starting background refreshes.
-  /// 
+  ///
   /// [forceReload] bypasses the internal "is loaded" check.
   Future<void> initialize({
     bool forceReload = false,
@@ -193,8 +193,8 @@ class SyrveController extends GetxController {
   }
 
   /// Loads the menu from cache or API.
-  /// 
-  /// Uses a "Cache-First" approach: displays cached data immediately if available, 
+  ///
+  /// Uses a "Cache-First" approach: displays cached data immediately if available,
   /// then triggers a background refresh from the API.
   Future<void> loadMenu({
     bool forceRefresh = false,
@@ -206,7 +206,9 @@ class SyrveController extends GetxController {
     }
 
     if (kDebugMode) {
-      debugPrint('loadMenu called: forceRefresh=$forceRefresh forceStore=$forceStore');
+      debugPrint(
+        'loadMenu called: forceRefresh=$forceRefresh forceStore=$forceStore',
+      );
     }
     menuError.value = null;
 
@@ -283,7 +285,7 @@ class SyrveController extends GetxController {
   }
 
   /// Performs a silent background refresh of the menu data.
-  /// 
+  ///
   /// Checks if the menu revision has changed before updating the UI and cache.
   Future<void> refreshMenuInBackground({
     bool forceBypassCacheWait = false,
@@ -367,6 +369,17 @@ class SyrveController extends GetxController {
     }
   }
 
+  /// Resolves a Syrve [OrderType] by its name (e.g., 'KIOSK DINE IN').
+  OrderType? getOrderTypeByName(String name) {
+    try {
+      return orderTypes.firstWhere(
+        (t) => t.name.toLowerCase() == name.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Resolves a Syrve [PaymentType] by its category/kind.
   PaymentType? getPaymentTypeByKind(String kind) {
     try {
@@ -376,8 +389,19 @@ class SyrveController extends GetxController {
     }
   }
 
+  /// Resolves a Syrve [PaymentType] by its name (e.g., 'KIOSK ONLINE').
+  PaymentType? getPaymentTypeByName(String name) {
+    try {
+      return paymentTypes.firstWhere(
+        (t) => t.name.toLowerCase() == name.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Creates a final delivery order in the Syrve system.
-  /// 
+  ///
   /// Resolves order type mapping and handles order creation status.
   Future<bool> createOrder({
     required List<OrderItem> items,
@@ -401,31 +425,33 @@ class SyrveController extends GetxController {
       String? finalOrderTypeId = orderTypeId;
       String? finalOrderServiceType = orderServiceType;
 
+      // 1. Resolve orderTypeId from orderServiceType if missing
       if (finalOrderTypeId == null && finalOrderServiceType != null) {
         final orderType = getOrderTypeByServiceType(finalOrderServiceType);
         finalOrderTypeId = orderType?.id;
       }
 
+      // 2. Fallback to 'Common' or first available if still null
       if (finalOrderTypeId == null && orderTypes.isNotEmpty) {
-        if (finalOrderServiceType == null) {
-          final commonOrderType = orderTypes.cast<OrderType?>().firstWhere(
-            (t) => t?.orderServiceType == 'Common',
-            orElse: () => orderTypes.first,
-          );
-          if (commonOrderType != null) {
-            finalOrderTypeId = commonOrderType.id;
-            finalOrderServiceType = null;
-          }
-        } else {
-          final takeawayOrderType = getOrderTypeByServiceType(
-            finalOrderServiceType,
-          );
-          finalOrderTypeId = takeawayOrderType?.id;
-        }
+        final commonOrderType =
+            orderTypes.firstWhereOrNull(
+              (t) => t.orderServiceType == 'Common',
+            ) ??
+            orderTypes.first;
+
+        finalOrderTypeId = commonOrderType.id;
+        // If we fell back to Common, ensure service type matches for consistency
+        finalOrderServiceType ??= commonOrderType.orderServiceType;
       }
 
-      if (finalOrderServiceType == 'Common') {
+      // 3. Normalize: Syrve API often expects null for 'Common' service type
+      // And documentation says only one of orderTypeId or orderServiceType should be defined.
+      if (finalOrderTypeId != null) {
         finalOrderServiceType = null;
+      } else if (finalOrderServiceType == 'Common') {
+        finalOrderServiceType = null;
+      } else if (finalOrderServiceType == 'DeliveryPickUp') {
+        finalOrderServiceType = 'DeliveryByClient';
       }
 
       final order = DeliveryOrder(

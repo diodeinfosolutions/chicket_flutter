@@ -8,6 +8,6 @@ class AppConstants {
       'https://ereceipt.afs.com.bh/Ecr.Bh.Afs/';
   static const String apexEcrTid = '04816773';
   static const String apexEcrMid = '000000000645275';
-  static const String apexEcrSecureKey = '7F3AC17247824B27BC8DFA2888DADF9B';
+  static const String apexEcrSecureKey = '7740386AB0F240CA94694FC0E4DB750E';
   static const String apexEcrCurrencyCode = '048';
 }

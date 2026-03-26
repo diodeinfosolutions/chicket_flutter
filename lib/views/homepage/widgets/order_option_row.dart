@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/order_controller.dart';
+import '../../../controllers/syrve_controller.dart';
 import '../../../gen/assets.gen.dart';
 import '../../../theme/colors.dart';
 import '../../../utils/color_filter.dart';
@@ -16,6 +17,7 @@ class OrderOptionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orderController = Get.find<OrderController>();
+    final syrveController = Get.find<SyrveController>();
     final iconSize = isTabletPortrait ? 0.05.sh : 0.072.sh;
     final dividerHeight = isTabletPortrait ? 0.055.sh : 0.08.sh;
     final horizontalMargin = isTabletPortrait ? 0.035.sw : 0.052.sw;
@@ -25,7 +27,10 @@ class OrderOptionsRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           OrderOptionButton(
-            onTap: () => orderController.selectOrderType(OrderType.dineIn),
+            onTap: () {
+              final apiType = syrveController.getOrderTypeByName('KIOSK DINE IN');
+              orderController.selectOrderType(OrderType.dineIn, apiType: apiType);
+            },
             isTabletPortrait: isTabletPortrait,
             label: 'dine_in'.tr,
             child: Assets.svg.dinein.svg(
@@ -41,7 +46,15 @@ class OrderOptionsRow extends StatelessWidget {
             color: const Color(0xFFD9D9D9),
           ),
           OrderOptionButton(
-            onTap: () => orderController.selectOrderType(OrderType.takeaway),
+            onTap: () {
+              final apiType = syrveController.getOrderTypeByName(
+                'KIOSK TAKE AWAY',
+              );
+              orderController.selectOrderType(
+                OrderType.takeaway,
+                apiType: apiType,
+              );
+            },
             isTabletPortrait: isTabletPortrait,
             label: 'takeaway'.tr,
             child: Assets.svg.takeaway.svg(height: iconSize, width: iconSize),

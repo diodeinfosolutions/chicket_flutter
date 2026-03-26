@@ -126,9 +126,12 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       }
 
       final orderServiceType = _orderController.orderServiceType;
-      final apiOrderType = orderServiceType != null
-          ? _syrveController.getOrderTypeByServiceType(orderServiceType)
-          : null;
+      // Use specifically selected API type if available, otherwise resolve from service type
+      final apiOrderType =
+          _orderController.selectedApiOrderType.value ??
+          (orderServiceType != null
+              ? _syrveController.getOrderTypeByServiceType(orderServiceType)
+              : null);
 
       final success = await _syrveController.createOrder(
         items: orderItems,

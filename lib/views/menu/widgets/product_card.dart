@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../controllers/order_controller.dart';
 import '../../../api/models/view_menu_models.dart';
 import '../../../controllers/language_controller.dart';
+import '../../../controllers/order_controller.dart';
 import '../../../utils/cache_config.dart';
 import '../../../utils/en_locale.dart';
 import 'addon_bottom_sheet.dart';
@@ -60,11 +60,11 @@ class ProductCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
             child: AspectRatio(
-              aspectRatio: 1.2,
+              aspectRatio: 1.4,
               child: imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       cacheManager: CacheConfig.optimizedCacheManager,
                       placeholder: (_, _) => Container(
                         color: Colors.grey[200],

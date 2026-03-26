@@ -47,8 +47,9 @@ class OrderController extends GetxController {
   final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
 
   /// Selects the order type and navigates to the menu.
-  void selectOrderType(OrderType type) {
+  void selectOrderType(OrderType type, {api.OrderType? apiType}) {
     selectedType.value = type;
+    selectedApiOrderType.value = apiType;
     Future.delayed(const Duration(milliseconds: 300), () {
       Get.offNamed(Routes.menu);
     });
@@ -81,9 +82,12 @@ class OrderController extends GetxController {
 
   /// Returns the service type identifier used by the backend based on selection.
   String? get orderServiceType {
+    if (selectedApiOrderType.value != null) {
+      return selectedApiOrderType.value!.orderServiceType;
+    }
     switch (selectedType.value) {
       case OrderType.dineIn:
-        return null;
+        return 'Common';
       case OrderType.takeaway:
         return 'DeliveryByClient';
       default:
