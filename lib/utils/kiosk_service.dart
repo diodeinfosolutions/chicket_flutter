@@ -2,15 +2,15 @@ import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class KioskService {
-  static const MethodChannel _channel = MethodChannel(
-    'com.diode.chicket/kiosk',
-  );
+  // static const MethodChannel _channel = MethodChannel(
+  //   'com.diode.chicket/kiosk',
+  // );
 
   static Future<void> initKioskMode() async {
     await Future.wait([
       enableImmersiveMode(),
       enableWakeLock(),
-      startLockTask(),
+      // startLockTask(),
     ]);
   }
 
@@ -29,17 +29,17 @@ class KioskService {
     await WakelockPlus.disable();
   }
 
-  static Future<void> startLockTask() async {
-    try {
-      await _channel.invokeMethod('startLockTask');
-    } on PlatformException catch (_) {}
-  }
+  // static Future<void> startLockTask() async {
+  //   try {
+  //     await _channel.invokeMethod('startLockTask');
+  //   } on PlatformException catch (_) {}
+  // }
 
-  static Future<void> stopLockTask() async {
-    try {
-      await _channel.invokeMethod('stopLockTask');
-    } on PlatformException catch (_) {}
-  }
+  // static Future<void> stopLockTask() async {
+  //   try {
+  //     await _channel.invokeMethod('stopLockTask');
+  //   } on PlatformException catch (_) {}
+  // }
 
   static Future<void> reapplyImmersiveMode() async {
     await enableImmersiveMode();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
@@ -271,29 +272,56 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.RED,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF6F6F6),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(24.r),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F6F6),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24.r),
+                      ),
+                    ),
+                    child: _isLoading && _organizations.isEmpty
+                        ? const Center(
+                            child: CircularProgressIndicator(color: AppColors.RED),
+                          )
+                        : _error != null && _organizations.isEmpty
+                        ? _buildErrorView()
+                        : _buildForm(),
                   ),
                 ),
-                child: _isLoading && _organizations.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(color: AppColors.RED),
-                      )
-                    : _error != null && _organizations.isEmpty
-                    ? _buildErrorView()
-                    : _buildForm(),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 20.w,
+            top: 20.h,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => SystemNavigator.pop(),
+                child: Container(
+                  width: 64.w,
+                  height: 64.w,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 40.w,
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

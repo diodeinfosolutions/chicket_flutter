@@ -255,6 +255,12 @@ class SyrveController extends GetxController {
         }
 
         menu.value = filteredMenu;
+
+        // Refresh banners when menu is successfully loaded from API
+        unawaited(_bannerController.fetchBanners(
+          organizationId: organizationId!,
+          terminalGroupId: terminalGroupId!,
+        ));
       } else {
         final cachedMenu = _cacheService.getCachedMenu();
         if (cachedMenu != null) {
@@ -312,6 +318,12 @@ class SyrveController extends GetxController {
         } else {
           await _cacheService.cacheMenu(filteredMenu);
         }
+
+        // Refresh banners when menu is refreshed in background
+        unawaited(_bannerController.fetchBanners(
+          organizationId: organizationId!,
+          terminalGroupId: terminalGroupId!,
+        ));
       }
     } catch (e) {
       if (kDebugMode) debugPrint('Background menu refresh error: $e');

@@ -1,15 +1,17 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:staggered_grid_view/flutter_staggered_grid_view.dart';
 
+import '../../api/models/view_menu_models.dart';
+import '../../controllers/banner_controller.dart';
 import '../../controllers/language_controller.dart';
 import '../../controllers/syrve_controller.dart';
-import '../../controllers/banner_controller.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../gen/assets.gen.dart';
 import '../../utils/cache_config.dart';
-import '../../api/models/view_menu_models.dart';
 import 'widgets/cart_bottom_bar.dart';
 import 'widgets/category_widget.dart';
 import 'widgets/menu_shimmer.dart';
@@ -27,6 +29,36 @@ class _MenuScreenState extends State<MenuScreen> {
   final SyrveController _syrveController = Get.find<SyrveController>();
   final LanguageController _languageController = Get.find<LanguageController>();
   final BannerController _bannerController = Get.find<BannerController>();
+  late PageController _pageController;
+  Timer? _autoScrollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_bannerController.banners.isNotEmpty) {
+        if (_pageController.hasClients) {
+          _pageController.nextPage(
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +112,11 @@ class _MenuScreenState extends State<MenuScreen> {
                         height: 0.38.sh,
                         width: 1.sw,
                         child: PageView.builder(
-                          itemCount: banners.length,
+                          controller: _pageController,
+                          itemCount: banners.length * 1000,
                           itemBuilder: (context, index) {
-                            final bannerUrl = banners[index].banner;
+                            final actualIndex = index % banners.length;
+                            final bannerUrl = banners[actualIndex].banner;
 
                             if (bannerUrl == null || bannerUrl.isEmpty) {
                               return Container(color: Colors.grey[200]);
@@ -90,7 +124,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
                             return CachedNetworkImage(
                               imageUrl: bannerUrl,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.fill,
                               cacheManager: CacheConfig.optimizedCacheManager,
                               placeholder: (_, _) =>
                                   Container(color: Colors.grey[200]),
