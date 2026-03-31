@@ -18,8 +18,8 @@ class CacheConfig {
   }
 
   /// Provides an optimized [CacheManager] instance configured for kiosk environments.
-  /// 
-  /// Implements a fail-safe initialization: if the primary SQLite/JSON store 
+  ///
+  /// Implements a fail-safe initialization: if the primary SQLite/JSON store
   /// is corrupted, it securely clears it and fallbacks to a default configuration.
   static CacheManager get optimizedCacheManager {
     if (_instance != null) return _instance!;

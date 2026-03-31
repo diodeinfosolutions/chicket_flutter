@@ -21,14 +21,15 @@ class MenuCacheService extends GetxService {
   late Box _box;
 
   /// Initializes Hive and opens the menu cache box.
-  /// 
-  /// In case of database corruption (e.g., malformed JSON or disk errors), 
+  ///
+  /// In case of database corruption (e.g., malformed JSON or disk errors),
   /// it deletes the box and restarts for self-recovery.
   Future<MenuCacheService> init() async {
     try {
       _box = await Hive.openBox(_boxName);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Failed to initialize MenuCacheService: $e');
+      if (kDebugMode)
+        debugPrint('⚠️ Failed to initialize MenuCacheService: $e');
       logLocal('MenuCacheService init error: $e');
       await Hive.deleteBoxFromDisk(_boxName);
       _box = await Hive.openBox(_boxName);

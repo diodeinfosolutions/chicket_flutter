@@ -288,7 +288,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     child: _isLoading && _organizations.isEmpty
                         ? const Center(
-                            child: CircularProgressIndicator(color: AppColors.RED),
+                            child: CircularProgressIndicator(
+                              color: AppColors.RED,
+                            ),
                           )
                         : _error != null && _organizations.isEmpty
                         ? _buildErrorView()
@@ -312,11 +314,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     color: Colors.black.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 40.w,
-                  ),
+                  child: Icon(Icons.close, color: Colors.white, size: 40.w),
                 ),
               ),
             ),
@@ -710,7 +708,8 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget _buildRefreshMenuButton() {
     final bool isChanged = _isConfigChanged;
     return OutlinedButton(
-      onPressed: _selectedOrg != null &&
+      onPressed:
+          _selectedOrg != null &&
               _selectedMenu != null &&
               !_isRefreshingMenu &&
               !isChanged

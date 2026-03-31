@@ -408,27 +408,27 @@ class CartScreen extends StatelessWidget {
   ) {
     // Find all categories that match 'Sides' (case-insensitive)
     final sidesCategories = syrveController.menuCategories.where(
-      (c) =>
-          c.name?.toLowerCase() == 'sides' 
-          // ||
-          // c.id == '165fa978-9a68-4bc2-a473-efbb24c9f724',
+      (c) => c.name?.toLowerCase() == 'sides',
+      // ||
+      // c.id == '165fa978-9a68-4bc2-a473-efbb24c9f724',
     );
 
     // Collect all items from matching categories
-    final allProducts =
-        sidesCategories.expand((c) => c.items ?? <ViewMenuItem>[]).toList();
+    final allProducts = sidesCategories
+        .expand((c) => c.items ?? <ViewMenuItem>[])
+        .toList();
 
-    final cartProductIds =
-        orderController.cart.map((e) => e['productId'] as String).toSet();
+    final cartProductIds = orderController.cart
+        .map((e) => e['productId'] as String)
+        .toSet();
 
-    final filtered =
-        allProducts
-            .where(
-              (p) =>
-                  p.isHidden != true &&
-                  !cartProductIds.contains(p.itemId ?? p.sku ?? ''),
-            )
-            .toList();
+    final filtered = allProducts
+        .where(
+          (p) =>
+              p.isHidden != true &&
+              !cartProductIds.contains(p.itemId ?? p.sku ?? ''),
+        )
+        .toList();
 
     filtered.shuffle();
     final recommended = filtered;

@@ -117,10 +117,9 @@ class FinancialTxnRequest {
           'soapenv:Body',
           nest: () {
             final type = transactionType.toUpperCase();
-            final actionName =
-                (type == 'VOID' || type == 'VOIDBYINVOICE')
-                    ? 'tem:Void'
-                    : 'tem:Sale';
+            final actionName = (type == 'VOID' || type == 'VOIDBYINVOICE')
+                ? 'tem:Void'
+                : 'tem:Sale';
 
             builder.element(
               actionName,

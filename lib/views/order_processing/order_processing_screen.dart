@@ -79,7 +79,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
     if (isCard) {
       final ecrController = Get.find<ApexEcrController>();
       final amount = _orderController.cartTotal;
-      
+
       // Multi-step transaction: 1. Pay on Terminal
       final invoiceNumber = (DateTime.now().millisecondsSinceEpoch % 1000000)
           .toString()
@@ -87,12 +87,18 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
       final response = await ecrController.processSale(amount, invoiceNumber);
 
-      if ((response.webResponseStatus.toLowerCase() == '0' || response.webResponseStatus.toLowerCase() == 'success') && response.posRespStatus == 1) {
+      if ((response.webResponseStatus.toLowerCase() == '0' ||
+              response.webResponseStatus.toLowerCase() == 'success') &&
+          response.posRespStatus == 1) {
         // 2. If payment success, create record in Syrve
-        logLocal('Payment success for invoice $invoiceNumber, creating Syrve order.');
+        logLocal(
+          'Payment success for invoice $invoiceNumber, creating Syrve order.',
+        );
         await _createOrder();
       } else {
-        logLocal('Payment failed for invoice $invoiceNumber: ${ecrController.getErrorMessage(response)}');
+        logLocal(
+          'Payment failed for invoice $invoiceNumber: ${ecrController.getErrorMessage(response)}',
+        );
         if (mounted) {
           setState(() {
             _errorMessage = ecrController.getErrorMessage(response);
@@ -153,7 +159,8 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           }
         });
       } else {
-        final err = _syrveController.orderError.value ?? 'Failed to create order';
+        final err =
+            _syrveController.orderError.value ?? 'Failed to create order';
         logLocal('Syrve order creation failed: $err');
         setState(() {
           _errorMessage = err;
@@ -324,7 +331,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
             },
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 0.2.sw),
-              padding: EdgeInsets.symmetric(vertical: 24.h,horizontal: 16.w),
+              padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 16.w),
               decoration: BoxDecoration(
                 color: AppColors.BROWN,
                 borderRadius: BorderRadius.circular(50.r),
@@ -339,7 +346,11 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.home_rounded, color: AppColors.YELLOW, size: 36.sp),
+                  Icon(
+                    Icons.home_rounded,
+                    color: AppColors.YELLOW,
+                    size: 36.sp,
+                  ),
                   SizedBox(width: 16.w),
                   Text(
                     'back_to_home'.tr.toUpperCase(),
@@ -357,11 +368,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           ),
         ),
         SizedBox(height: 48.h),
-        EnLocale(
-          child: FooterSection(
-            isTabletPortrait: isTabletPortrait,
-          ),
-        ),
+        EnLocale(child: FooterSection(isTabletPortrait: isTabletPortrait)),
       ],
     );
   }
@@ -398,10 +405,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                 );
               },
               child: Center(
-                child: Assets.svg.onTheWay.svg(
-                  width: 100.w,
-                  height: 100.w,
-                ),
+                child: Assets.svg.onTheWay.svg(width: 100.w, height: 100.w),
               ),
             ),
           ),
@@ -418,11 +422,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           textAlign: TextAlign.center,
         ),
         const Spacer(),
-        EnLocale(
-          child: FooterSection(
-            isTabletPortrait: isTabletPortrait,
-          ),
-        ),
+        EnLocale(child: FooterSection(isTabletPortrait: isTabletPortrait)),
       ],
     );
   }

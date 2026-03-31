@@ -11,7 +11,7 @@ class LanguageController extends GetxController {
 
   /// Returns [true] if the current language is Arabic.
   bool get isArabic => currentLanguage.value == arabic;
-  
+
   /// Returns [true] if the current language is English.
   bool get isEnglish => currentLanguage.value == english;
 
@@ -32,7 +32,7 @@ class LanguageController extends GetxController {
 
   /// Sets the application language to English.
   void setEnglish() => changeLanguage(english);
-  
+
   /// Sets the application language to Arabic.
   void setArabic() => changeLanguage(arabic);
 }

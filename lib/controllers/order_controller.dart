@@ -8,7 +8,7 @@ import 'package:chicket/api/models/order_type_models.dart' as api;
 enum OrderType { dineIn, takeaway }
 
 /// Manages the customer's order state, cart, and product selections.
-/// Handles order type selection, cart management (add/remove/qty), 
+/// Handles order type selection, cart management (add/remove/qty),
 /// and product modifier (addon) logic.
 class OrderController extends GetxController {
   /// The high-level order type selected by the user (Dine In or Takeaway).
@@ -20,29 +20,29 @@ class OrderController extends GetxController {
 
   /// The product currently being customized in a popup.
   final Rx<MenuProduct?> currentProduct = Rx<MenuProduct?>(null);
-  
+
   /// The menu item currently being customized in a popup (for view-based menus).
   final Rx<ViewMenuItem?> currentMenuItem = Rx<ViewMenuItem?>(null);
-  
+
   /// Currently selected modifier IDs, grouped by their category or group ID.
   final RxMap<String, Set<String>> selectedModifiers =
       <String, Set<String>>{}.obs;
-      
+
   /// Detailed information about the selected modifiers (id, name, price).
   final RxMap<String, Map<String, dynamic>> modifierInfo =
       <String, Map<String, dynamic>>{}.obs;
-      
+
   /// Quantity for the item currently being customized.
   final RxInt addonQuantity = 1.obs;
-  
+
   double _basePrice = 0.0;
 
   /// The customer's phone number, if provided for the order.
   final RxString customerPhone = ''.obs;
-  
+
   /// The payment method selected by the user.
   final Rx<PaymentType?> selectedPaymentType = Rx<PaymentType?>(null);
-  
+
   /// The specific order type categorization required by the backend API.
   final Rx<api.OrderType?> selectedApiOrderType = Rx<api.OrderType?>(null);
 

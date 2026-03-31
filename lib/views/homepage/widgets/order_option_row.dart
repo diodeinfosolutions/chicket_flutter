@@ -28,8 +28,13 @@ class OrderOptionsRow extends StatelessWidget {
         children: [
           OrderOptionButton(
             onTap: () {
-              final apiType = syrveController.getOrderTypeByName('KIOSK DINE IN');
-              orderController.selectOrderType(OrderType.dineIn, apiType: apiType);
+              final apiType = syrveController.getOrderTypeByName(
+                'KIOSK DINE IN',
+              );
+              orderController.selectOrderType(
+                OrderType.dineIn,
+                apiType: apiType,
+              );
             },
             isTabletPortrait: isTabletPortrait,
             label: 'dine_in'.tr,

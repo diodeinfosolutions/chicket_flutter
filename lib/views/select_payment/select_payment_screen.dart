@@ -232,10 +232,9 @@ class _SelectPaymentScreenState extends State<SelectPaymentScreen> {
           width: 64.w,
           height: 48.h,
           fit: BoxFit.contain,
-          color:
-              _selectedPaymentType?.id == paymentType.id
-                  ? AppColors.GREEN
-                  : AppColors.GREY,
+          color: _selectedPaymentType?.id == paymentType.id
+              ? AppColors.GREEN
+              : AppColors.GREY,
         );
       case 'voucher':
       case 'coupon':

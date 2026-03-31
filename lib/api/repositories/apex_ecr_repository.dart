@@ -30,19 +30,22 @@ class ApexEcrRepository {
       _dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
-            final msg = '--> ${options.method} ${options.uri}\nBody: ${options.data}';
+            final msg =
+                '--> ${options.method} ${options.uri}\nBody: ${options.data}';
             debugPrint(msg);
             logLocal(msg);
             return handler.next(options);
           },
           onResponse: (response, handler) {
-            final msg = '<-- ${response.statusCode} ${response.requestOptions.uri}\nResponse: ${response.data}';
+            final msg =
+                '<-- ${response.statusCode} ${response.requestOptions.uri}\nResponse: ${response.data}';
             debugPrint(msg);
             logLocal(msg);
             return handler.next(response);
           },
           onError: (DioException e, handler) {
-            final msg = '<-- Error ${e.response?.statusCode} ${e.requestOptions.uri}\nError Data: ${e.response?.data}';
+            final msg =
+                '<-- Error ${e.response?.statusCode} ${e.requestOptions.uri}\nError Data: ${e.response?.data}';
             debugPrint(msg);
             logLocal(msg);
             return handler.next(e);

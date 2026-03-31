@@ -78,15 +78,29 @@ class $AssetsPngGen {
   /// File path: assets/png/cc.png
   AssetGenImage get cc => const AssetGenImage('assets/png/cc.png');
 
+  /// File path: assets/png/error_kiosk.png
+  AssetGenImage get errorKiosk =>
+      const AssetGenImage('assets/png/error_kiosk.png');
+
   /// File path: assets/png/gift_voucher.png
   AssetGenImage get giftVoucher =>
       const AssetGenImage('assets/png/gift_voucher.png');
+
+  /// File path: assets/png/logo.png
+  AssetGenImage get logo => const AssetGenImage('assets/png/logo.png');
 
   /// File path: assets/png/wafaa.png
   AssetGenImage get wafaa => const AssetGenImage('assets/png/wafaa.png');
 
   /// List of all assets
-  List<AssetGenImage> get values => [cash, cc, giftVoucher, wafaa];
+  List<AssetGenImage> get values => [
+    cash,
+    cc,
+    errorKiosk,
+    giftVoucher,
+    logo,
+    wafaa,
+  ];
 }
 
 class $AssetsSvgGen {

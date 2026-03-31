@@ -49,7 +49,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performFinancialTransaction(request);
-      logLocal('API: ${AppConstants.apexEcrBaseUrl}EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
+      logLocal(
+        'API: ${AppConstants.apexEcrBaseUrl}EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+      );
 
       if ((response.webResponseStatus.toLowerCase() == '0' ||
               response.webResponseStatus.toLowerCase() == 'success') &&
@@ -102,7 +104,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performEnquiry(request);
-      logLocal('API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
+      logLocal(
+        'API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+      );
       if ((response.webResponseStatus.toLowerCase() == '0' ||
               response.webResponseStatus.toLowerCase() == 'success') &&
           response.posRespStatus == 1) {
@@ -143,7 +147,9 @@ class ApexEcrController extends GetxController {
 
     try {
       final response = await _repository.performSettlement(request);
-      logLocal('API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}');
+      logLocal(
+        'API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+      );
       if (response.webResponseStatus.toLowerCase() == '0' ||
           response.webResponseStatus.toLowerCase() == 'success') {
         statusMessage.value = 'Settlement Successful!';
@@ -167,20 +173,24 @@ class ApexEcrController extends GetxController {
 
   /// Maps technical ECR response codes to user-friendly translatable strings.
   String getErrorMessage(FinancialTxnResponse response) {
-    if (response.webResponseStatus.toLowerCase() != '0' && response.webResponseStatus.toLowerCase() != 'success') {
+    if (response.webResponseStatus.toLowerCase() != '0' &&
+        response.webResponseStatus.toLowerCase() != 'success') {
       if (response.webResponseErrorDesc?.contains('Timeout') == true) {
         return 'timeout_error'.tr;
       }
       if (response.webResponseErrorDesc?.contains('Network') == true) {
         return 'network_error'.tr;
       }
-      if (response.webResponseErrorDesc != null && response.webResponseErrorDesc!.isNotEmpty) {
+      if (response.webResponseErrorDesc != null &&
+          response.webResponseErrorDesc!.isNotEmpty) {
         return response.webResponseErrorDesc!;
       }
     }
 
     if (response.posRespStatus == 0) {
-      return response.posRespText?.isNotEmpty == true ? response.posRespText! : 'declined_error'.tr;
+      return response.posRespText?.isNotEmpty == true
+          ? response.posRespText!
+          : 'declined_error'.tr;
     }
 
     return response.posRespText ?? 'payment_failed'.tr;

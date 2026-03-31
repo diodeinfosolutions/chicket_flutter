@@ -12,7 +12,6 @@ import 'package:chicket/controllers/idle_controller.dart';
 import 'package:chicket/localization/app_translations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
