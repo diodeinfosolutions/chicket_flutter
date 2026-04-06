@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:icod_printer/icod_printer.dart';
+import 'package:icod_printer/printer_builder.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -41,6 +44,10 @@ class _SetupScreenState extends State<SetupScreen> {
   TerminalGroup? _selectedTerminal;
   ExternalMenu? _selectedMenu;
   OrderType? _selectedOrderType;
+  
+  List<PrinterConfig> _discoveredPrinters = [];
+  PrinterConfig? _selectedPrinter;
+  bool _isScanningPrinters = false;
 
   @override
   void initState() {
@@ -86,6 +93,12 @@ class _SetupScreenState extends State<SetupScreen> {
             (o) => o.id == savedConfig.defaultOrderTypeId,
           );
         }
+        
+        _selectedPrinter = savedConfig.printerConfig;
+        if (_selectedPrinter != null) {
+          _discoveredPrinters = [_selectedPrinter!];
+        }
+        _scanPrinters();
       }
 
       setState(() {
@@ -151,7 +164,8 @@ class _SetupScreenState extends State<SetupScreen> {
   bool get _canSave =>
       _selectedOrg != null &&
       _selectedTerminal != null &&
-      _selectedMenu != null;
+      _selectedMenu != null &&
+      _selectedPrinter != null;
 
   Future<void> _saveConfig() async {
     if (!_canSave) return;
@@ -168,6 +182,7 @@ class _SetupScreenState extends State<SetupScreen> {
       externalMenuName: _selectedMenu!.name,
       defaultOrderTypeId: _selectedOrderType?.id,
       defaultOrderTypeName: _selectedOrderType?.name,
+      printerConfig: _selectedPrinter,
     );
 
     final hasChanged = isFirstTime || oldConfig != newConfig;
@@ -221,12 +236,13 @@ class _SetupScreenState extends State<SetupScreen> {
     return _selectedOrg?.id != currentSaved.organizationId ||
         _selectedTerminal?.id != currentSaved.terminalGroupId ||
         _selectedMenu?.id != currentSaved.externalMenuId ||
-        _selectedOrderType?.id != currentSaved.defaultOrderTypeId;
+        _selectedOrderType?.id != currentSaved.defaultOrderTypeId ||
+        _selectedPrinter?.address != currentSaved.printerConfig?.address;
   }
 
   Future<void> _refreshMenu() async {
     if (_selectedOrg == null || _selectedMenu == null) {
-      _showError('Please select organization and menu first');
+      _showError('select_org_and_menu'.tr);
       return;
     }
 
@@ -244,15 +260,72 @@ class _SetupScreenState extends State<SetupScreen> {
       // 2. View menu (to ensure it's loaded/cached on backend)
       await _apiRepository.viewMenu(menuId: _selectedMenu!.id);
 
-      _showSuccess('Menu refreshed successfully');
+      _showSuccess('menu_refreshed'.tr);
     } catch (e) {
-      _showError('Failed to refresh menu: $e');
+      _showError('${"failed_to_refresh_menu".tr}: $e');
     } finally {
       if (mounted) {
         setState(() {
           _isRefreshingMenu = false;
         });
       }
+    }
+  }
+
+  Future<void> _scanPrinters() async {
+    if (_isScanningPrinters) return;
+    setState(() {
+      _isScanningPrinters = true;
+      _discoveredPrinters = _selectedPrinter != null ? [_selectedPrinter!] : [];
+    });
+
+    try {
+      final usbList = await Printer.discover(type: 'usb');
+      // final btList = await Printer.discover(type: 'bluetooth');
+      
+      final Map<String, PrinterConfig> uniquePrinters = {};
+      if (_selectedPrinter != null) {
+        uniquePrinters[_selectedPrinter!.address ?? ''] = _selectedPrinter!;
+      }
+      for (final p in usbList) {
+        uniquePrinters[p.address ?? ''] = p;
+      }
+      
+      setState(() {
+        _discoveredPrinters = uniquePrinters.values.toList();
+        
+        // Safety: Ensure _selectedPrinter instance is exactly one of the items in _discoveredPrinters
+        // to prevent "Failed assertion: ... exactly one item with DropdownButton's value"
+        if (_selectedPrinter != null) {
+          _selectedPrinter = _discoveredPrinters.firstWhereOrNull(
+            (p) => p.address == _selectedPrinter?.address,
+          );
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint("Scan error: $e");
+    } finally {
+      if (mounted) {
+        setState(() => _isScanningPrinters = false);
+      }
+    }
+  }
+
+  Future<void> _testPrinter(PrinterConfig config) async {
+    try {
+      await Printer.connect(config);
+      final builder = EscPosBuilder();
+      builder.setAlignment(EscPosBuilder.alignCenter);
+      builder.line("printer_test_success".tr);
+      builder.line("kiosk_name".tr);
+      builder.divider();
+      builder.line("${"printer_address".tr}: ${config.address}");
+      builder.feed(3);
+      builder.cut();
+      await Printer.printBytes(config, builder.build());
+      _showSuccess('test_print_sent'.tr);
+    } catch (e) {
+      _showError('${"test_failed".tr}: $e');
     }
   }
 
@@ -431,6 +504,12 @@ class _SetupScreenState extends State<SetupScreen> {
                   icon: Icons.shopping_bag_outlined,
                   child: _buildOrderTypeDropdown(),
                   enabled: _selectedOrg != null,
+                ),
+                Gap(16.h),
+                _buildDropdownCard(
+                  title: 'printer'.tr,
+                  icon: Icons.print_outlined,
+                  child: _buildPrinterDropdown(),
                 ),
               ],
             ),
@@ -652,6 +731,63 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
+  Widget _buildPrinterDropdown() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<PrinterConfig>(
+                initialValue: _selectedPrinter,
+                isExpanded: true,
+                decoration: _dropdownDecoration(),
+                hint: Text(_isScanningPrinters ? 'scanning'.tr : 'select_printer'.tr,
+                    style: TextStyle(fontSize: 16.sp)),
+                items: _discoveredPrinters.map((p) {
+                  return DropdownMenuItem(
+                    value: p,
+                    child: Text(
+                      '${p.name ?? "usb_printer".tr} (${p.address})',
+                      style: TextStyle(fontSize: 16.sp),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (printer) {
+                  setState(() {
+                    _selectedPrinter = printer;
+                  });
+                },
+              ),
+            ),
+            Gap(8.w),
+            IconButton(
+              onPressed: _scanPrinters,
+              icon: Icon(Icons.refresh,
+                  color: _isScanningPrinters ? Colors.grey : AppColors.RED),
+            ),
+          ],
+        ),
+        if (_selectedPrinter != null) ...[
+          Gap(8.h),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _testPrinter(_selectedPrinter!),
+              icon: const Icon(Icons.print_outlined),
+              label: Text("test_printer_btn".tr),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.RED,
+                side: const BorderSide(color: AppColors.RED),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   InputDecoration _dropdownDecoration() {
     return InputDecoration(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -744,7 +880,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 ),
                 Gap(8.w),
                 Text(
-                  'REFRESH MENU',
+                  'refresh_menu'.tr,
                   style: TextStyle(
                     fontFamily: 'Oswald',
                     fontSize: 18.sp,

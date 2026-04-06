@@ -11,6 +11,8 @@ import 'package:chicket/utils/cache_config.dart';
 import 'package:chicket/controllers/idle_controller.dart';
 import 'package:chicket/localization/app_translations.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:afs_payment/afs_payment.dart';
+import 'constants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,14 @@ void main() async {
   ]);
 
   CacheConfig.configure();
+
+  AfsPayment.initialize(
+    tid: AppConstants.afsPaymentTid,
+    mid: AppConstants.afsPaymentMid,
+    secret: AppConstants.afsPaymentSecureKey,
+    baseUrl: AppConstants.afsPaymentBaseUrl,
+    currencyCode: AppConstants.afsPaymentCurrencyCode,
+  );
 
   await Hive.initFlutter();
   await Future.wait([KioskService.initKioskMode(), initControllers()]);

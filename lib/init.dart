@@ -7,15 +7,14 @@ import 'controllers/order_controller.dart';
 import 'controllers/syrve_controller.dart';
 import 'services/kiosk_config_service.dart';
 import 'services/menu_cache_service.dart';
+import 'services/print_service.dart';
 
-import 'api/repositories/apex_ecr_repository.dart';
 import 'api/repositories/api_repository.dart';
-import 'controllers/apex_ecr_controller.dart';
+import 'controllers/afs_payment_controller.dart';
 
 Future<void> initControllers() async {
   Get.put(ApiRepository(), permanent: true);
-  Get.put(ApexEcrRepository(), permanent: true);
-  Get.put(ApexEcrController(), permanent: true);
+  Get.put(AfsPaymentController(), permanent: true);
 
   final configService = await KioskConfigService().init();
   Get.put(configService);
@@ -29,4 +28,5 @@ Future<void> initControllers() async {
 
   Get.put(IdleController(), permanent: true);
   Get.put(OrderController(), permanent: true);
+  Get.put(PrintService(), permanent: true);
 }

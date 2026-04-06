@@ -284,6 +284,7 @@ class ProductCard extends StatelessWidget {
               orderController.addToCart(
                 productId: productId,
                 name: productName,
+                nameAr: product.nameAr,
                 price: price,
               );
             }

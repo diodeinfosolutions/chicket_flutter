@@ -152,8 +152,9 @@ class OrderController extends GetxController {
     String modifierId,
     String name,
     double price,
-    int maxAmount,
-  ) {
+    int maxAmount, {
+    String? nameAr,
+  }) {
     final current = selectedModifiers[groupId] ?? <String>{};
 
     if (current.contains(modifierId)) {
@@ -172,6 +173,7 @@ class OrderController extends GetxController {
       modifierInfo['$groupId:$modifierId'] = {
         'id': modifierId,
         'name': name,
+        'nameAr': nameAr,
         'price': price,
       };
     }
@@ -298,10 +300,12 @@ class OrderController extends GetxController {
 
     final productId = product?.id ?? menuItem?.itemId ?? menuItem?.sku ?? '';
     final productName = product?.name ?? menuItem?.name ?? '';
+    final productNameAr = menuItem?.nameAr;
 
     addToCart(
       productId: productId,
       name: productName,
+      nameAr: productNameAr,
       price: _basePrice,
       modifiers: modifiersMap,
       qty: addonQuantity.value,
@@ -315,6 +319,7 @@ class OrderController extends GetxController {
   void addToCart({
     required String productId,
     required String name,
+    String? nameAr,
     required double price,
     Map<String, List<Map<String, dynamic>>>? modifiers,
     int qty = 1,
@@ -332,6 +337,7 @@ class OrderController extends GetxController {
       cart.add({
         'productId': productId,
         'name': name,
+        'nameAr': nameAr,
         'price': price,
         'qty': qty,
         'modifiers': mods,

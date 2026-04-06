@@ -1131,7 +1131,10 @@ class ProductInfo {
   @JsonKey(name: 'name')
   final String? name;
 
-  ProductInfo({this.id, this.name});
+  @JsonKey(name: 'name_ar')
+  final String? nameAr;
+
+  ProductInfo({this.id, this.name, this.nameAr});
 
   factory ProductInfo.fromJson(Map<String, dynamic> json) =>
       _$ProductInfoFromJson(json);
@@ -1198,7 +1201,10 @@ class ProductGroupInfo {
   @JsonKey(name: 'name')
   final String? name;
 
-  ProductGroupInfo({this.id, this.name});
+  @JsonKey(name: 'name_ar')
+  final String? nameAr;
+
+  ProductGroupInfo({this.id, this.name, this.nameAr});
 
   factory ProductGroupInfo.fromJson(Map<String, dynamic> json) =>
       _$ProductGroupInfoFromJson(json);
@@ -1214,7 +1220,10 @@ class SizeInfo {
   @JsonKey(name: 'name')
   final String? name;
 
-  SizeInfo({this.id, this.name});
+  @JsonKey(name: 'name_ar')
+  final String? nameAr;
+
+  SizeInfo({this.id, this.name, this.nameAr});
 
   factory SizeInfo.fromJson(Map<String, dynamic> json) =>
       _$SizeInfoFromJson(json);
@@ -1265,10 +1274,13 @@ class PaymentTypeInfo {
   @JsonKey(name: 'name')
   final String? name;
 
+  @JsonKey(name: 'name_ar')
+  final String? nameAr;
+
   @JsonKey(name: 'kind')
   final String? kind;
 
-  PaymentTypeInfo({this.id, this.name, this.kind});
+  PaymentTypeInfo({this.id, this.name, this.nameAr, this.kind});
 
   factory PaymentTypeInfo.fromJson(Map<String, dynamic> json) =>
       _$PaymentTypeInfoFromJson(json);
@@ -1319,10 +1331,13 @@ class OrderTypeInfo {
   @JsonKey(name: 'name')
   final String? name;
 
+  @JsonKey(name: 'name_ar')
+  final String? nameAr;
+
   @JsonKey(name: 'orderServiceType')
   final String? orderServiceType;
 
-  OrderTypeInfo({this.id, this.name, this.orderServiceType});
+  OrderTypeInfo({this.id, this.name, this.nameAr, this.orderServiceType});
 
   factory OrderTypeInfo.fromJson(Map<String, dynamic> json) =>
       _$OrderTypeInfoFromJson(json);

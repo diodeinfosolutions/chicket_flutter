@@ -720,11 +720,18 @@ Map<String, dynamic> _$OrderItemResponseToJson(OrderItemResponse instance) =>
       'comboInformation': instance.comboInformation,
     };
 
-ProductInfo _$ProductInfoFromJson(Map<String, dynamic> json) =>
-    ProductInfo(id: json['id'] as String?, name: json['name'] as String?);
+ProductInfo _$ProductInfoFromJson(Map<String, dynamic> json) => ProductInfo(
+  id: json['id'] as String?,
+  name: json['name'] as String?,
+  nameAr: json['name_ar'] as String?,
+);
 
 Map<String, dynamic> _$ProductInfoToJson(ProductInfo instance) =>
-    <String, dynamic>{'id': instance.id, 'name': instance.name};
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'name_ar': instance.nameAr,
+    };
 
 ModifierResponse _$ModifierResponseFromJson(Map<String, dynamic> json) =>
     ModifierResponse(
@@ -764,17 +771,29 @@ Map<String, dynamic> _$ModifierResponseToJson(
 };
 
 ProductGroupInfo _$ProductGroupInfoFromJson(Map<String, dynamic> json) =>
-    ProductGroupInfo(id: json['id'] as String?, name: json['name'] as String?);
+    ProductGroupInfo(
+      id: json['id'] as String?,
+      name: json['name'] as String?,
+      nameAr: json['name_ar'] as String?,
+    );
 
 Map<String, dynamic> _$ProductGroupInfoToJson(ProductGroupInfo instance) =>
-    <String, dynamic>{'id': instance.id, 'name': instance.name};
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'name_ar': instance.nameAr,
+    };
 
-SizeInfo _$SizeInfoFromJson(Map<String, dynamic> json) =>
-    SizeInfo(id: json['id'] as String?, name: json['name'] as String?);
+SizeInfo _$SizeInfoFromJson(Map<String, dynamic> json) => SizeInfo(
+  id: json['id'] as String?,
+  name: json['name'] as String?,
+  nameAr: json['name_ar'] as String?,
+);
 
 Map<String, dynamic> _$SizeInfoToJson(SizeInfo instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
+  'name_ar': instance.nameAr,
 };
 
 OrderPaymentResponse _$OrderPaymentResponseFromJson(
@@ -805,6 +824,7 @@ PaymentTypeInfo _$PaymentTypeInfoFromJson(Map<String, dynamic> json) =>
     PaymentTypeInfo(
       id: json['id'] as String?,
       name: json['name'] as String?,
+      nameAr: json['name_ar'] as String?,
       kind: json['kind'] as String?,
     );
 
@@ -812,6 +832,7 @@ Map<String, dynamic> _$PaymentTypeInfoToJson(PaymentTypeInfo instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'name_ar': instance.nameAr,
       'kind': instance.kind,
     };
 
@@ -845,6 +866,7 @@ OrderTypeInfo _$OrderTypeInfoFromJson(Map<String, dynamic> json) =>
     OrderTypeInfo(
       id: json['id'] as String?,
       name: json['name'] as String?,
+      nameAr: json['name_ar'] as String?,
       orderServiceType: json['orderServiceType'] as String?,
     );
 
@@ -852,6 +874,7 @@ Map<String, dynamic> _$OrderTypeInfoToJson(OrderTypeInfo instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'name_ar': instance.nameAr,
       'orderServiceType': instance.orderServiceType,
     };
 

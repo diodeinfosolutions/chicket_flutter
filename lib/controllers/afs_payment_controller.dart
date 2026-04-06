@@ -1,15 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-
-import '../../api/models/apex_ecr_models.dart';
-import '../../api/repositories/apex_ecr_repository.dart';
+import 'package:afs_payment/afs_payment.dart';
 import '../../constants.dart';
 import '../../utils/log_local.dart';
 
-/// Controller for handling Apex ECR (Electronic Cash Register) transactions.
+/// Controller for handling AFS (Apex ECR) transactions.
 /// Manages SALE, Enquiry, and Settlement operations with the payment terminal.
-class ApexEcrController extends GetxController {
-  final ApexEcrRepository _repository = Get.find<ApexEcrRepository>();
+class AfsPaymentController extends GetxController {
 
   /// Indicates if a transaction is currently in progress.
   final RxBool isProcessing = false.obs;
@@ -21,36 +18,23 @@ class ApexEcrController extends GetxController {
   ///
   /// [amount] is the transaction value.
   /// [orderId] is used as the invoice or reference number.
-  Future<FinancialTxnResponse> processSale(
+  Future<AfsFinancialTxnResponse> processSale(
     double amount,
     String orderId,
   ) async {
     isProcessing.value = true;
     statusMessage.value = 'Initiating payment on EFTPOS...';
 
-    final request = FinancialTxnRequest(
-      config: EcrConfig(
-        tid: AppConstants.apexEcrTid,
-        mid: AppConstants.apexEcrMid,
-        merchantSecureKey: AppConstants.apexEcrSecureKey,
-        ecrCurrencyCode: AppConstants.apexEcrCurrencyCode,
-        ecrTillerUserName: 'Kiosk',
-        ecrTillerFullName: 'Chicket Kiosk',
-      ),
-      printer: EcrPrinter(
-        enablePrintPosReceipt: 3,
-        invoiceNumber: orderId,
-        referenceNumber: 'REF_$orderId',
-      ),
-      transactionType: 'SALE',
-      ecrAmount: amount,
-      invoiceNumber: orderId,
-    );
-
     try {
-      final response = await _repository.performFinancialTransaction(request);
+      final response = await AfsPayment.instance.processSale(
+        amount: amount,
+        orderId: orderId,
+        tillerUserName: 'Kiosk',
+        tillerFullName: '${AppConstants.appName} Kiosk',
+      );
+
       logLocal(
-        'API: ${AppConstants.apexEcrBaseUrl}EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+        'Request: Sale for $orderId\nResponse: ${response.rawXmlResponse}',
       );
 
       if ((response.webResponseStatus.toLowerCase() == '0' ||
@@ -63,11 +47,11 @@ class ApexEcrController extends GetxController {
 
       return response;
     } catch (e) {
-      if (kDebugMode) debugPrint('ApexECR Sale Error: $e');
-      logLocal('ApexEcrController processSale error: $e');
+      if (kDebugMode) debugPrint('AfsPayment Sale Error: $e');
+      logLocal('AfsPaymentController processSale error: $e');
       final errorMsg = _getException(e);
       statusMessage.value = errorMsg;
-      return FinancialTxnResponse(
+      return AfsFinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: errorMsg,
       );
@@ -79,7 +63,7 @@ class ApexEcrController extends GetxController {
   /// Performs an Enquiry for a previous transaction.
   ///
   /// Used to check the status of a payment if the original response was not received.
-  Future<FinancialTxnResponse> processEnquiry({
+  Future<AfsFinancialTxnResponse> processEnquiry({
     required String origInvoiceNumber,
     required String origRrn,
     String? origAuthCode,
@@ -87,26 +71,17 @@ class ApexEcrController extends GetxController {
     isProcessing.value = true;
     statusMessage.value = 'Initiating Enquiry on EFTPOS...';
 
-    final request = EnquiryRequest(
-      config: EcrConfig(
-        tid: AppConstants.apexEcrTid,
-        mid: AppConstants.apexEcrMid,
-        merchantSecureKey: AppConstants.apexEcrSecureKey,
-        ecrCurrencyCode: AppConstants.apexEcrCurrencyCode,
-        ecrTillerUserName: 'Kiosk',
-        ecrTillerFullName: 'Chicket Kiosk',
-      ),
-      printer: EcrPrinter(enablePrintPosReceipt: 3),
-      origInvoiceNumber: origInvoiceNumber,
-      origRrn: origRrn,
-      origAuthCode: origAuthCode,
-    );
-
     try {
-      final response = await _repository.performEnquiry(request);
-      logLocal(
-        'API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+      final response = await AfsPayment.instance.processEnquiry(
+        origInvoiceNumber: origInvoiceNumber,
+        origRrn: origRrn,
+        origAuthCode: origAuthCode,
       );
+
+      logLocal(
+        'Request: Enquiry for $origInvoiceNumber\nResponse: ${response.rawXmlResponse}',
+      );
+
       if ((response.webResponseStatus.toLowerCase() == '0' ||
               response.webResponseStatus.toLowerCase() == 'success') &&
           response.posRespStatus == 1) {
@@ -116,11 +91,11 @@ class ApexEcrController extends GetxController {
       }
       return response;
     } catch (e) {
-      if (kDebugMode) debugPrint('ApexECR Enquiry Error: $e');
-      logLocal('ApexEcrController processEnquiry error: $e');
+      if (kDebugMode) debugPrint('AfsPayment Enquiry Error: $e');
+      logLocal('AfsPaymentController processEnquiry error: $e');
       final errorMsg = _getException(e);
       statusMessage.value = errorMsg;
-      return FinancialTxnResponse(
+      return AfsFinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: errorMsg,
       );
@@ -130,26 +105,17 @@ class ApexEcrController extends GetxController {
   }
 
   /// Initiates a Settlement (End of Day) process on the EFTPOS terminal.
-  Future<FinancialTxnResponse> processSettlement() async {
+  Future<AfsFinancialTxnResponse> processSettlement() async {
     isProcessing.value = true;
     statusMessage.value = 'Initiating Settlement on EFTPOS...';
 
-    final request = SettlementRequest(
-      config: EcrConfig(
-        tid: AppConstants.apexEcrTid,
-        mid: AppConstants.apexEcrMid,
-        merchantSecureKey: AppConstants.apexEcrSecureKey,
-        ecrCurrencyCode: AppConstants.apexEcrCurrencyCode,
-        ecrTillerUserName: 'Kiosk',
-        ecrTillerFullName: 'Chicket Kiosk',
-      ),
-    );
-
     try {
-      final response = await _repository.performSettlement(request);
+      final response = await AfsPayment.instance.processSettlement();
+
       logLocal(
-        'API: ${AppConstants.apexEcrBaseUrl}/EcrComInterface.svc\nRequest: ${request.toXml()}\nResponse: ${response.rawXmlResponse}',
+        'Request: Settlement\nResponse: ${response.rawXmlResponse}',
       );
+
       if (response.webResponseStatus.toLowerCase() == '0' ||
           response.webResponseStatus.toLowerCase() == 'success') {
         statusMessage.value = 'Settlement Successful!';
@@ -158,11 +124,11 @@ class ApexEcrController extends GetxController {
       }
       return response;
     } catch (e) {
-      if (kDebugMode) debugPrint('ApexECR Settlement Error: $e');
-      logLocal('ApexEcrController processSettlement error: $e');
+      if (kDebugMode) debugPrint('AfsPayment Settlement Error: $e');
+      logLocal('AfsPaymentController processSettlement error: $e');
       final errorMsg = _getException(e);
       statusMessage.value = errorMsg;
-      return FinancialTxnResponse(
+      return AfsFinancialTxnResponse(
         webResponseStatus: '99',
         webResponseErrorDesc: errorMsg,
       );
@@ -172,7 +138,7 @@ class ApexEcrController extends GetxController {
   }
 
   /// Maps technical ECR response codes to user-friendly translatable strings.
-  String getErrorMessage(FinancialTxnResponse response) {
+  String getErrorMessage(AfsFinancialTxnResponse response) {
     if (response.webResponseStatus.toLowerCase() != '0' &&
         response.webResponseStatus.toLowerCase() != 'success') {
       if (response.webResponseErrorDesc?.contains('Timeout') == true) {

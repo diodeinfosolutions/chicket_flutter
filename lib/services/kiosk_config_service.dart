@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:icod_printer/icod_printer.dart';
 import '../utils/log_local.dart';
 
 /// Model representing the kiosk's configuration and organizational mappings.
@@ -14,6 +15,7 @@ class KioskConfig {
   final String externalMenuName;
   final String? defaultOrderTypeId;
   final String? defaultOrderTypeName;
+  final PrinterConfig? printerConfig;
 
   KioskConfig({
     required this.organizationId,
@@ -24,6 +26,7 @@ class KioskConfig {
     required this.externalMenuName,
     this.defaultOrderTypeId,
     this.defaultOrderTypeName,
+    this.printerConfig,
   });
 
   Map<String, dynamic> toJson() => {
@@ -35,6 +38,7 @@ class KioskConfig {
     'externalMenuName': externalMenuName,
     'defaultOrderTypeId': defaultOrderTypeId,
     'defaultOrderTypeName': defaultOrderTypeName,
+    'printerConfig': printerConfig?.toJson(),
   };
 
   factory KioskConfig.fromJson(Map<String, dynamic> json) => KioskConfig(
@@ -46,6 +50,9 @@ class KioskConfig {
     externalMenuName: json['externalMenuName'] as String,
     defaultOrderTypeId: json['defaultOrderTypeId'] as String?,
     defaultOrderTypeName: json['defaultOrderTypeName'] as String?,
+    printerConfig: json['printerConfig'] != null
+        ? PrinterConfig.fromJson(json['printerConfig'] as String)
+        : null,
   );
 
   @override
@@ -56,14 +63,16 @@ class KioskConfig {
           organizationId == other.organizationId &&
           terminalGroupId == other.terminalGroupId &&
           externalMenuId == other.externalMenuId &&
-          defaultOrderTypeId == other.defaultOrderTypeId;
+          defaultOrderTypeId == other.defaultOrderTypeId &&
+          printerConfig?.address == other.printerConfig?.address;
 
   @override
   int get hashCode =>
       organizationId.hashCode ^
       terminalGroupId.hashCode ^
       externalMenuId.hashCode ^
-      defaultOrderTypeId.hashCode;
+      defaultOrderTypeId.hashCode ^
+      (printerConfig?.address?.hashCode ?? 0);
 
   @override
   String toString() =>

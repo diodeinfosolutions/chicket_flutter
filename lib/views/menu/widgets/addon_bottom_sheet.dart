@@ -262,6 +262,7 @@ class AddonBottomSheet extends StatelessWidget {
                               modItem.nameAr!.trim().isNotEmpty)
                           ? modItem.nameAr!
                           : (modItem.name ?? 'Option');
+                      final modNameAr = modItem.nameAr;
                       final modPriceString =
                           modItem.prices?.firstOrNull?.price ?? '0';
                       final modPrice = double.tryParse(modPriceString) ?? 0.0;
@@ -277,6 +278,7 @@ class AddonBottomSheet extends StatelessWidget {
                           modName,
                           modPrice,
                           1,
+                          nameAr: modNameAr,
                         ),
                         child: Container(
                           padding: EdgeInsets.symmetric(
@@ -336,6 +338,7 @@ class AddonBottomSheet extends StatelessWidget {
                               modItem.nameAr!.trim().isNotEmpty)
                           ? modItem.nameAr!
                           : (modItem.name ?? 'Option');
+                      final modNameAr = modItem.nameAr;
                       final modPriceString =
                           modItem.prices?.firstOrNull?.price ?? '0';
                       final modPrice = double.tryParse(modPriceString) ?? 0.0;
@@ -351,6 +354,7 @@ class AddonBottomSheet extends StatelessWidget {
                           modName,
                           modPrice,
                           maxQuantity,
+                          nameAr: modNameAr,
                         ),
                         child: Container(
                           padding: EdgeInsets.symmetric(

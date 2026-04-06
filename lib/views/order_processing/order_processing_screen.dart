@@ -11,7 +11,7 @@ import '../../api/models/delivery_models.dart';
 import '../../gen/assets.gen.dart';
 import '../../routes.dart';
 import '../../theme/colors.dart';
-import '../../controllers/apex_ecr_controller.dart';
+import '../../controllers/afs_payment_controller.dart';
 import '../../utils/en_locale.dart';
 import '../../utils/log_local.dart';
 
@@ -77,7 +77,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
         paymentType?.paymentTypeKind == 'External';
 
     if (isCard) {
-      final ecrController = Get.find<ApexEcrController>();
+      final ecrController = Get.find<AfsPaymentController>();
       final amount = _orderController.cartTotal;
 
       // Multi-step transaction: 1. Pay on Terminal

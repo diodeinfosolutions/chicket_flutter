@@ -51,8 +51,10 @@ class SyrveController extends GetxController {
   final RxList<PaymentType> paymentTypes = <PaymentType>[].obs;
 
   /// Result of the most recently created order.
-  final Rx<CreateDeliveryResponse?> lastOrderResponse =
-      Rx<CreateDeliveryResponse?>(null);
+  final Rx<CreateDeliveryResponse?> lastOrderResponse = Rx<CreateDeliveryResponse?>(null);
+
+  /// The most recently sent order request.
+  final Rx<DeliveryOrder?> lastOrderRequest = Rx<DeliveryOrder?>(null);
 
   final RxBool _isDataLoaded = false.obs;
 
@@ -480,6 +482,8 @@ class SyrveController extends GetxController {
         payments: payments,
         comment: comment,
       );
+
+      lastOrderRequest.value = order;
 
       final result = await _repository.createDeliveryOrder(
         organizationId: organizationId!,

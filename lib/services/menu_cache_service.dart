@@ -28,8 +28,9 @@ class MenuCacheService extends GetxService {
     try {
       _box = await Hive.openBox(_boxName);
     } catch (e) {
-      if (kDebugMode)
+      if (kDebugMode) {
         debugPrint('⚠️ Failed to initialize MenuCacheService: $e');
+      }
       logLocal('MenuCacheService init error: $e');
       await Hive.deleteBoxFromDisk(_boxName);
       _box = await Hive.openBox(_boxName);

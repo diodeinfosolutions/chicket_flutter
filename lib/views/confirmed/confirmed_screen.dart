@@ -11,9 +11,36 @@ import '../../routes.dart';
 import '../../theme/colors.dart';
 import '../../utils/en_locale.dart';
 import '../homepage/widgets/footer_section.dart';
+import '../../services/print_service.dart';
 
-class ConfirmedScreen extends StatelessWidget {
+class ConfirmedScreen extends StatefulWidget {
   const ConfirmedScreen({super.key});
+
+  @override
+  State<ConfirmedScreen> createState() => _ConfirmedScreenState();
+}
+
+class _ConfirmedScreenState extends State<ConfirmedScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _printReceipt();
+  }
+
+  void _printReceipt() {
+    final syrveController = Get.find<SyrveController>();
+    final orderController = Get.find<OrderController>();
+    final orderResponse = syrveController.lastOrderResponse.value;
+    final orderInfo = orderResponse?.orderInfo;
+
+    if (orderInfo != null) {
+      Get.find<PrintService>().printReceipt(
+        orderInfo,
+        fallbackCart: orderController.cart.toList(),
+        fallbackTotal: orderController.cartTotal,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +50,16 @@ class ConfirmedScreen extends StatelessWidget {
     final orderResponse = syrveController.lastOrderResponse.value;
     final orderDetails = orderResponse?.orderInfo?.order;
 
-    // Use order.number if available, otherwise generate from posId last 4 chars
+    // Use externalNumber if available, then order.number, finally fallback to posId last 4 chars
+    final orderInfo = orderResponse?.orderInfo;
     String orderNumber = '-';
-    if (orderDetails?.number != null) {
+    if (orderInfo?.externalNumber != null && orderInfo!.externalNumber!.isNotEmpty) {
+      orderNumber = orderInfo.externalNumber!;
+    } else if (orderDetails?.number != null) {
       orderNumber = orderDetails!.number.toString();
-    } else if (orderResponse?.orderInfo?.posId != null) {
+    } else if (orderInfo?.posId != null) {
       // Use last 4 characters of posId as display number
-      final posId = orderResponse!.orderInfo!.posId!;
+      final posId = orderInfo!.posId!;
       orderNumber = posId.length >= 4
           ? posId.substring(posId.length - 4).toUpperCase()
           : posId.toUpperCase();
